@@ -21,6 +21,9 @@ editor_options:
 bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
+<!-- In terminal -->
+<!-- quarto render L1-probability-review.qmd -->
+
 # Sample space and events
 
 **Sample space** is the set of all possible outcomes from a random process.
