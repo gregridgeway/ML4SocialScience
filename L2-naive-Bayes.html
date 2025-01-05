@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="quarto-1.5.27" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+<meta name="author" content="Greg Ridgeway" />
+<meta name="dcterms.date" content="2025-01-04" />
+
+<title>L2 Naïve Bayes Classifier</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+<!-- htmldependencies:E3FAD763 -->
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <div id="quarto-toc-target"></div>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">L2 Naïve Bayes Classifier</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 4, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+<nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#prediction" id="toc-prediction"><span class="header-section-number">2</span> Prediction</a></li>
+  <li><a href="#estimation" id="toc-estimation"><span class="header-section-number">3</span> Estimation</a></li>
+  <li><a href="#example-nij-recidivism-challenge" id="toc-example-nij-recidivism-challenge"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</a></li>
+  <li><a href="#missing-data" id="toc-missing-data"><span class="header-section-number">5</span> Missing data</a></li>
+  <li><a href="#evaluating-performance" id="toc-evaluating-performance"><span class="header-section-number">6</span> Evaluating performance</a>
+  <ul>
+  <li><a href="#misclassification-rate-and-misclassification-cost" id="toc-misclassification-rate-and-misclassification-cost"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</a></li>
+  <li><a href="#receiver-operating-characteristic-roc" id="toc-receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</a></li>
+  <li><a href="#calibration" id="toc-calibration"><span class="header-section-number">6.3</span> Calibration</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary"><span class="header-section-number">7</span> Summary</a></li>
+  <li><a href="#references" id="toc-references"><span class="header-section-number">8</span> References</a></li>
+  </ul>
+</nav>
+<!-- In terminal -->
+<!-- quarto render L2-naive-Bayes.qmd -->
+<section id="introduction" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
+<p>Consider the aim of wanting to compute the probability that an individual is likely to reoffend (perhaps violently) during some period (e.g., while awaiting trial, in consideration for parole, or when setting probation terms). In statistical notation, this is <span class="math inline">\(P(Y = 1|\mathbf{x})\)</span>, where <span class="math inline">\(Y\)</span> is the indicator for recidivism, and <span class="math inline">\(\mathbf{x}\)</span> is the vector of features associated with the subject. Bayes’ theorem states that:</p>
+<p><span class="math display">\[
+P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
+\]</span></p>
+<p>It is convenient to rewrite the naïve Bayes classifier as the odds that <span class="math inline">\(Y = 1\)</span>:</p>
+<p><span class="math display">\[
+\frac{P(Y = 1|\mathbf{x})}{P(Y = 0|\mathbf{x})} = \frac{\frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}}{\frac{P(\mathbf{x}|Y = 0)P(Y = 0)}{P(\mathbf{x})}} = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x}|Y = 0)P(Y = 0)}
+\]</span></p>
+<p>This says that we need to know the rate at which recidivism occurs in the population, <span class="math inline">\(P(Y = 1)\)</span>, and how often it does not occur, <span class="math inline">\(P(Y=0)\)</span>. We also need the probability that a recidivist has the set of features <span class="math inline">\(\mathbf{x}\)</span>, and the probability that a non-recidivist has features <span class="math inline">\(\mathbf{x}\)</span>.</p>
+<p>The difficulty in implementation occurs when the dimension of <span class="math inline">\(\mathbf{x}\)</span> is large. In that case, the naïve Bayes classifier has seen widespread use. It forms the basis of the system described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. The naïve Bayes assumption is that</p>
+<p><span class="math display">\[
+     P(\mathbf{x}|Y=y) = P(x_1|Y=y)\cdots P(x_d|Y=y)
+\]</span> In other words, the components of the feature vector <span class="math inline">\(\mathbf{x}\)</span> are independent given <span class="math inline">\(y\)</span>. For example, the assumption says that given that a person recidivates, knowing that they were being held on a violent charge gives you no additional information about their employment. Although this assumption does not always hold, the naïve Bayes model has shown itself to be consistently robust to violations in the conditional independence assumption.</p>
+<p>There are several benefits to using such a model.</p>
+<ul>
+<li>Estimating the components of the model requires a single scan of the dataset</li>
+<li>Prediction for a new subject is linear in the dimension of the feature vector</li>
+<li>The model inferences are transparent through the use of evidence balance sheets. These devices, explained later, itemize the observed features that have values that favor a particular decision and in a separate column itemize the observed features that are against the decision</li>
+<li>Both estimation and prediction can handle missing data without special modifications</li>
+</ul>
+</section>
+<section id="prediction" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Prediction</h1>
+<p>Prediction for a new subject is efficient. For numerical reasons as well as interpretation, we often compute the prediction rule on the log-odds scale. On the log-odds scale the prediction rule is often called the “weight of evidence” (WOE). The following derivation shows that evidence for <span class="math inline">\(Y\)</span> accumulates additively on the log-odds scale. <span class="math display">\[
+\begin{split}
+\mbox{WoE} &amp;= \log\frac{P(Y=1|\mathbf{x})}{P(Y=0|\mathbf{x})} \\
+&amp;= \log\frac{P(Y=1)P(\mathbf{x}|Y=1)}{P(Y=0)P(\mathbf{x}|Y=0)} \\
+&amp;= \log\frac{P(Y=1)}{P(Y=0)} + \log\frac{P(\mathbf{x}|Y=1)}{P(\mathbf{x}|Y=0)} \\
+&amp;= \log\frac{P(Y=1)}{P(Y=0)} + \log\frac{P(x_1|Y=1)}{P(x_1|Y=0)} + \ldots + \log\frac{P(x_d|Y=1)}{P(x_d|Y=0)} \\
+&amp;= w_0 + w_1(x_1) + \ldots + w_d(x_d)
+\end{split}
+\]</span></p>
+<p>The <span class="math inline">\(w_j\)</span> are the weights of evidence described by <span class="citation" data-cites="Good">Good (<a href="#ref-Good" role="doc-biblioref">1965</a>)</span>. <span class="citation" data-cites="MMA">Madigan, Mosurski, and Almond (<a href="#ref-MMA" role="doc-biblioref">1996</a>)</span> and <span class="citation" data-cites="BKS">Becker, Kohavi, and Sommerfield (<a href="#ref-BKS" role="doc-biblioref">1997</a>)</span> further discuss and develop the explanatory strengths of weights of evidence. The prediction rule derivation here shows that the total weight of evidence is a sum of the weights of evidence of each component. On the log-odds scale, a positive total weight of evidence equates to <span class="math inline">\(P(Y = 1| \mathbf{x}) &gt; \frac{1}{2}\)</span> and a negative total weight of evidence equates to <span class="math inline">\(P(Y = 1| \mathbf{x}) &lt; \frac{1}{2}\)</span>. Computing the prediction requires a sum of <span class="math inline">\(d+1\)</span> weights each of which can be stored in a lookup table for constant time access. The next section discusses how to estimate the necessary weights of evidence to utilize this method.</p>
+</section>
+<section id="estimation" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Estimation</h1>
+<p>If we have data then estimation requires a single scan of the dataset. We need to estimate the prior rate of <span class="math inline">\(Y\)</span>, <span class="math inline">\(P(Y = y)\)</span>, and the conditional probabilities of each of the features, <span class="math inline">\(P(x_j | Y = y)\)</span>. The usual estimate of <span class="math inline">\(P(Y = y)\)</span> is simply the fraction of observations in the dataset for which <span class="math inline">\(Y\)</span> takes on the value <span class="math inline">\(y\)</span>, the maximum likelihood estimator for <span class="math inline">\(p\)</span>.</p>
+<p>We can estimate the remaining terms as <span id="eq-NBprob"><span class="math display">\[
+\hat P(x_j=x|Y=y) = \frac{\sum (x_{ij}=x)(y_i=y)}{\sum (y_i=y)}
+\tag{1}\]</span></span></p>
+<p>When the dataset is small or there are some values of <span class="math inline">\(x\)</span> that rarely occur, analysts frequently use the Laplace-corrected frequency. <span class="math display">\[
+\hat P(x_j=x|Y=y) = \frac{1+\sum (x_{ij}=x)(y_i=y)}{m_j+\sum (y_i=y)}
+\]</span> where <span class="math inline">\(m_j\)</span> is the number of possible values that <span class="math inline">\(x_j\)</span> can have. For example, if <span class="math inline">\(x_j\)</span> is a 0/1 variable then <span class="math inline">\(m_j=2\)</span>.</p>
+<p>This estimation step <strong>is</strong> machine learning. As new observations accumulate, we can update the probabilities in <a href="#eq-NBprob" class="quarto-xref">Equation 1</a>, which directly feed into the weights of evidence.</p>
+<p>The naïve Bayes classifier is particularly easy to estimate and update. It is certainly the simplest machine learning approach that we will encounter. It is particularly useful to start our exploration of machine learning with the naïve Bayes classifier because it sets up the issues that we will regularly encounter.</p>
+<table>
+<colgroup>
+<col style="width: 38%" />
+<col style="width: 61%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Characteristic</th>
+<th>Naïve Bayes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>What is the structure of the machine learning method?**</td>
+<td>Additive on the log odds scale</td>
+</tr>
+<tr class="even">
+<td>What is the objective?**</td>
+<td>Produce good probabilities of class labels</td>
+</tr>
+<tr class="odd">
+<td>How does it learn from data?**</td>
+<td>Simple calculation of probabilities like <a href="#eq-NBprob" class="quarto-xref">Equation 1</a></td>
+</tr>
+<tr class="even">
+<td>How computationally difficult is it to learn from data?**</td>
+<td>Easy, involving a single scan of the dataset</td>
+</tr>
+<tr class="odd">
+<td>Is the method interpretable?**</td>
+<td>Yes. Simple addition of weights of evidence</td>
+</tr>
+<tr class="even">
+<td>Can it handle different types of data sources?</td>
+<td>Limited to categorical data. Continuous features need to be discretized. Easily handles missing values</td>
+</tr>
+<tr class="odd">
+<td>Can it uncover the “true” relationship?</td>
+<td>No. It can only get to a close linear approximation on the log odds scale</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="example-nij-recidivism-challenge" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</h1>
+<p><a href="#tbl-woe" class="quarto-xref">Table 1</a> shows the weights of evidence. Here the weights of evidence are multiplied by 100 to make them easier to read.</p>
+<div id="tbl-woe" class="quarto-float">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: NIJ Challenge weights of evidence
+</figcaption>
+<div aria-describedby="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table>
+<colgroup>
+<col style="width: 49%" />
+<col style="width: 41%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Value</th>
+<th style="text-align: right;">WoE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Prior</strong></td>
+<td>NA</td>
+<td style="text-align: right;">31</td>
+</tr>
+<tr class="even">
+<td><strong>Gender</strong></td>
+<td>F</td>
+<td style="text-align: right;">-49</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>M</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td><strong>Age at Release</strong></td>
+<td>18-22</td>
+<td style="text-align: right;">63</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>23-27</td>
+<td style="text-align: right;">38</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>28-32</td>
+<td style="text-align: right;">17</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>33-37</td>
+<td style="text-align: right;">-1</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>38-42</td>
+<td style="text-align: right;">-16</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>43-47</td>
+<td style="text-align: right;">-30</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>48 or older</td>
+<td style="text-align: right;">-67</td>
+</tr>
+<tr class="odd">
+<td><strong>Education Level</strong></td>
+<td>At least some college</td>
+<td style="text-align: right;">-51</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>High School Diploma</td>
+<td style="text-align: right;">12</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Less than HS diploma</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="even">
+<td><strong>Prior Conviction Episodes (Viol)</strong></td>
+<td>false</td>
+<td style="text-align: right;">-7</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>true</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr class="even">
+<td><strong>Prison Offense</strong></td>
+<td>NA</td>
+<td style="text-align: right;">-1</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Drug</td>
+<td style="text-align: right;">-15</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Other</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Property</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Violent/Non-Sex</td>
+<td style="text-align: right;">-15</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Violent/Sex</td>
+<td style="text-align: right;">-106</td>
+</tr>
+<tr class="even">
+<td><strong>Prison Years</strong></td>
+<td>1-2 years</td>
+<td style="text-align: right;">11</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Greater than 2 to 3 years</td>
+<td style="text-align: right;">-9</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Less than 1 year</td>
+<td style="text-align: right;">27</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>More than 3 years</td>
+<td style="text-align: right;">-47</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>A positive <span class="math inline">\(w_j(x_j)\)</span> implies that the state of <span class="math inline">\(x_j\)</span> is evidence in favor of <span class="math inline">\(Y = 1\)</span> and a negative <span class="math inline">\(w_j(x_j)\)</span> is evidence in favor of <span class="math inline">\(Y = 0\)</span> (assuming equal costs for misclassification). After obtaining estimates of the probabilities we can construct an evidence balance sheet for a newly observed subject as described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. <a href="#tbl-evidbalsheet" class="quarto-xref">Table 2</a> shows the weights of evidence, each multiplied by 100 for readability, for a specific case.</p>
+<div id="tbl-evidbalsheet" class="quarto-float">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-evidbalsheet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Evidence balance sheet
+</figcaption>
+<div aria-describedby="tbl-evidbalsheet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table style="width:100%;">
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 7%" />
+<col style="width: 44%" />
+<col style="width: 10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th style="text-align: right;">WoE</th>
+<th>Feature</th>
+<th style="text-align: right;">WoE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Prior</strong></td>
+<td style="text-align: right;">31</td>
+<td></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td><strong>Offense = Property</strong></td>
+<td style="text-align: right;">26</td>
+<td>Education = At least some college</td>
+<td style="text-align: right;">-51</td>
+</tr>
+<tr class="odd">
+<td><strong>Years = 1-2 years</strong></td>
+<td style="text-align: right;">11</td>
+<td>Gender = F</td>
+<td style="text-align: right;">-49</td>
+</tr>
+<tr class="even">
+<td></td>
+<td style="text-align: right;"></td>
+<td>Age at Release = 38-42</td>
+<td style="text-align: right;">-16</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td style="text-align: right;"></td>
+<td>Prior Conviction Viol = false</td>
+<td style="text-align: right;">-7</td>
+</tr>
+<tr class="even">
+<td><strong>Total positive weight</strong></td>
+<td style="text-align: right;">68</td>
+<td>Total negative weight</td>
+<td style="text-align: right;">-123</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td style="text-align: right;"></td>
+<td>Total weight of evidence</td>
+<td style="text-align: right;">-55</td>
+</tr>
+<tr class="even">
+<td></td>
+<td style="text-align: right;"></td>
+<td>Probability =</td>
+<td style="text-align: right;">0.37</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The conversion from total weight of evidence to probability is <span class="math display">\[
+p=\frac{1}{1+\exp(-\mbox{WoE})}
+\]</span> or by the conversion table shown in <a href="#tbl-P2WoE" class="quarto-xref">Table 3</a>.</p>
+<div id="tbl-P2WoE" class="quarto-float">
+<figure class="quarto-float quarto-float-tbl">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-P2WoE-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Table: Conversion from probability to total weight of evidence
+</figcaption>
+<div aria-describedby="tbl-P2WoE-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Probability</th>
+<th style="text-align: right;">Total Weight of Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">10%</td>
+<td style="text-align: right;">-220</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">20%</td>
+<td style="text-align: right;">-139</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">30%</td>
+<td style="text-align: right;">-85</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">40%</td>
+<td style="text-align: right;">-41</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">50%</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">60%</td>
+<td style="text-align: right;">41</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">70%</td>
+<td style="text-align: right;">85</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80%</td>
+<td style="text-align: right;">139</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">90%</td>
+<td style="text-align: right;">220</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="missing-data" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Missing data</h1>
+<p>Missing data is common. Even though we may be interested in 20 different pieces of evidence, for a particular subject we may have information on only three of the features. The naïve Bayes classifier can still handle such a scenario without modification. For features that are frequently missing, we may allow that categorical feature to have a missing level and compute <span class="math inline">\(w_j(NA)=\frac{P(x_j=NA|Y=1)}{P(x_j=NA|Y=0)}\)</span>. Otherwise, the naïve Bayes assumption allows us to trivially skip unobserved features. Let’s say we have <span class="math inline">\(x_1, x_2, x_3\)</span>, but for a particular case <span class="math inline">\(x_3\)</span> is missing. We can simply predict using <span class="math display">\[
+    \frac{P(Y=1|x_1,x_2)}{P(Y=0|x_1,x_2)} = \frac{P(Y=1)}{P(Y=0)}\frac{P(x_1|Y=1)}{P(x_1|Y=0)}\frac{P(x_2|Y=1)}{P(x_2|Y=0)}
+\]</span> The naïve Bayes classifier is unconcerned that <span class="math inline">\(x_3\)</span> is unavailable.</p>
+</section>
+<section id="evaluating-performance" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Evaluating performance</h1>
+<p>Typically there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier’s performance.</p>
+<p>Of fundamental importance is evaluating the classifier on data that was not used in training the dataset. We will always evaluate “out-of-sample performance,” performance on data held back from the model fitting process, sometimes called a “validation dataset.” Particularly for more complex machine learning methods, they can become “overfit” to a training dataset to the point that they do not predict well on a validation dataset.</p>
+<section id="misclassification-rate-and-misclassification-cost" class="level2" data-number="6.1">
+<h2 data-number="6.1"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</h2>
+<p>The most straightforward performance measure is the misclassification rate, the fraction of cases for which the predicted value does not equal the true value.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+Misclassification rate
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-misclass"><span class="math display">\[
+\frac{1}{n} \sum_{i=1}^n I(y_i\neq\hat y_i)
+\tag{2}\]</span></span></p>
+</div>
+</div>
+<p>Baked into this calculation is some decision on where to set the threshold for predicting <span class="math inline">\(\hat y=1\)</span>. If we decided that <span class="math inline">\(\hat y=I(\hat p&gt;\frac{1}{2})\)</span>, equivalent to believing that false positives and false negatives had equal costs, then we could compute the misclassification rate for the Georgia parolee data as</p>
+<div class="cell">
+<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass=</span><span class="fu">mean</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;false&quot;</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.5</span>) <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                          (Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;true&quot;</span> <span class="sc">&amp;</span> p<span class="sc">&lt;</span><span class="fl">0.5</span>)))</span></code></pre></div>
+</div>
+<p>This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than than on the validation data (but really not by much in this example).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Sample</th>
+<th style="text-align: right;">Misclassification Rate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Training</td>
+<td style="text-align: right;">0.3641003</td>
+</tr>
+<tr class="even">
+<td>Validation</td>
+<td style="text-align: right;">0.3692840</td>
+</tr>
+</tbody>
+</table>
+<p>We may also compare the <strong>false positive</strong> and <strong>false negative</strong> rates. The false positive rate is the fraction among those who really are 0s, but we in error predict them to be 1s. That is, by mistake we labeled them as a 1. False negatives are those cases we mistakenly label as a 0. The false negative rate, therefore, is the fraction of cases that are truly 1s that we predict erroneously to be 0s.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+False positive rate
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-FalsePos"><span class="math display">\[
+    \frac{\sum_{i=1}^n I(y_i=0 \cap \hat y_i=1)}
+         {\sum_{i=1}^n I(y_i=0)}
+\tag{3}\]</span></span></p>
+<p>This is also known as a “Type I error”</p>
+<p>“Specificity” is <span class="math inline">\(1 - \mathrm{false\, positive\, rate}\)</span></p>
+</div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class='callout-icon'></i>
+</div>
+<div class="callout-title-container flex-fill">
+False negative rate
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-FalseNeg"><span class="math display">\[
+    \frac{\sum_{i=1}^n I(y_i=1 \cap \hat y_i=0)}
+         {\sum_{i=1}^n I(y_i=1)}
+\tag{4}\]</span></span></p>
+<p>This is also known as a “Type II error”</p>
+<p>“Sensitivity” or “recall” is <span class="math inline">\(1 - \mathrm{false\, negative\, rate}\)</span></p>
+</div>
+</div>
+</section>
+<section id="receiver-operating-characteristic-roc" class="level2" data-number="6.2">
+<h2 data-number="6.2"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</h2>
+<p>It is easy to make either the false positive or false negative rates 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.</p>
+<p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure 1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure 1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.5)\)</span>, the equal misclassification cost decision rule.</p>
+<div id="fig-roc" class="quarto-figure quarto-figure-center quarto-float">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="ROC.svg" class="img-fluid" style="width:100.0%" />
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 1: ROC curve for a naïve Bayes classifier on Georgia parolee data
+</figcaption>
+</figure>
+</div>
+<p>Different machine learning methods can produce different ROC curves. Ideally we would like it to be pushed well up into the top left corner, low false positives with high true positives.</p>
+<p>At Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier’s performance at only one threshold the way misclassification rate does. AUC turns out to be equal to the probability that the classifier ranks a random selected case with <span class="math inline">\(y_i=1\)</span> to have higher probability than a random selected <span class="math inline">\(y_i=0\)</span> case.</p>
+<p>In R, the <code>pROC</code> package calculates AUC and displays ROC curves.</p>
+<div class="cell">
+<div class="sourceCode" id="cb2"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;true&quot;</span>)<span class="sc">~</span>p, <span class="at">data=</span>datRecid)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># note x-axis is specificity, 1-FPR, and labeled from 1 down to 0</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code></pre></div>
+</div>
+</section>
+<section id="calibration" class="level2" data-number="6.3">
+<h2 data-number="6.3"><span class="header-section-number">6.3</span> Calibration</h2>
+<p>If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naive Bayes classifier graphically.</p>
+<p>To place the red dots in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> I created bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. In reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> show the actual rate of reoffending within each bin.</p>
+<p>The blue curve in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> is a smooth version of this using natural splines, which we will cover later. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.</p>
+<p>It is possible to calibrate the probabilities by inverting the blue curve. That is, if you want to know about parolees with a 30% chance of reoffending, then look up 0.30 on the vertical axis and find the associated predicted probability along the x-axis. This recalibrates the probabilities so that they match with the observed reoffense rates.</p>
+<p>It is trivial to obtain a perfectly calibrated prediction. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.</p>
+<div id="fig-calibNB" class="quarto-figure quarto-figure-center quarto-float">
+<figure class="quarto-float quarto-float-fig">
+<div aria-describedby="fig-calibNB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="calibrationNB.svg" class="img-fluid" style="width:100.0%" />
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-calibNB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 2: Calibration curve for a naïve Bayes classifier on Georgia parolee data
+</figcaption>
+</figure>
+</div>
+</section>
+</section>
+<section id="summary" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Summary</h1>
+<p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
+</section>
+<section id="references" class="level1 unnumbered" data-number="8">
+<h1 class="unnumbered" data-number="8"><span class="header-section-number">8</span> References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-BKS" class="csl-entry" role="listitem">
+Becker, B., R. Kohavi, and D. Sommerfield. 1997. <span>“Visualizing the Simple <span>Bayesian</span> Classifier.”</span> In <em>KDD 1997 Workshop on Issues in the Integration of Data Mining and Data Visualization</em>.
+</div>
+<div id="ref-DomingosPazzani" class="csl-entry" role="listitem">
+Domingos, P., and M. Pazzani. 1997. <span>“On the Optimality of the Simple <span>B</span>ayesian Classifier Under Zero-One Loss.”</span> <em>Machine Learning</em> 29: 103–30.
+</div>
+<div id="ref-Good" class="csl-entry" role="listitem">
+Good, I. J. 1965. <em>The Estimation of Probabilities: An Essay on Modern <span>Bayesian</span> Methods</em>. MIT Press.
+</div>
+<div id="ref-MMA" class="csl-entry" role="listitem">
+Madigan, D., K. Mosurski, and R. G. Almond. 1996. <span>“Explanation in Belief Networks.”</span> <em>Journal of Computational and Graphical Statistics</em> 6: 160–81.
+</div>
+<div id="ref-SK" class="csl-entry" role="listitem">
+Spiegelhalter, D. J., and R. P. Knill-Jones. 1984. <span>“Statistical and Knowledge-Based Approaches to Clinical Decision-Support Systems, with an Application in Gastroenterology (with Discussion).”</span> <em>Journal of the Royal Statistical Society (Series A)</em> 147: 35–77.
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id = "quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+</body>
+
+</html>
