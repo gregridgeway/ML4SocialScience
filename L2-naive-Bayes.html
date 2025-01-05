@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
-<head>
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
 
-<meta charset="utf-8" />
-<meta name="generator" content="quarto-1.5.27" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-
-<meta name="author" content="Greg Ridgeway" />
-<meta name="dcterms.date" content="2025-01-04" />
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-01-04">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -80,7 +78,19 @@ div.csl-indent {
   margin-left: 2em;
 }</style>
 
-<!-- htmldependencies:E3FAD763 -->
+
+<script src="L2-naive-Bayes_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L2-naive-Bayes_files/libs/quarto-html/quarto.js"></script>
+<script src="L2-naive-Bayes_files/libs/quarto-html/popper.min.js"></script>
+<script src="L2-naive-Bayes_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L2-naive-Bayes_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L2-naive-Bayes_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L2-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L2-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L2-naive-Bayes_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L2-naive-Bayes_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L2-naive-Bayes_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L2-naive-Bayes_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -118,7 +128,25 @@ window.Quarto = {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-  <div id="quarto-toc-target"></div>
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#prediction" id="toc-prediction" class="nav-link" data-scroll-target="#prediction"><span class="header-section-number">2</span> Prediction</a></li>
+  <li><a href="#estimation" id="toc-estimation" class="nav-link" data-scroll-target="#estimation"><span class="header-section-number">3</span> Estimation</a></li>
+  <li><a href="#example-nij-recidivism-challenge" id="toc-example-nij-recidivism-challenge" class="nav-link" data-scroll-target="#example-nij-recidivism-challenge"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</a></li>
+  <li><a href="#missing-data" id="toc-missing-data" class="nav-link" data-scroll-target="#missing-data"><span class="header-section-number">5</span> Missing data</a></li>
+  <li><a href="#evaluating-performance" id="toc-evaluating-performance" class="nav-link" data-scroll-target="#evaluating-performance"><span class="header-section-number">6</span> Evaluating performance</a>
+  <ul class="collapse">
+  <li><a href="#misclassification-rate-and-misclassification-cost" id="toc-misclassification-rate-and-misclassification-cost" class="nav-link" data-scroll-target="#misclassification-rate-and-misclassification-cost"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</a></li>
+  <li><a href="#receiver-operating-characteristic-roc" id="toc-receiver-operating-characteristic-roc" class="nav-link" data-scroll-target="#receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</a></li>
+  <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration"><span class="header-section-number">6.3</span> Calibration</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7</span> Summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8</span> References</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L2-naive-Bayes.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
 <main class="content" id="quarto-document-content">
 
@@ -159,25 +187,7 @@ window.Quarto = {
 
 </header>
 
-<nav id="TOC" role="doc-toc">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#introduction" id="toc-introduction"><span class="header-section-number">1</span> Introduction</a></li>
-  <li><a href="#prediction" id="toc-prediction"><span class="header-section-number">2</span> Prediction</a></li>
-  <li><a href="#estimation" id="toc-estimation"><span class="header-section-number">3</span> Estimation</a></li>
-  <li><a href="#example-nij-recidivism-challenge" id="toc-example-nij-recidivism-challenge"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</a></li>
-  <li><a href="#missing-data" id="toc-missing-data"><span class="header-section-number">5</span> Missing data</a></li>
-  <li><a href="#evaluating-performance" id="toc-evaluating-performance"><span class="header-section-number">6</span> Evaluating performance</a>
-  <ul>
-  <li><a href="#misclassification-rate-and-misclassification-cost" id="toc-misclassification-rate-and-misclassification-cost"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</a></li>
-  <li><a href="#receiver-operating-characteristic-roc" id="toc-receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</a></li>
-  <li><a href="#calibration" id="toc-calibration"><span class="header-section-number">6.3</span> Calibration</a></li>
-  </ul></li>
-  <li><a href="#summary" id="toc-summary"><span class="header-section-number">7</span> Summary</a></li>
-  <li><a href="#references" id="toc-references"><span class="header-section-number">8</span> References</a></li>
-  </ul>
-</nav>
+
 <!-- In terminal -->
 <!-- quarto render L2-naive-Bayes.qmd -->
 <section id="introduction" class="level1" data-number="1">
@@ -225,12 +235,12 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 <p>When the dataset is small or there are some values of <span class="math inline">\(x\)</span> that rarely occur, analysts frequently use the Laplace-corrected frequency. <span class="math display">\[
 \hat P(x_j=x|Y=y) = \frac{1+\sum (x_{ij}=x)(y_i=y)}{m_j+\sum (y_i=y)}
 \]</span> where <span class="math inline">\(m_j\)</span> is the number of possible values that <span class="math inline">\(x_j\)</span> can have. For example, if <span class="math inline">\(x_j\)</span> is a 0/1 variable then <span class="math inline">\(m_j=2\)</span>.</p>
-<p>This estimation step <strong>is</strong> machine learning. As new observations accumulate, we can update the probabilities in <a href="#eq-NBprob" class="quarto-xref">Equation 1</a>, which directly feed into the weights of evidence.</p>
+<p>This estimation step <strong>is</strong> machine learning. As new observations accumulate, we can update the probabilities in <a href="#eq-NBprob" class="quarto-xref">Equation&nbsp;1</a>, which directly feed into the weights of evidence.</p>
 <p>The naïve Bayes classifier is particularly easy to estimate and update. It is certainly the simplest machine learning approach that we will encounter. It is particularly useful to start our exploration of machine learning with the naïve Bayes classifier because it sets up the issues that we will regularly encounter.</p>
-<table>
+<table class="table">
 <colgroup>
-<col style="width: 38%" />
-<col style="width: 61%" />
+<col style="width: 38%">
+<col style="width: 61%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -249,7 +259,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </tr>
 <tr class="odd">
 <td>How does it learn from data?**</td>
-<td>Simple calculation of probabilities like <a href="#eq-NBprob" class="quarto-xref">Equation 1</a></td>
+<td>Simple calculation of probabilities like <a href="#eq-NBprob" class="quarto-xref">Equation&nbsp;1</a></td>
 </tr>
 <tr class="even">
 <td>How computationally difficult is it to learn from data?**</td>
@@ -265,25 +275,25 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </tr>
 <tr class="odd">
 <td>Can it uncover the “true” relationship?</td>
-<td>No. It can only get to a close linear approximation on the log odds scale</td>
+<td>No.&nbsp;It can only get to a close linear approximation on the log odds scale</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="example-nij-recidivism-challenge" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</h1>
-<p><a href="#tbl-woe" class="quarto-xref">Table 1</a> shows the weights of evidence. Here the weights of evidence are multiplied by 100 to make them easier to read.</p>
-<div id="tbl-woe" class="quarto-float">
-<figure class="quarto-float quarto-float-tbl">
+<p><a href="#tbl-woe" class="quarto-xref">Table&nbsp;1</a> shows the weights of evidence. Here the weights of evidence are multiplied by 100 to make them easier to read.</p>
+<div id="tbl-woe" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 1: NIJ Challenge weights of evidence
+Table&nbsp;1: NIJ Challenge weights of evidence
 </figcaption>
 <div aria-describedby="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table>
+<table class="table">
 <colgroup>
-<col style="width: 49%" />
-<col style="width: 41%" />
-<col style="width: 9%" />
+<col style="width: 49%">
+<col style="width: 41%">
+<col style="width: 9%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -423,19 +433,19 @@ Table 1: NIJ Challenge weights of evidence
 </div>
 </figure>
 </div>
-<p>A positive <span class="math inline">\(w_j(x_j)\)</span> implies that the state of <span class="math inline">\(x_j\)</span> is evidence in favor of <span class="math inline">\(Y = 1\)</span> and a negative <span class="math inline">\(w_j(x_j)\)</span> is evidence in favor of <span class="math inline">\(Y = 0\)</span> (assuming equal costs for misclassification). After obtaining estimates of the probabilities we can construct an evidence balance sheet for a newly observed subject as described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. <a href="#tbl-evidbalsheet" class="quarto-xref">Table 2</a> shows the weights of evidence, each multiplied by 100 for readability, for a specific case.</p>
-<div id="tbl-evidbalsheet" class="quarto-float">
-<figure class="quarto-float quarto-float-tbl">
+<p>A positive <span class="math inline">\(w_j(x_j)\)</span> implies that the state of <span class="math inline">\(x_j\)</span> is evidence in favor of <span class="math inline">\(Y = 1\)</span> and a negative <span class="math inline">\(w_j(x_j)\)</span> is evidence in favor of <span class="math inline">\(Y = 0\)</span> (assuming equal costs for misclassification). After obtaining estimates of the probabilities we can construct an evidence balance sheet for a newly observed subject as described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. <a href="#tbl-evidbalsheet" class="quarto-xref">Table&nbsp;2</a> shows the weights of evidence, each multiplied by 100 for readability, for a specific case.</p>
+<div id="tbl-evidbalsheet" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-evidbalsheet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 2: Evidence balance sheet
+Table&nbsp;2: Evidence balance sheet
 </figcaption>
 <div aria-describedby="tbl-evidbalsheet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table style="width:100%;">
+<table class="table">
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 7%" />
-<col style="width: 44%" />
-<col style="width: 10%" />
+<col style="width: 36%">
+<col style="width: 7%">
+<col style="width: 44%">
+<col style="width: 10%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -501,14 +511,14 @@ Table 2: Evidence balance sheet
 </div>
 <p>The conversion from total weight of evidence to probability is <span class="math display">\[
 p=\frac{1}{1+\exp(-\mbox{WoE})}
-\]</span> or by the conversion table shown in <a href="#tbl-P2WoE" class="quarto-xref">Table 3</a>.</p>
-<div id="tbl-P2WoE" class="quarto-float">
-<figure class="quarto-float quarto-float-tbl">
+\]</span> or by the conversion table shown in <a href="#tbl-P2WoE" class="quarto-xref">Table&nbsp;3</a>.</p>
+<div id="tbl-P2WoE" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-P2WoE-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 3: Table: Conversion from probability to total weight of evidence
+Table&nbsp;3: Table: Conversion from probability to total weight of evidence
 </figcaption>
 <div aria-describedby="tbl-P2WoE-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table>
+<table class="table">
 <thead>
 <tr class="header">
 <th style="text-align: right;">Probability</th>
@@ -569,12 +579,12 @@ Table 3: Table: Conversion from probability to total weight of evidence
 <p>Typically there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier’s performance.</p>
 <p>Of fundamental importance is evaluating the classifier on data that was not used in training the dataset. We will always evaluate “out-of-sample performance,” performance on data held back from the model fitting process, sometimes called a “validation dataset.” Particularly for more complex machine learning methods, they can become “overfit” to a training dataset to the point that they do not predict well on a validation dataset.</p>
 <section id="misclassification-rate-and-misclassification-cost" class="level2" data-number="6.1">
-<h2 data-number="6.1"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</h2>
+<h2 data-number="6.1" class="anchored" data-anchor-id="misclassification-rate-and-misclassification-cost"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</h2>
 <p>The most straightforward performance measure is the misclassification rate, the fraction of cases for which the predicted value does not equal the true value.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
-<i class='callout-icon'></i>
+<i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
 Misclassification rate
@@ -588,13 +598,13 @@ Misclassification rate
 </div>
 <p>Baked into this calculation is some decision on where to set the threshold for predicting <span class="math inline">\(\hat y=1\)</span>. If we decided that <span class="math inline">\(\hat y=I(\hat p&gt;\frac{1}{2})\)</span>, equivalent to believing that false positives and false negatives had equal costs, then we could compute the misclassification rate for the Georgia parolee data as</p>
 <div class="cell">
-<div class="sourceCode" id="cb1"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass=</span><span class="fu">mean</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;false&quot;</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.5</span>) <span class="sc">|</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                          (Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;true&quot;</span> <span class="sc">&amp;</span> p<span class="sc">&lt;</span><span class="fl">0.5</span>)))</span></code></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass=</span><span class="fu">mean</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.5</span>) <span class="sc">|</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                          (Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span> <span class="sc">&amp;</span> p<span class="sc">&lt;</span><span class="fl">0.5</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than than on the validation data (but really not by much in this example).</p>
-<table>
+<table class="table">
 <thead>
 <tr class="header">
 <th>Sample</th>
@@ -616,7 +626,7 @@ Misclassification rate
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
-<i class='callout-icon'></i>
+<i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
 False positive rate
@@ -634,7 +644,7 @@ False positive rate
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
-<i class='callout-icon'></i>
+<i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
 False negative rate
@@ -651,16 +661,16 @@ False negative rate
 </div>
 </section>
 <section id="receiver-operating-characteristic-roc" class="level2" data-number="6.2">
-<h2 data-number="6.2"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</h2>
+<h2 data-number="6.2" class="anchored" data-anchor-id="receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</h2>
 <p>It is easy to make either the false positive or false negative rates 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.</p>
-<p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure 1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure 1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.5)\)</span>, the equal misclassification cost decision rule.</p>
-<div id="fig-roc" class="quarto-figure quarto-figure-center quarto-float">
-<figure class="quarto-float quarto-float-fig">
+<p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.5)\)</span>, the equal misclassification cost decision rule.</p>
+<div id="fig-roc" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="ROC.svg" class="img-fluid" style="width:100.0%" />
+<img src="ROC.svg" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-roc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: ROC curve for a naïve Bayes classifier on Georgia parolee data
+Figure&nbsp;1: ROC curve for a naïve Bayes classifier on Georgia parolee data
 </figcaption>
 </figure>
 </div>
@@ -668,27 +678,27 @@ Figure 1: ROC curve for a naïve Bayes classifier on Georgia parolee data
 <p>At Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier’s performance at only one threshold the way misclassification rate does. AUC turns out to be equal to the probability that the classifier ranks a random selected case with <span class="math inline">\(y_i=1\)</span> to have higher probability than a random selected <span class="math inline">\(y_i=0\)</span> case.</p>
 <p>In R, the <code>pROC</code> package calculates AUC and displays ROC curves.</p>
 <div class="cell">
-<div class="sourceCode" id="cb2"><pre class="sourceCode r cell-code"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">&quot;true&quot;</span>)<span class="sc">~</span>p, <span class="at">data=</span>datRecid)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>p, <span class="at">data=</span>datRecid)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># note x-axis is specificity, 1-FPR, and labeled from 1 down to 0</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="calibration" class="level2" data-number="6.3">
-<h2 data-number="6.3"><span class="header-section-number">6.3</span> Calibration</h2>
+<h2 data-number="6.3" class="anchored" data-anchor-id="calibration"><span class="header-section-number">6.3</span> Calibration</h2>
 <p>If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naive Bayes classifier graphically.</p>
-<p>To place the red dots in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> I created bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. In reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> show the actual rate of reoffending within each bin.</p>
-<p>The blue curve in <a href="#fig-calibNB" class="quarto-xref">Figure 2</a> is a smooth version of this using natural splines, which we will cover later. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.</p>
+<p>To place the red dots in <a href="#fig-calibNB" class="quarto-xref">Figure&nbsp;2</a> I created bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. In reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibNB" class="quarto-xref">Figure&nbsp;2</a> show the actual rate of reoffending within each bin.</p>
+<p>The blue curve in <a href="#fig-calibNB" class="quarto-xref">Figure&nbsp;2</a> is a smooth version of this using natural splines, which we will cover later. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.</p>
 <p>It is possible to calibrate the probabilities by inverting the blue curve. That is, if you want to know about parolees with a 30% chance of reoffending, then look up 0.30 on the vertical axis and find the associated predicted probability along the x-axis. This recalibrates the probabilities so that they match with the observed reoffense rates.</p>
 <p>It is trivial to obtain a perfectly calibrated prediction. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.</p>
-<div id="fig-calibNB" class="quarto-figure quarto-figure-center quarto-float">
-<figure class="quarto-float quarto-float-fig">
+<div id="fig-calibNB" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-calibNB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="calibrationNB.svg" class="img-fluid" style="width:100.0%" />
+<img src="calibrationNB.svg" class="img-fluid figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-calibNB-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Calibration curve for a naïve Bayes classifier on Georgia parolee data
+Figure&nbsp;2: Calibration curve for a naïve Bayes classifier on Georgia parolee data
 </figcaption>
 </figure>
 </div>
@@ -696,11 +706,14 @@ Figure 2: Calibration curve for a naïve Bayes classifier on Georgia parolee da
 </section>
 <section id="summary" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Summary</h1>
-<p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
+<p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g.&nbsp;If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
 </section>
 <section id="references" class="level1 unnumbered" data-number="8">
-<h1 class="unnumbered" data-number="8"><span class="header-section-number">8</span> References</h1>
-<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">8 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-BKS" class="csl-entry" role="listitem">
 Becker, B., R. Kohavi, and D. Sommerfield. 1997. <span>“Visualizing the Simple <span>Bayesian</span> Classifier.”</span> In <em>KDD 1997 Workshop on Issues in the Integration of Data Mining and Data Visualization</em>.
 </div>
@@ -716,12 +729,9 @@ Madigan, D., K. Mosurski, and R. G. Almond. 1996. <span>“Explanation in Belief
 <div id="ref-SK" class="csl-entry" role="listitem">
 Spiegelhalter, D. J., and R. P. Knill-Jones. 1984. <span>“Statistical and Knowledge-Based Approaches to Clinical Decision-Support Systems, with an Application in Gastroenterology (with Discussion).”</span> <em>Journal of the Royal Statistical Society (Series A)</em> 147: 35–77.
 </div>
-</div>
-</section>
-
-</main>
+</div></section></div></main>
 <!-- /main column -->
-<script id = "quarto-html-after-body" type="application/javascript">
+<script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
     const mode = bsSheetEl.getAttribute("data-mode");
@@ -1287,6 +1297,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 </div> <!-- /content -->
 
-</body>
 
-</html>
+
+
+</body></html>
