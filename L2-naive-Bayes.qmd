@@ -24,6 +24,11 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- In terminal -->
 <!-- quarto render L2-naive-Bayes.qmd -->
 
+```{r}
+#| echo: false
+colTab <- ifelse(knitr::is_html_output(), "white", "black")
+```
+
 # Introduction
 
 Consider the aim of wanting to compute the probability that an individual is likely to reoffend (perhaps violently) during some period (e.g., while awaiting trial, in consideration for parole, or when setting probation terms). In statistical notation, this is $P(Y = 1|\mathbf{x})$, where $Y$ is the indicator for recidivism, and $\mathbf{x}$ is the vector of features associated with the subject. Bayes' theorem states that:
@@ -89,63 +94,127 @@ The naïve Bayes classifier is particularly easy to estimate and update. It is c
 
 | Characteristic                                   | Naïve Bayes                                                                 |
 |-------------------------------------------------|-----------------------------------------------------------------------------|
-| What is the structure of the machine learning method?** | Additive on the log odds scale                                               |
-| What is the objective?**                        | Produce good probabilities of class labels                                  |
-| How does it learn from data?**                  | Simple calculation of probabilities like @eq-NBprob                       |
-| How computationally difficult is it to learn from data?** | Easy, involving a single scan of the dataset                                |
-| Is the method interpretable?**                  | Yes. Simple addition of weights of evidence                                 |
+| What is the structure of the machine learning method? | Additive on the log odds scale                                               |
+| What is the objective?                        | Produce good probabilities of class labels                                  |
+| How does it learn from data?                  | Simple calculation of probabilities like @eq-NBprob                       |
+| How computationally difficult is it to learn from data? | Easy, involving a single scan of the dataset                                |
+| Is the method interpretable?                  | Yes. Simple addition of weights of evidence                                 |
 | Can it handle different types of data sources?  | Limited to categorical data. Continuous features need to be discretized. Easily handles missing values |
-| Can it uncover the "true" relationship?         | No. It can only get to a close linear approximation on the log odds scale   |
+| Can it uncover the "true" relationship?       | No. It can only get to a close linear approximation on the log odds scale   |
 
 
 
  
 # Example: NIJ Recidivism Challenge
-@tbl-woe shows the weights of evidence. Here the weights of evidence are multiplied by 100 to make them easier to read.
 
-| Feature                        | Value                     | WoE  |
-|--------------------------------|---------------------------|-----:|
-| **Prior**                      | NA                        | 31   |
-| **Gender**                     | F                         | -49  |
-|                                | M                         | 7    |
-| **Age at Release**             | 18-22                     | 63   |
-|                                | 23-27                     | 38   |
-|                                | 28-32                     | 17   |
-|                                | 33-37                     | -1   |
-|                                | 38-42                     | -16  |
-|                                | 43-47                     | -30  |
-|                                | 48 or older               | -67  |
-| **Education Level**            | At least some college     | -51  |
-|                                | High School Diploma       | 12   |
-|                                | Less than HS diploma      | 11   |
-| **Prior Conviction Episodes (Viol)** | false                   | -7   |
-|                                | true                      | 16   |
-| **Prison Offense**             | NA                        | -1   |
-|                                | Drug                      | -15  |
-|                                | Other                     | 15   |
-|                                | Property                  | 26   |
-|                                | Violent/Non-Sex           | -15  |
-|                                | Violent/Sex               | -106 |
-| **Prison Years**               | 1-2 years                 | 11   |
-|                                | Greater than 2 to 3 years | -9   |
-|                                | Less than 1 year          | 27   |
-|                                | More than 3 years         | -47  |
+We will demonstrate the naive Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice's [recidivism prediction challenge](https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk). The recidivism outcome, `Recidivism_Within_3years` takes the value `true` if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.
 
-: NIJ Challenge weights of evidence {#tbl-woe}
+We will start by loading some necessary R packages and the dataset.
 
-A positive $w_j(x_j)$ implies that the state of $x_j$ is evidence in favor of $Y = 1$ and a negative $w_j(x_j)$ is evidence in favor of $Y = 0$ (assuming equal costs for misclassification). After obtaining estimates of the probabilities we can construct an evidence balance sheet for a newly observed subject as described in @SK. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. @tbl-evidbalsheet shows the weights of evidence, each multiplied by 100 for readability, for a specific case.
+```{r}
+#| message: false
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+datRecid <- read.csv("data/NIJ_s_Recidivism_Challenge_Full_Dataset.csv")
+```
 
+## Estimating weights of evidence
+We compute the prior weight of evidence, $w_0$, as $\log\frac{P(Y=1)}{P(Y=0)}$.
+```{r}
+w0 <- mean(datRecid$Recidivism_Within_3years=="true")
+w0 # P(Y=1)
+w0 <- log(w0/(1-w0))
+w0
+```
+Since $w_0$ is positive, this suggests that without any other information, the evidence indicates that Georgia parolees are more likely to recidivate than not.
 
-| Feature                    | WoE  | Feature                          | WoE    |
-|----------------------------|-----:|----------------------------------|-------:|
-| **Prior**                  | 31   |                                  |        |
-| **Offense = Property**     | 26   | Education = At least some college | -51    |
-| **Years = 1-2 years**      | 11   | Gender = F                       | -49    |
-|                            |      | Age at Release = 38-42           | -16    |
-|                            |      | Prior Conviction Viol = false    | -7     |
-| **Total positive weight**  | 68   | Total negative weight            | -123   |
-|                            |      | Total weight of evidence         | -55    |
-|                            |      | Probability =                    | 0.37   |
+Let's now compute the weights of evidence for `Gender`. Since this feature takes on two values, we will need to compute two weights of evidence, $w_{Gender}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}$ and $w_{Gender}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}$.
+
+```{r}
+# 1. create a 2x2 table Y and Gender
+wGender <- with(datRecid, table(Recidivism_Within_3years, Gender))
+wGender
+# 2. make the rows sum to 1
+wGender <- wGender/rowSums(wGender)
+wGender
+# 3. convert to log odds, log of 2nd row/1st row
+wGender <- log(wGender[2,]/wGender[1,])
+wGender
+```
+Knowing that parolee is female parolee decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.
+
+The same calculations we did for `Gender` we can apply to `Age_at_Release`.
+```{r}
+wAge <- with(datRecid, table(Recidivism_Within_3years, Age_at_Release))
+wAge
+wAge <- wAge/rowSums(wAge)
+wAge
+wAge <- log(wAge[2,]/wAge[1,])
+wAge
+```
+Generally we see decreasing risk of reoffending with increasing age at release from prison.
+
+Let's take a step toward simplifying our code by making a weight of evidence function.
+```{r}
+WoE <- function(x,y)
+{
+  w <- table(y, x)
+  w <- w/rowSums(w)
+  return( log(w[2,]/w[1,]) )
+}
+```
+and let's test it out on `Age_at_Release` to make sure it works the way we think it is supposed to work.
+```{r}
+WoE(datRecid$Age_at_Release, datRecid$Recidivism_Within_3years)
+```
+
+Now we can turn our `WoE()` loose on all the columns that interest us.
+```{r}
+modNB <- datRecid |>
+  select(Gender, Age_at_Release, Education_Level, 
+         Prior_Conviction_Episodes_Viol, Prison_Offense, Prison_Years) |>
+  lapply(WoE, y=datRecid$Recidivism_Within_3years)
+modNB
+
+# collect weights into long form
+modNB <- data.frame(var=rep(names(modNB), lengths(modNB)),
+                    value=unlist(sapply(modNB, names)),
+                    woe=unlist(modNB),
+                    row.names = NULL)
+
+# add in prior weight of evidence and tidy up
+modNB <- data.frame(var="Prior", value=NA, woe=w0) |>
+  bind_rows(modNB) |>
+  mutate(value = ifelse(value=="", "NA", value),
+         woe = round(100*woe))
+```
+
+@tbl-woe shows the weights of evidence. Note that I have multiplied the weights of evidence by 100 to make them easier to read.
+```{r}
+#| label: tbl-woe
+#| tbl-cap: "NIJ Challenge weights of evidence"
+modNB |> 
+  mutate(var = ifelse(duplicated(var), "", var)) |>
+  kbl() |> 
+  kable_classic(full_width = FALSE) |> 
+  row_spec(0, color="black", background = "green") |>
+  row_spec(1:nrow(modNB), color=colTab)
+```
+
+## Evidence balance sheet
+A positive $w_j(x_j)$ implies that the state of $x_j$ is evidence in favor of $Y = 1$ and a negative $w_j(x_j)$ is evidence in favor of $Y = 0$. After obtaining the weight of evidence estimates, we can construct an evidence balance sheet for a newly observed subject as described in @SK. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. @tbl-evidbalsheet shows the weights of evidence for a specific parolee's case.
+
+| Feature                    | WoE  | Feature                           | WoE    |
+|----------------------------|-----:|-----------------------------------|-------:|
+| Prior                      | 31   |                                   |        |
+| Offense = Property         | 28   | Education = At least some college | -52    |
+| Years = 1-2 years          | 11   | Gender = F                        | -49    |
+|                            |      | Age at Release = 38-42            | -19    |
+|                            |      | Prior Conviction Viol = false     | -7     |
+| Total positive weight      | 70   | Total negative weight             | -127   |
+|                            |      | Total weight of evidence          | -57    |
+|                            |      | Probability =                     | 0.36   |
 
 : Evidence balance sheet {#tbl-evidbalsheet}
 
@@ -155,7 +224,7 @@ p=\frac{1}{1+\exp(-\mbox{WoE})}
 $$
 or by the conversion table shown in @tbl-P2WoE.
 
-
+<div style="width: auto; max-width: 50%; margin: auto;">
 | Probability | Total Weight of Evidence |
 |------------:|-------------------------:|
 | 10%         | -220                     |
@@ -168,7 +237,84 @@ or by the conversion table shown in @tbl-P2WoE.
 | 80%         | 139                      |
 | 90%         | 220                      |
 
-: Table: Conversion from probability to total weight of evidence {#tbl-P2WoE}
+: Conversion from probability to total weight of evidence {#tbl-P2WoE}
+</div>
+
+
+
+## Prediction
+
+To make a prediction for each parolee, we are going to take each parolee's data and "pivot" it into a long form. For example,
+```{r}
+datRecid |>
+  select(ID, Gender, Age_at_Release, Education_Level,
+         Prior_Conviction_Episodes_Viol,
+         Prison_Offense,Prison_Years) |>
+  pivot_longer(-ID, names_to="var")
+```
+In this way each row contains one feature for each parolee. Putting it in this form will allow us to join these features with their associated weights of evidence.
+```{r}
+predNBwoe <- datRecid |>
+  select(ID, Gender, Age_at_Release, Education_Level,
+         Prior_Conviction_Episodes_Viol,
+         Prison_Offense,Prison_Years) |>
+  pivot_longer(-ID, names_to="var") |>
+  mutate(value = ifelse(value=="", "NA", value)) |>
+  left_join(modNB, join_by(var, value))
+predNBwoe
+```
+Note that after the `left_join()` we have the correct weights of evidence the associate feature and its value. To make a prediction we just need to add all of the weights of evidence for each `ID` plus the prior weight of evidence.
+
+```{r}
+# get predictions
+predNB <- predNBwoe |>
+  group_by(ID) |>
+  summarize(totalWoE=modNB$woe[1] + sum(woe), # add prior WoE to WoE sum
+            p=1/(1+exp(-totalWoE/100)))
+predNB
+```
+
+
+Here's some R code assemble an evidence balance sheet for a parolee, here arbitrarily selected to be `ID==40`. 
+```{r}
+# evidence balance sheets
+ebs <- 
+  predNBwoe |> 
+  filter(ID==40) |>
+  mutate(feature=paste0(var,"=",value)) |>
+  select(feature,woe) |> 
+  bind_rows(data.frame(feature="Prior", woe=modNB$woe[1])) |>
+  arrange(feature!="Prior", desc(abs(woe)))  # put Prior at top
+
+posEvidence <- ebs |> filter(woe >  0)
+negEvidence <- ebs |> filter(woe <= 0)
+
+maxRows <- max(nrow(posEvidence), nrow(negEvidence))
+tab <- data.frame(posVar=rep(NA, maxRows+3),
+                  woeP=NA,
+                  negVar=NA,
+                  woeN=NA)
+tab[1:nrow(posEvidence), 1:2] <- posEvidence
+tab[1:nrow(negEvidence), 3:4] <- negEvidence
+tab[maxRows+1, c(1,3)] <- c("Total positive weight","Total negative weight")
+tab[maxRows+1, c(2,4)] <- colSums(tab[,c(2,4)], na.rm=TRUE)
+tab[maxRows+2, 3] <- "Total weight of evidence"
+tab[maxRows+2, 4] <- sum(tab[maxRows+1,c(2,4)])
+tab[maxRows+3, 3] <- "Probability ="
+tab[maxRows+3, 4] <- round(1/(1+exp(-tab[maxRows+2,4]/100)), 2)
+tab$woeN <- gsub(".00", "", as.character(tab$woeN))
+tab[is.na(tab)] <- ""
+
+kbl(tab,
+    col.names=c("Feature", "Weight of evidence", "Feature", "Weight of evidence"),
+    row.names = FALSE,
+    align="lrlr",
+    digits=0) |>
+  row_spec(0, color="black", background = "green") |>
+  row_spec(1:maxRows, color=colTab) |>
+  row_spec(maxRows+1:3,background="green") |>
+  kable_classic()
+```
 
 
 # Missing data
@@ -182,7 +328,57 @@ The naïve Bayes classifier is unconcerned that $x_3$ is unavailable.
 # Evaluating performance
 Typically there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier's performance.
 
-Of fundamental importance is evaluating the classifier on data that was not used in training the dataset. We will always evaluate "out-of-sample performance," performance on data held back from the model fitting process, sometimes called a "validation dataset." Particularly for more complex machine learning methods, they can become "overfit" to a training dataset to the point that they do not predict well on a validation dataset.
+Of fundamental importance is evaluating the classifier on data that was not used in training the classifier. We will always evaluate "out-of-sample performance," performance on data held back from the model fitting process, sometimes called a "validation dataset" or "test set". Particularly for more complex machine learning methods, they can become "overfit" to a training dataset to the point that they do not predict well on a validation dataset.
+
+Previously, we used all of the parolee data to estimate our weights of evidence. In reality, the dataset is split between a "training" set and a "test" set. 
+```{r}
+table(datRecid$Training_Sample)
+```
+
+Let's start by re-estimating our weights of evidence using only the training dataset and make predictions based on those weights.
+
+```{r}
+# prior weight of evidence
+w0 <- datRecid |>
+  filter(Training_Sample==1) |>
+  summarize(w0 = mean(Recidivism_Within_3years=="true"),
+            w0 = log(w0/(1-w0))) |>
+  pull(w0)
+
+modNB <- datRecid |>
+  filter(Training_Sample==1) |>
+  select(Gender, Age_at_Release, Education_Level, 
+         Prior_Conviction_Episodes_Viol, Prison_Offense, Prison_Years) |>
+  lapply(WoE, 
+         y=datRecid$Recidivism_Within_3years[datRecid$Training_Sample==1])
+
+modNB <- data.frame(var="Prior", value=NA, woe=w0) |>
+  bind_rows(data.frame(var=rep(names(modNB), lengths(modNB)),
+                       value=unlist(sapply(modNB, names)),
+                       woe=unlist(modNB),
+                       row.names = NULL)) |>
+  mutate(value = ifelse(value=="", "NA", value),
+         woe = woe)
+```
+Here I have not rounded or multiplied the weights of evidence by 100 since now we are going for precision rather than readability. `modNB` contains weights of evidence constructed only from the parolees included in the training dataset. Let's make predictions on everyone now using those weights.
+
+```{r}
+predNB <- datRecid |>
+  select(ID,Gender, Age_at_Release, Education_Level,
+         Prior_Conviction_Episodes_Viol,
+         Prison_Offense, Prison_Years) |>
+  pivot_longer(-ID, names_to="var") |>
+  mutate(value = ifelse(value=="", "NA", value)) |>
+  left_join(modNB, join_by(var, value)) |>
+  group_by(ID) |>
+  summarize(totalWoE = modNB$woe[modNB$var=="Prior"] + 
+                       sum(woe),
+            p=1/(1+exp(-totalWoE)))
+
+# add predictions to original data for all parolees
+datRecid <- datRecid |> 
+  left_join(predNB, join_by(ID==ID))
+```
 
 ## Misclassification rate and misclassification cost
 The most straightforward performance measure is the misclassification rate, the fraction of cases for which the predicted value does not equal the true value.
@@ -195,11 +391,8 @@ $$
 $$ {#eq-misclass}
 :::
 
-
-
 Baked into this calculation is some decision on where to set the threshold for predicting $\hat y=1$. If we decided that $\hat y=I(\hat p>\frac{1}{2})$, equivalent to believing that false positives and false negatives had equal costs, then we could compute the misclassification rate for the Georgia parolee data as
 ```{r}
-#| eval: false
 datRecid |> 
   group_by(Training_Sample) |>
   summarize(misclass=mean((Recidivism_Within_3years=="false" & p>0.5) |
@@ -207,12 +400,6 @@ datRecid |>
 ```
 
 This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than than on the validation data (but really not by much in this example).
-
-| Sample     | Misclassification Rate |
-|------------|-----------------------:|
-| Training   | 0.3641003              |
-| Validation | 0.3692840              |
-
 
 We may also compare the **false positive** and **false negative** rates. The false positive rate is the fraction among those who really are 0s, but we in error predict them to be 1s. That is, by mistake we labeled them as a 1. False negatives are those cases we mistakenly label as a 0. The false negative rate, therefore, is the fraction of cases that are truly 1s that we predict erroneously to be 0s.
 
@@ -244,24 +431,75 @@ This is also known as a "Type II error"
 "Sensitivity" or "recall" is $1 - \mathrm{false\, negative\, rate}$
 :::
 
+```{r}
+# false positive
+datRecid |> 
+  filter(p > 0.5) |> 
+  group_by(Training_Sample) |>
+  summarize(falsePos=mean(Recidivism_Within_3years=="false"))
+
+# false negative
+datRecid |> 
+  filter(p < 0.5) |> 
+  group_by(Training_Sample) |>
+  summarize(falsePos=mean(Recidivism_Within_3years=="true"))
+```
+
 
 ## Receiver Operating Characteristic (ROC)
-It is easy to make either the false positive or false negative rates 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.
+It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.
 
-To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. @fig-roc shows the result. The red dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.5)$, the equal misclassification cost decision rule.
+To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. @fig-roc shows the result. The red dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.5)$, the equal misclassification cost decision rule.  The blue dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.25)$, the equal misclassification cost decision rule.
 
-
-![ROC curve for a naïve Bayes classifier on Georgia parolee data](ROC.svg){#fig-roc width="100%"}
-
-
-
-Different machine learning methods can produce different ROC curves. Ideally we would like it to be pushed well up into the top left corner, low false positives with high true positives.
-
-At Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier's performance at only one threshold the way misclassification rate does. AUC turns out to be equal to the probability that the classifier ranks a random selected case with $y_i=1$ to have higher probability than a random selected $y_i=0$ case.
-
-In R, the `pROC` package calculates AUC and displays ROC curves.
 ```{r}
-#| eval: false
+#| label: fig-roc
+#| fig-cap: "Receiver Operating Characteristic (ROC) curve for the Naïve Bayes classifier. Points are marked for thresholds 0.5 (red) and 0.25 (blue)"
+#| fig-width: 6
+#| fig-height: 6
+
+# Receiver Operating Characteristic (ROC) plots FPR vs TPR
+threshold <- seq(min(datRecid$p), max(datRecid$p), 
+                 length=100)
+a <- sapply(threshold, function(p0)
+{
+  datRecid |> 
+    filter(Training_Sample==1) |>
+    group_by(Recidivism_Within_3years) |>
+    summarize(rate=mean(p>p0)) |>
+    pull(rate)
+})
+plot(a[1,], a[2,], type="l", lwd=3,
+     xlab="False positive rate",
+     ylab="True positive rate")
+abline(0,1)
+
+# mark threshold at 0.5
+i <- which.min(abs(threshold-0.5))
+points(a[1,i], a[2,i], col="red", pch=19, cex=2)
+# mark threshold at 0.5
+i <- which.min(abs(threshold-0.25))
+points(a[1,i], a[2,i], col="blue", pch=19, cex=2)
+```
+Remember that the false positive rate takes all the parolees who did *not* reoffend and calculates the fraction of those the classifier predicted to reoffend (mistakenly labeling them as a "positive"). The true positive rate takes all the parolees who *did* reoffend and calculates the fraction of those the classifier predicted to reoffend (correctly labeling them as a "positive").
+
+Different machine learning methods can produce different ROC curves. Ideally we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.
+
+The Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier's performance at only one threshold the way misclassification rate does. It is sometimes called the "concordance index". AUC turns out to be equal to the probability that the classifier ranks a random selected case with $y_i=1$ to have higher probability than a random selected $y_i=0$ case. We can compute the integral under the ROC curve numerically using the trapezoid rule.
+
+```{r}
+x <- rev(a[1,])
+y <- rev(a[2,])
+AUC <- sum( 0.5*(y[-1]+y[-length(y)]) * diff(x) )
+AUC
+```
+
+In R, the `pROC` package calculates AUC and displays ROC curves. You do not need to compute it "by hand" as we have done here.
+```{r}
+#| label: fig-rocpackage
+#| fig-cap: "Receiver Operating Characteristic (ROC) produced from the `pROC` package"
+#| fig-width: 6
+#| fig-height: 6
+#| message: false
 library(pROC)
 nbROC <- roc((Recidivism_Within_3years=="true")~p, data=datRecid)
 nbROC$auc
@@ -273,16 +511,63 @@ plot(nbROC)
 
 If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naive Bayes classifier graphically. 
 
-To place the red dots in @fig-calibNB I created bins for the predicted probabilities, $(0.1,0.2], \ldots, (0.8,0.9]$. For each parolee with predicted probability of reoffending in $(0.1,0.2]$ I computed the fraction that actually reoffended. In reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in @fig-calibNB show the actual rate of reoffending within each bin.
+I first create bins for the predicted probabilities, $(0.1,0.2], \ldots, (0.8,0.9]$. For each parolee with predicted probability of reoffending in $(0.1,0.2]$ I computed the fraction that actually reoffended. As you can see in @fig-calibration1, in reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in @fig-calibration1 show the actual rate of reoffending within each bin.
 
-The blue curve in @fig-calibNB is a smooth version of this using natural splines, which we will cover later. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.
+```{r}
+#| label: fig-calibration1
+#| fig-cap: "Calibration plot, binned to deciles"
+#| fig-width: 6
+#| fig-height: 6
+datRecid |>
+  filter(Training_Sample==1) |>
+  mutate(pCat = cut(p, breaks=(1:9)/10)) |>
+  filter(!is.na(pCat)) |> # for the few with p<0.1
+  group_by(pCat) |>
+  summarize(phat=mean(Recidivism_Within_3years=="true")) |>
+  mutate(p=0.05+(1:8)/10) |>
+  plot(phat~p, data=_, pch=16, col="red",
+       xlim=0:1, ylim=0:1,
+       xlab="Predicted probability",
+       ylab="Actual probability")
+```
+
+Binning the predictions into deciles is rather rough, so in @fig-calibration2 I created a blue curve that is a smooth version of the red dots using natural splines. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.
+
+```{r}
+#| label: fig-calibration2
+#| fig-cap: "Calibration plot, smoothed calibration curve"
+#| fig-width: 6
+#| fig-height: 6
+datRecid |>
+  filter(Training_Sample==1) |>
+  mutate(pCat = cut(p, breaks=(1:9)/10)) |>
+  filter(!is.na(pCat)) |> # for the few with p<0.1
+  group_by(pCat) |>
+  summarize(phat=mean(Recidivism_Within_3years=="true")) |>
+  mutate(p=0.05+(1:8)/10) |>
+  plot(phat~p, data=_, pch=16, col="red",
+       xlim=0:1, ylim=0:1,
+       xlab="Predicted probability",
+       ylab="Actual probability")
+
+# a smoothed version
+library(splines)
+calib <- lm((Recidivism_Within_3years=="true")~ns(p,10), 
+            data=subset(datRecid, Training_Sample==1))
+p <- seq(min(datRecid$p), max(datRecid$p), length=100)
+lines(p,
+      predict(calib, newdata=data.frame(p=p)),
+      type="l", lwd=3, col="blue")
+
+# what perfectly calibrated looks like
+abline(0,1)
+# mark the deciles of the probabilities
+rug(quantile(datRecid$p, prob=(0:10)/10))
+```
 
 It is possible to calibrate the probabilities by inverting the blue curve. That is, if you want to know about parolees with a 30% chance of reoffending, then look up 0.30 on the vertical axis and find the associated predicted probability along the x-axis. This recalibrates the probabilities so that they match with the observed reoffense rates.
 
-It is trivial to obtain a perfectly calibrated prediction. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.
-
-![Calibration curve for a naïve Bayes classifier on Georgia parolee data](calibrationNB.svg){#fig-calibNB width="100%"}
-
+It is trivial to obtain perfectly calibrated predictions. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.
 
 # Summary
 For more information on the topic, the article by @SK contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See @DomingosPazzani for example.
