@@ -107,7 +107,7 @@ The naïve Bayes classifier is particularly easy to estimate and update. It is c
  
 # Example: NIJ Recidivism Challenge
 
-We will demonstrate the naive Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice's [recidivism prediction challenge](https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk). The recidivism outcome, `Recidivism_Within_3years` takes the value `true` if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.
+We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice's [recidivism prediction challenge](https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk). The recidivism outcome, `Recidivism_Within_3years` takes the value `true` if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.
 
 We will start by loading some necessary R packages and the dataset.
 
@@ -509,7 +509,7 @@ plot(nbROC)
 
 ## Calibration
 
-If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naive Bayes classifier graphically. 
+If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naïve Bayes classifier graphically. 
 
 I first create bins for the predicted probabilities, $(0.1,0.2], \ldots, (0.8,0.9]$. For each parolee with predicted probability of reoffending in $(0.1,0.2]$ I computed the fraction that actually reoffended. As you can see in @fig-calibration1, in reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in @fig-calibration1 show the actual rate of reoffending within each bin.
 
@@ -568,6 +568,68 @@ rug(quantile(datRecid$p, prob=(0:10)/10))
 It is possible to calibrate the probabilities by inverting the blue curve. That is, if you want to know about parolees with a 30% chance of reoffending, then look up 0.30 on the vertical axis and find the associated predicted probability along the x-axis. This recalibrates the probabilities so that they match with the observed reoffense rates.
 
 It is trivial to obtain perfectly calibrated predictions. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.
+
+# The `naivebayes` package
+
+In practice, you do not need to do all the "hand calculations" we did in the previous sections to construct the naïve Bayes classifier. Like most methods we will discuss, someone has written a package that does all the calculations for you. There are actually several packages with implementations of the naïve Bayes classifier (`e1071` and `klaR`, for example). We will use the package `naivebayes` for this class, but you are welcome to experiment with the other versions.
+
+Let's start with loading the package.
+```{r}
+#| message: false
+library(naivebayes)
+```
+
+One feature (bug? quirk? complication?) of `naivebayes()` is that its `predict()` function has trouble handling categorical features variables with a blank (`""`) category. If you get an error like this
+```{r}
+#| eval: false
+Error in `[.default`(tab, V, ) : subscript out of bounds
+```
+then it is caused by one of your variables having a blank (`""`) value. So let's fix this issue before we go any further.
+
+```{r}
+datRecid <- datRecid |>
+  mutate(Prison_Offense=case_match(Prison_Offense,
+                                   "" ~ NA,
+                                   # "" ~ "Missing", # alternately
+                                   .default=Prison_Offense))
+```
+
+Now we can fit the naïve Bayes classifier to our data. Note here that the function allows us to set `laplace=1` so that all probability estimates have a +1 in the numerator and a +2 in the denominator.
+```{r}
+nb1 <- naive_bayes((Recidivism_Within_3years=="true")~Gender+
+                     Age_at_Release+Education_Level+
+                     Prior_Conviction_Episodes_Viol+
+                     Prison_Offense+
+                     Prison_Years,
+                   data=subset(datRecid,Training_Sample==1),
+                   laplace=1)
+```
+Let's explore the model object
+```{r}
+summary(nb1)
+nb1$prior
+nb1$tables
+nb1$tables$Gender
+tables(nb1, "Gender")
+```
+
+Let's make some predictions now.
+```{r}
+a <- datRecid |> 
+  select(names(get_cond_dist(nb1)))
+datRecid$pNBpack <- predict(nb1, newdata=a, type="prob")[,2]
+```
+
+Let's check that the predicted probabilities are nearly the same
+```{r}
+#| fig-cap: "Plot showing predicted probabilities from models are the same"
+#| fig-width: 6
+#| fig-height: 6
+plot(p~pNBpack, data=datRecid,
+     xlab="Predictions from naivebayes package",
+     ylab="Predictions from homemade naïve Bayes")
+```
+
 
 # Summary
 For more information on the topic, the article by @SK contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See @DomingosPazzani for example.

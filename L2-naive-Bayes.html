@@ -152,8 +152,9 @@ window.Quarto = {
   <li><a href="#receiver-operating-characteristic-roc" id="toc-receiver-operating-characteristic-roc" class="nav-link" data-scroll-target="#receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</a></li>
   <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration"><span class="header-section-number">6.3</span> Calibration</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7</span> Summary</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8</span> References</a></li>
+  <li><a href="#the-naivebayes-package" id="toc-the-naivebayes-package" class="nav-link" data-scroll-target="#the-naivebayes-package"><span class="header-section-number">7</span> The <code>naivebayes</code> package</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">9</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L2-naive-Bayes.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -291,7 +292,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </section>
 <section id="example-nij-recidivism-challenge" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</h1>
-<p>We will demonstrate the naive Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice’s <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">recidivism prediction challenge</a>. The recidivism outcome, <code>Recidivism_Within_3years</code> takes the value <code>true</code> if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.</p>
+<p>We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice’s <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">recidivism prediction challenge</a>. The recidivism outcome, <code>Recidivism_Within_3years</code> takes the value <code>true</code> if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.</p>
 <p>We will start by loading some necessary R packages and the dataset.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
@@ -1161,7 +1162,7 @@ Figure&nbsp;2: Receiver Operating Characteristic (ROC) produced from the <code>p
 </section>
 <section id="calibration" class="level2" data-number="6.3">
 <h2 data-number="6.3" class="anchored" data-anchor-id="calibration"><span class="header-section-number">6.3</span> Calibration</h2>
-<p>If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naive Bayes classifier graphically.</p>
+<p>If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naïve Bayes classifier graphically.</p>
 <p>I first create bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. As you can see in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a>, in reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a> show the actual rate of reoffending within each bin.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
@@ -1232,16 +1233,176 @@ Figure&nbsp;4: Calibration plot, smoothed calibration curve
 <p>It is trivial to obtain perfectly calibrated predictions. In the dataset, 57.8% of the training sample parolees reoffended within 3 years. So, predict everyone to reoffend with probability 0.578, a perfectly calibrated probability. Clearly, calibration as a performance measure on its own is not useful as such a predictive model has no ability to separate parolees who have higher or lower risk. Like all of the other measures described here, improving performance in one aspect sometimes decreases performance in another aspect.</p>
 </section>
 </section>
-<section id="summary" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Summary</h1>
+<section id="the-naivebayes-package" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> The <code>naivebayes</code> package</h1>
+<p>In practice, you do not need to do all the “hand calculations” we did in the previous sections to construct the naïve Bayes classifier. Like most methods we will discuss, someone has written a package that does all the calculations for you. There are actually several packages with implementations of the naïve Bayes classifier (<code>e1071</code> and <code>klaR</code>, for example). We will use the package <code>naivebayes</code> for this class, but you are welcome to experiment with the other versions.</p>
+<p>Let’s start with loading the package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naivebayes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>One feature (bug? quirk? complication?) of <code>naivebayes()</code> is that its <code>predict()</code> function has trouble handling categorical features variables with a blank (<code>""</code>) category. If you get an error like this</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>Error <span class="cf">in</span> <span class="st">`</span><span class="at">[.default</span><span class="st">`</span>(tab, V, ) <span class="sc">:</span> subscript out of bounds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>then it is caused by one of your variables having a blank (<code>""</code>) value. So let’s fix this issue before we go any further.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Prison_Offense=</span><span class="fu">case_match</span>(Prison_Offense,</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">""</span> <span class="sc">~</span> <span class="cn">NA</span>,</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="co"># "" ~ "Missing", # alternately</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">.default=</span>Prison_Offense))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can fit the naïve Bayes classifier to our data. Note here that the function allows us to set <code>laplace=1</code> so that all probability estimates have a +1 in the numerator and a +2 in the denominator.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>nb1 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>                     Prison_Years,</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s explore the model object</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================= Naive Bayes ================================== 
+ 
+- Call: naive_bayes.formula(formula = (Recidivism_Within_3years == "true") ~      Gender + Age_at_Release + Education_Level + Prior_Conviction_Episodes_Viol +          Prison_Offense + Prison_Years, data = subset(datRecid,      Training_Sample == 1), laplace = 1) 
+- Laplace: 1 
+- Classes: 2 
+- Samples: 18028 
+- Features: 6 
+- Conditional distributions: 
+    - Bernoulli: 2
+    - Categorical: 4
+- Prior probabilities: 
+    - FALSE: 0.422
+    - TRUE: 0.578
+
+-------------------------------------------------------------------------------- </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>prior</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    FALSE      TRUE 
+0.4219547 0.5780453 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>-------------------------------------------------------------------------------- 
+:: Gender (Bernoulli) 
+-------------------------------------------------------------------------------- 
+      
+Gender      FALSE       TRUE
+     F 0.15862794 0.09709297
+     M 0.84137206 0.90290703
+
+-------------------------------------------------------------------------------- 
+:: Age_at_Release (Categorical) 
+-------------------------------------------------------------------------------- 
+              
+Age_at_Release      FALSE       TRUE
+   18-22       0.05371684 0.10040276
+   23-27       0.15826110 0.23091676
+   28-32       0.17244550 0.20502493
+   33-37       0.16627266 0.16407748
+   38-42       0.12398214 0.10529344
+   43-47       0.12135540 0.08975834
+   48 or older 0.20396638 0.10452628
+
+-------------------------------------------------------------------------------- 
+:: Education_Level (Categorical) 
+-------------------------------------------------------------------------------- 
+                       
+Education_Level             FALSE      TRUE
+  At least some college 0.2302234 0.1389102
+  High School Diploma   0.4113009 0.4622026
+  Less than HS diploma  0.3584757 0.3988872
+
+-------------------------------------------------------------------------------- 
+:: Prior_Conviction_Episodes_Viol (Bernoulli) 
+-------------------------------------------------------------------------------- 
+                              
+Prior_Conviction_Episodes_Viol     FALSE      TRUE
+                         false 0.7042975 0.6542262
+                         true  0.2957025 0.3457738
+
+-------------------------------------------------------------------------------- 
+:: Prison_Offense (Categorical) 
+-------------------------------------------------------------------------------- 
+                 
+Prison_Offense         FALSE       TRUE
+  Drug            0.25086740 0.21522887
+  Other           0.11132901 0.12951144
+  Property        0.31482878 0.40845070
+  Violent/Non-Sex 0.26323729 0.22601232
+  Violent/Sex     0.05973752 0.02079665
+
+-------------------------------------------------------------------------------- 
+:: Prison_Years (Categorical) 
+-------------------------------------------------------------------------------- 
+                           
+Prison_Years                    FALSE      TRUE
+  1-2 years                 0.2920773 0.3269065
+  Greater than 2 to 3 years 0.1714624 0.1565468
+  Less than 1 year          0.2646170 0.3462830
+  More than 3 years         0.2718434 0.1702638
+
+--------------------------------------------------------------------------------</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables<span class="sc">$</span>Gender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      
+Gender      FALSE       TRUE
+     F 0.15862794 0.09709297
+     M 0.84137206 0.90290703</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tables</span>(nb1, <span class="st">"Gender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>-------------------------------------------------------------------------------- 
+:: Gender (Bernoulli) 
+-------------------------------------------------------------------------------- 
+      
+Gender      FALSE       TRUE
+     F 0.15862794 0.09709297
+     M 0.84137206 0.90290703
+
+--------------------------------------------------------------------------------</code></pre>
+</div>
+</div>
+<p>Let’s make some predictions now.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span> </span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">names</span>(<span class="fu">get_cond_dist</span>(nb1)))</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>datRecid<span class="sc">$</span>pNBpack <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb1, <span class="at">newdata=</span>a, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s check that the predicted probabilities are nearly the same</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p<span class="sc">~</span>pNBpack, <span class="at">data=</span>datRecid,</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Predictions from naivebayes package"</span>,</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="L2-naive-Bayes_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="576"></p>
+<figcaption>Plot showing predicted probabilities from models are the same</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
 <p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g.&nbsp;If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
 </section>
-<section id="references" class="level1 unnumbered" data-number="8">
+<section id="references" class="level1 unnumbered" data-number="9">
 
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">8 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">9 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-BKS" class="csl-entry" role="listitem">
 Becker, B., R. Kohavi, and D. Sommerfield. 1997. <span>“Visualizing the Simple <span>Bayesian</span> Classifier.”</span> In <em>KDD 1997 Workshop on Issues in the Integration of Data Mining and Data Visualization</em>.
 </div>
