@@ -22,7 +22,6 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
 <!-- In terminal -->
-
 <!-- quarto render L3-prediction-bias-variance.qmd -->
 <!-- quarto render L3-prediction-bias-variance.qmd --cache-refresh  -->
 
