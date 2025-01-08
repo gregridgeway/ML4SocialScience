@@ -472,7 +472,7 @@ dTrain |>
   summarize(misclass = mean( (wave4dropout==1 & p <= 0.5) |
                              (wave4dropout==0 & p >  0.5) ))
 ```
-Since 5.4% of students dropout and we predicted everyone to graduate, our misclassification rate is 5.4%. We were right 95% of the time by predicting that everyone graduates! Clearly, this is unhelpful because it is really important to identify the students at risk of dropping out. Just because a classifier is correct 95% of the time, this example shows you that it is not always useful. Failing to identify a high school dropout is quite expensive, much more costly than incorrectly thinking a student will dropout but they end up graduating. Let's assume that the false negative cost is 19 times more than the false positive cost. To be concrete, let's say the false negative cost is 19 and the false positive cost is 1. Therefore, we should predict drop out of $P(dropout|\mathbf{x}) > \frac{1}{1+19} = 0.05$. We can then compute the misclassification cost as
+Since 5.4% of students dropout and we predicted everyone to graduate, our misclassification rate is 5.4%. We were right 95% of the time by predicting that everyone graduates! Clearly, this is unhelpful because it is really important to identify the students at risk of dropping out. Just because a classifier is correct 95% of the time, this example shows you that it is not always useful. Failing to identify a high school dropout is quite expensive, much more costly than incorrectly thinking a student will dropout but they end up graduating. Let's assume that the false negative cost is 19 times more than the false positive cost. To be concrete, let's say the false negative cost is 19 and the false positive cost is 1. Therefore, we should predict drop out of $P(\mathrm{dropout}|\mathbf{x}) > \frac{1}{1+19} = 0.05$. We can then compute the misclassification cost as
 ```{r}
 misclass0 <- dTrain |> 
   summarize(misclassCost = 
@@ -513,7 +513,7 @@ Let's check the average misclassification cost for our test set.
 ```{r}
 # test set misclassification cost if predicted p=0 for all students
 dTest |>
-  summarize(misclass = 19*mean(wave4dropout==1))
+  summarize(misclassCost = 19*mean(wave4dropout==1))
 
 # test set misclassification cost with 1000-nn classifier
 misclassTest1000 <- dTest |> 
@@ -756,7 +756,7 @@ dGrid$p <- ifelse(knnPred=="1", dGrid$p, 1-dGrid$p)
 Now we can see how the 10-nn model divides the space. The lighter blue areas are those more likely to be spam and the dark areas tend to be non-spam.
 ```{r}
 #| label: fig-10nnGrid
-#| fig-cap: Predicted probability based on percentage of $ and !
+#| fig-cap: Predicted probability based on percentage of $ and ! using 10-nn model
 #| fig-width: 6
 #| fig-height: 5
 ggplot() +
@@ -772,7 +772,7 @@ Note that there is a a bit of a "scaling" issue. The percentage of characters th
 
 ```{r}
 #| label: fig-10nnGridReScale
-#| fig-cap: Predicted probability based on percentage of $ and !, rescaled to be between 0 and 1
+#| fig-cap: Predicted probability based on percentage of $ and !, rescaled to be between 0 and 1, using 10-nn model
 #| fig-width: 6
 #| fig-height: 5
 dTrain <- dTrain |> 
@@ -895,7 +895,7 @@ Also you can see that how we transform the email features has an effect on the m
 
 This process is "feature engineering"... trying to figure out what aspects and transforms of the inputs result in the best performance. knn's performance depends heavily on the scale of the features. One desirable property of a machine learning method is that either the method is indifferent to the scale or that it can learn on its own what transformations result in the best predictive performance.
 
-This dataset was already heavily feature engineered. The researchers already pulled 57 specific features from the emails presumably thinking that these were already good signs of spam. The best known performance on this dataset is 4%, using a boosting a method that is indifferent to the scale or transformations of the features.
+This dataset was already heavily feature engineered. The researchers already pulled 57 specific features from the emails presumably thinking that these were already good signs of spam. The best known performance on this dataset is 4%. To get that performance the researchers used boosting, a method that is indifferent to the scales of the features as well as any one-to-one transformations (e.g. log, exp, square root, square) of the features.
 
 # Summary
 
@@ -912,3 +912,5 @@ There is a bias-variance tradeoff. If we choose more neighbors we reduce varianc
 Using test sets or cross-validation we can choose the models and model parameters that offer the best predictive performance, balancing the bias-variance tradeoff.
 
 Ideally, a machine learning method could learn from the data what is the best way to transform the inputs to get the best predictive performance. knn requires a fair bit of *feature engineering* to improve predictive performance.
+
+# References

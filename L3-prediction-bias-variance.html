@@ -149,6 +149,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#filtering-spam" id="toc-filtering-spam" class="nav-link" data-scroll-target="#filtering-spam"><span class="header-section-number">6</span> Filtering spam</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7</span> Summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L3-prediction-bias-variance.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -671,7 +672,7 @@ EPE(\mathbf{x}_0)
 1   0.0538</code></pre>
 </div>
 </div>
-<p>Since 5.4% of students dropout and we predicted everyone to graduate, our misclassification rate is 5.4%. We were right 95% of the time by predicting that everyone graduates! Clearly, this is unhelpful because it is really important to identify the students at risk of dropping out. Just because a classifier is correct 95% of the time, this example shows you that it is not always useful. Failing to identify a high school dropout is quite expensive, much more costly than incorrectly thinking a student will dropout but they end up graduating. Let’s assume that the false negative cost is 19 times more than the false positive cost. To be concrete, let’s say the false negative cost is 19 and the false positive cost is 1. Therefore, we should predict drop out of <span class="math inline">\(P(dropout|\mathbf{x}) &gt; \frac{1}{1+19} = 0.05\)</span>. We can then compute the misclassification cost as</p>
+<p>Since 5.4% of students dropout and we predicted everyone to graduate, our misclassification rate is 5.4%. We were right 95% of the time by predicting that everyone graduates! Clearly, this is unhelpful because it is really important to identify the students at risk of dropping out. Just because a classifier is correct 95% of the time, this example shows you that it is not always useful. Failing to identify a high school dropout is quite expensive, much more costly than incorrectly thinking a student will dropout but they end up graduating. Let’s assume that the false negative cost is 19 times more than the false positive cost. To be concrete, let’s say the false negative cost is 19 and the false positive cost is 1. Therefore, we should predict drop out of <span class="math inline">\(P(\mathrm{dropout}|\mathbf{x}) &gt; \frac{1}{1+19} = 0.05\)</span>. We can then compute the misclassification cost as</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>misclass0 <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span> </span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> </span>
@@ -711,10 +712,10 @@ EPE(\mathbf{x}_0)
 <div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost if predicted p=0 for all students</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass =</span> <span class="dv">19</span><span class="sc">*</span><span class="fu">mean</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> <span class="dv">19</span><span class="sc">*</span><span class="fu">mean</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   misclass
-1 0.7950165</code></pre>
+<pre><code>  misclassCost
+1    0.7950165</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost with 1000-nn classifier</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>misclassTest1000 <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span> </span>
@@ -1059,7 +1060,7 @@ Figure&nbsp;8: Plot of spam and non-spam emails based on $ and !
 <img src="L3-prediction-bias-variance_files/figure-html/fig-10nnGrid-1.png" class="img-fluid figure-img" width="576">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10nnGrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Predicted probability based on percentage of $ and !
+Figure&nbsp;9: Predicted probability based on percentage of $ and ! using 10-nn model
 </figcaption>
 </figure>
 </div>
@@ -1097,7 +1098,7 @@ Figure&nbsp;9: Predicted probability based on percentage of $ and !
 <img src="L3-prediction-bias-variance_files/figure-html/fig-10nnGridReScale-1.png" class="img-fluid figure-img" width="576">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10nnGridReScale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Predicted probability based on percentage of $ and !, rescaled to be between 0 and 1
+Figure&nbsp;10: Predicted probability based on percentage of $ and !, rescaled to be between 0 and 1, using 10-nn model
 </figcaption>
 </figure>
 </div>
@@ -1197,7 +1198,7 @@ Figure&nbsp;11: Misclassification Rate by k and Transformation
 <p>First, it seems that the single nearest neighbor (<span class="math inline">\(k=1\)</span>) works best.</p>
 <p>Also you can see that how we transform the email features has an effect on the misclassification rate. Taking the tenth root of the each of the features and standardizing seems to do the best. Why tenth root? I have no idea. Almost certainly there is another way to transform these email features to get even better predictive performance.</p>
 <p>This process is “feature engineering”… trying to figure out what aspects and transforms of the inputs result in the best performance. knn’s performance depends heavily on the scale of the features. One desirable property of a machine learning method is that either the method is indifferent to the scale or that it can learn on its own what transformations result in the best predictive performance.</p>
-<p>This dataset was already heavily feature engineered. The researchers already pulled 57 specific features from the emails presumably thinking that these were already good signs of spam. The best known performance on this dataset is 4%, using a boosting a method that is indifferent to the scale or transformations of the features.</p>
+<p>This dataset was already heavily feature engineered. The researchers already pulled 57 specific features from the emails presumably thinking that these were already good signs of spam. The best known performance on this dataset is 4%. To get that performance the researchers used boosting, a method that is indifferent to the scales of the features as well as any one-to-one transformations (e.g.&nbsp;log, exp, square root, square) of the features.</p>
 </section>
 <section id="summary" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Summary</h1>
@@ -1211,10 +1212,13 @@ Figure&nbsp;11: Misclassification Rate by k and Transformation
 <p>There is a bias-variance tradeoff. If we choose more neighbors we reduce variance but increase bias. If we choose few neighbors, then we increase variance but decrease bias.</p>
 <p>Using test sets or cross-validation we can choose the models and model parameters that offer the best predictive performance, balancing the bias-variance tradeoff.</p>
 <p>Ideally, a machine learning method could learn from the data what is the best way to transform the inputs to get the best predictive performance. knn requires a fair bit of <em>feature engineering</em> to improve predictive performance.</p>
+</section>
+<section id="references" class="level1 unnumbered" data-number="8">
+
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">8 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-Hast:Tibs:2001" class="csl-entry" role="listitem">
 Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer-Verlag.
 </div>
