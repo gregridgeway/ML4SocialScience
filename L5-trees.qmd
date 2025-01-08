@@ -1,0 +1,799 @@
+---
+title: "Classification and regression trees"
+author:
+- affiliation: University of Pennsylvania
+  email: gridge@upenn.edu
+  name: Greg Ridgeway
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+format:
+  html:
+    theme: 
+      dark: darkly
+      light: default
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    toc: true
+prefer-html: true
+number-sections: true
+editor_options: 
+  chunk_output_type: console
+bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
+---
+
+<!-- In terminal -->
+<!-- quarto render L5-trees.qmd -->
+<!-- quarto render L5-trees.qmd --cache-refresh  -->
+
+
+```{r}
+#| echo: false
+#| message: false
+library(dplyr)
+library(kableExtra)
+set.seed(20010618)
+colTab <- ifelse(knitr::is_html_output(), "white", "black")
+```
+
+# Introduction to regression trees
+
+Refer to @Hast:Tibs:2001 Chapter 9.2.
+
+**Predicting age at death**: During aging, L-aspartic acid transforms into its D-form. Researchers obtained bone specimens from 15 human skulls with known age at death and measured the ratio of D-aspartic to L-aspartic acid.
+
+```{r}
+dAge <- data.frame(ratio=c(0.040,0.070,0.070,0.075,0.080,0.085,0.105,0.110,0.115,
+                           0.130,0.140,0.150,0.160,0.165,0.170),
+                   age=c(0,2,16,10,18,19,16,21,21,25,26,28,34,39,40))
+```
+
+<div style="max-width: 50%; margin: auto;">
+```{r}
+#| results: asis
+#| echo: false
+kbl(dAge, col.names = c("Ratio of D-aspartic to L-aspartic acid","Age")) |> 
+  kable_classic() |>
+  row_spec(0, color="black", background = "green") |>
+  row_spec(1:nrow(dAge), color=colTab)
+```
+</div>
+
+Here is a plot of the same data from the table.
+```{r}
+#| label: fig-ratioDLacid
+#| fig-cap: "Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age at death"
+plot(age~ratio, data=dAge, 
+     xlab="acid ratio", ylab="age",
+     pch=19)
+```
+
+**Loss function**: Let's find a function, $f(\mathbf{x})$, that minimizes squared error loss. 
+
+$$
+\hat J(f) = \sum_{i=1}^N (y_i-f(\mathbf{x}_i))^2
+$$
+
+Consider a variation on $k$-nearest neighbors
+
+1.  Rather than fix $k$, fix the number of neighborhoods. For computational convenience fix the number of neighborhoods to two
+2.  Each neighborhood does not need to have the same number of observations
+3.  Define a neighborhood on a single variable
+
+This basically fits a piecewise constant function to the data. Partition the dataset into two groups and predict a constant within each group.
+
+**How to split**: Let's find a good split point on the $x$ variable "ratio". To the left of this split point we will predict one constant value and to the right of this split point we will predict another. The next table lists all the possible places where we can split the dataset into two groups. For the left prediction, $y_L$, we will use the average age of the observations less than the split point and for the right prediction, $y_R$, we will use the average of the age of the observations greater than the split point.
+
+Now our squared-error loss function looks like 
+
+$$
+\hat J(c,y_L,y_R) = \sum_{i=1}^N I(x_i\leq c)(y_i-y_L)^2 + I(x_i>c)(y_i-y_R)^2.
+$$ 
+We just need to find values for $c$, $y_L$, and $y_R$ that minimize $\hat J(c,y_L,y_R)$.
+
+| Ratio | Age | Split               | Left Prediction | Right prediction | Squared error |
+|------:|----:|:--------------------|----------------:|-----------------:|--------------:|
+| 0.040 | 0   |                     |                 |                  |               |
+| 0.070 | 2   | ratio $\leq$ 0.0550 | 0               | 22.5             | 97.2          |
+| 0.070 | 16  |                     |                 |                  |               |
+| 0.075 | 10  | ratio $\leq$ 0.0725 | 6               | 24.08            | 72.8          |
+| 0.080 | 18  | ratio $\leq$ 0.0775 | 7               | 26.09            | 57.4          |
+| 0.085 | 19  | ratio $\leq$ 0.0825 | 9.2             | 26.9             | 59.0          |
+| 0.105 | 16  | ratio $\leq$ 0.0950 | 10.83           | 27.78            | 59.8          |
+| 0.110 | 21  | ratio $\leq$ 0.1075 | 11.57           | 29.25            | 50.9          |
+| 0.115 | 21  | ratio $\leq$ 0.1125 | 12.75           | 30.43            | 50.9          |
+| 0.130 | 25  | ratio $\leq$ 0.1225 | 13.67           | 32               | 48.0          |
+| 0.140 | 26  | ratio $\leq$ 0.1350 | 14.8            | 33.4             | 51.8          |
+| 0.150 | 28  | ratio $\leq$ 0.1450 | 15.82           | 35.25            | 54.8          |
+| 0.160 | 34  | ratio $\leq$ 0.1550 | 16.83           | 37.67            | 59.2          |
+| 0.165 | 39  | ratio $\leq$ 0.1625 | 18.15           | 39.5             | 76.0          |
+| 0.170 | 40  | ratio $\leq$ 0.1675 | 19.64           | 40               | 102.9         |
+
+: Choosing split points {#tab-ratioDLacidSplit1}
+
+Which split point should we choose?
+
+```{r}
+#| label: fig-ratioDLacidSplit1
+#| fig-cap: "Best single split regression tree using ratio to predict age"
+plot(age~ratio, data=dAge, pch=19)
+lines(c(0.04,0.1225),c(13.67,13.67))
+lines(c(0.1225,0.17),c(32,32))
+```
+
+Equivalently we can look at this as a regression tree. In R, `rpart`, recursive partitioning, implements the trademarked CART algorithm.
+```{r}
+#| echo: false
+#| fig-height: 4
+#| label: fig-treeRatioDLacidSplit2
+#| fig-cap: "Best single split regression tree using ratio to predict age"
+library(rpart)
+tree1 <- rpart(age~ratio, data=dAge,
+               minsplit=2,
+               minbucket=1)
+tree1 <- prune(tree1, cp = 0.17)
+par(xpd=NA) # to avoid the plot getting clipped
+plot(tree1, uniform=TRUE)
+text(tree1)
+```
+
+What should we do next? Recursive split the nodes.
+
+```{r}
+#| label: fig-ratioDLacidSplit3Plot
+#| fig-cap: "Best depth 2 tree partition of ratio to predict age (plot)"
+plot(age~ratio, data=dAge, pch=19)
+lines(c(0.04,0.0775),c(7,7))
+lines(c(0.0775,0.1225),c(19,19))
+lines(c(0.1225,0.155),c(26.33,26.33))
+lines(c(0.155,0.17),c(37.67,37.67))
+```
+
+```{r}
+#| echo: false
+#| fig-height: 4
+#| label: fig-treeRatioDLacidSplit3
+#| fig-cap: "Best depth 2 tree partition of ratio to predict age (decision tree)"
+tree1 <- rpart(age~ratio, data=dAge,
+               minsplit=2,
+               minbucket=1)
+tree1 <- prune(tree1, cp = 0.04)
+par(xpd=NA)
+plot(tree1, uniform=TRUE)
+text(tree1)
+```
+
+# Introduction to classification trees
+
+At crime scenes investigators need to determine whether glass fragments came from a window, eyeglasses, wine glass, or some other source. In this example we want to discriminate between window glass and other types of glass based on the samples' refractive index and sodium concentration.
+
+Where should we split? The first table shows the data sorted by refractive index and the second table shows the same data sorted on sodium concentration.
+
+<div style="max-width: 50%; margin: auto;">
+| Refractive index (sorted) | Na %  | Window glass |
+|--------------------------:|------:|-------------:|
+| 1.51590                   | 13.24 | 1            |
+| 1.51613                   | 13.88 | 0            |
+| 1.51673                   | 13.30 | 1            |
+| 1.51786                   | 12.73 | 1            |
+| 1.51811                   | 12.96 | 1            |
+| 1.51829                   | 14.46 | 0            |
+| 1.52058                   | 12.85 | 0            |
+| 1.52152                   | 13.12 | 1            |
+| 1.52171                   | 11.56 | 0            |
+| 1.52369                   | 13.44 | 0            |
+
+: Refractive index, sodium concentration, and window glass (sorted by refractive index) {#tab-glassSortRI}
+</div>
+
+<div style="max-width: 50%; margin: auto;">
+| Refractive index | Na % (sorted) | Window glass |
+|-----------------:|--------------:|-------------:|
+| 1.52171          | 11.56         | 0            |
+| 1.51786          | 12.73         | 1            |
+| 1.52058          | 12.85         | 0            |
+| 1.51811          | 12.96         | 1            |
+| 1.52152          | 13.12         | 1            |
+| 1.51590          | 13.24         | 1            |
+| 1.51673          | 13.30         | 1            |
+| 1.52369          | 13.44         | 0            |
+| 1.51613          | 13.88         | 0            |
+| 1.51829          | 14.46         | 0            |
+
+: Refractive index, sodium concentration, and window glass (sorted by sodium concentration)  {#tab-glassSortNA}
+</div>
+
+The best split on refractive index is between 1.51811 and 1.51829, giving a misclassification rate of 2/10. The best split on sodium concentration is between 13.30 and 13.44, which also gives a misclassification rate of 2/10. Splitting on either refractive index or on sodium concentration gives the identical misclassification rate. In both cases we have two misclassified observations. The most common way to break such ties is to go with the split that results in more pure nodes. Splitting on sodium concentration peels off three observations that are not window glass, creating a pure non-window glass group. Note that this is not the only possible choice, just a common one.
+
+Here is the best two-split classification tree. I first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.
+```{r}
+#| label: fig-ratioDLacidSplit3
+#| fig-cap: "Best two split classification tree using sodium concentration and refractive index to predict window glass (2D plot)"
+dGlass <- data.frame(ri=c(1.52171,1.51786,1.52058,1.51811,1.52152,1.51590,
+                          1.51673,1.52369,1.51613,1.51829),
+                     na=c(11.56,12.73,12.85,12.96,13.12,13.24,13.30,13.44,
+                          13.88,14.46),
+                     window=c(0,1,0,1,1,1,1,0,0,0))
+plot(na~ri, data=dGlass, pch=as.character(dGlass$window),
+     xlab="Refractive index",
+     ylab="Na concentration")
+a <- par()$usr
+rect(   a[1], 13.37, a[2],  a[4], col="lightblue")
+rect(1.51934,  a[3], a[2], 13.37, col="lightblue")
+text(dGlass$ri, dGlass$na, as.character(dGlass$window))
+```
+
+```{r}
+#| echo: false
+#| fig-height: 4
+#| label: fig-treeRINa3
+#| fig-cap: "Best two split classification tree using sodium concentration and refractive index to predict window glass (decision tree)"
+tree2 <- rpart(window~ri+na, data=dGlass,
+               method="class",
+               minsplit=2,
+               maxdepth=2,
+               minbucket=1)
+par(xpd=NA)
+plot(tree2, uniform=TRUE)
+text(tree2)
+```
+
+# Tree size and cross-validation
+
+We can continue to recursively partition the data until every observation is predicted as best as possible. Though, perhaps fitting the data perfectly is not ideal. This tree has 13 terminal nodes. Perhaps that is too many nodes. Why?
+
+```{r}
+#| echo: false
+#| fig-height: 4
+#| label: fig-treeRatioDLacidSplitMax
+#| fig-cap: "Very deep regression tree predicting age as best as possible"
+tree1 <- rpart(age~ratio, data=dAge,
+               minsplit=2,
+               minbucket=1,
+               cp=0)
+plot(age~ratio, dAge, pch=19)
+a <- par()$usr
+x <- seq(a[1], a[2], length.out=100)
+yAge <- predict(tree1, 
+                newdata=data.frame(ratio=x))
+lines(x, yAge)
+```
+
+This tree has two terminal nodes. Perhaps that is too few.
+
+```{r}
+#| echo: false
+#| fig-height: 4
+#| label: fig-treeRatioDLacidSplit2v1
+#| fig-cap: "Tree partition of ratio to predict age with a single split"
+tree1 <- rpart(age~ratio, data=dAge,
+               minsplit=2,
+               minbucket=1,
+               maxdepth=1)
+plot(age~ratio, dAge, pch=19)
+a <- par()$usr
+x <- seq(a[1], a[2], length.out=100)
+yAge <- predict(tree1, 
+                newdata=data.frame(ratio=x))
+lines(x, yAge)
+```
+
+## Cross-validation
+
+Cross-validation is the standard way for optimizing the choice for tuning parameters in machine learning methods. For knn, the tuning parameter was the number of neighbors. For classification and regression trees, the tuning parameter is the number of splits (or number of terminal nodes). Perhaps we might consider leave-one-out cross-validation as we did for knn.
+
+1.  Leave out the first observation.
+2.  Fit a tree using the other observations with two terminal nodes, and predict for the left out observation.
+3.  Recursively split so the tree now has three terminal nodes and predict for the left out observation.
+4.  Recursively split so the tree now has four terminal nodes and predict for the left out observation.
+5.  And carry on in this fashion until observation 1 has predictions from all sized trees.
+
+Now put the first observation back in the dataset and remove the second one. Repeat the process. This leave-one-out procedure simulates what would happen in reality, fitting a tree to a fixed dataset and then having to predict for a future observation.
+
+When the dataset is small, LOOCV is feasible, but it quickly becomes too much computatinal effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10\% of the data at a time and uses the remaining 90\% of the data for learning the tree.
+
+1.  Randomly assign every observation a number between 1 and 10. For example, `mydata$fold <- rep(1:10, length.out=nrow(mydata)) |> sample()`
+2.  Hold out all observations with `fold==1`
+3.  Fit a tree with two terminal nodes using the other observations (`filter(mydata, fold!=1)`), and predict for the left out observations (`predict(mytree, newdata=filter(mydata,fold==1))`)
+4.  Recursively split so the tree now has three terminal nodes and predict for all the held out observations
+5.  Recursively split so the tree now has four terminal nodes and predict for all the held out observations
+6.  Carry on in this fashion until all observations in fold 1 have predictions from all sized trees.
+
+Repeat steps 2-6 for fold=2, ..., 10. In this way, all observations have predictions from trees that did not use those observations in the learning process. This is more efficient than LOOCV in that we only had to fit 10 trees rather than $n$ trees.
+
+# Analysis of the age at death data using `rpart()`
+
+Let's revisit the problem of predicting age at death.
+```{r}
+#| label: fig-ratioDLacid2
+#| fig-cap: "Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age at death"
+plot(age~ratio, data=dAge,
+     xlab="acid ratio", ylab="age",
+     pch=19)
+```
+
+In this section we will use `rpart()` to fit a regression tree. `rpart()` has a parameter `xval` that you can set to the number of folds to use for cross-validation. Here I have set `xval=15`. Since the dataset has 15 observations, this is equivalent to LOOCV. `method="anova"` tells `rpart()` that this is a regression problem. `minsplit=2` and `minbucket=1` tells `rpart()` that it should try to split any node that has at least two observations and that every terminal node should have at least 1 observation. This is the minimum possible. The complexity parameter, `cp`, tells `rpart()` to only consider 
+```{r}
+# load the rpart library
+library(rpart)
+# show all the rpart commands
+#    library(help="rpart")
+# search for commands with the phrase "rpart"
+#    help.search('rpart')
+
+# fit the tree perfectly to the data
+# minimum obs to split is 2, min obs in node = 1, 
+# complexity parameter = 0 --> do not penalize size of tree
+set.seed(20240214)
+tree1 <- rpart(age~ratio,
+               data=dAge,
+               method="anova",
+               cp=0,
+               xval=15,
+               minsplit=2,
+               minbucket=1)
+```
+
+```{r}
+#| label: fig-ageRatioPerfectFit
+#| fig-cap: "Decision tree perfectly fit to the data"
+par(xpd=NA)
+plot(tree1, uniform=TRUE, compress=TRUE)
+text(tree1)
+```
+
+The figure below shows the LOOCV estimate of prediction error, which seems to be minimized with a tree with five terminal nodes (axis at the top of the graph).  I have also printed out the table with the details.  Note that the table counts the number of splits rather than the number of terminal nodes.
+```{r}
+#| label: fig-loocvAgeRatio
+#| fig-cap: "Leave-one-out cross-validated error by complexity parameter and number of terminal nodes"
+# compare complexity parameter to leave-one-out cross-validated error
+plotcp(tree1)
+printcp(tree1)
+```
+
+Here I'll display the tree fit to the entire dataset, using the LOOCV estimated optimal number of terminal nodes.
+```{r}
+#| label: fig-optimalTreeRatioAge
+#| fig-cap: "Decision tree with the number of terminal nodes optimized with cross-validation"
+
+# a little function to extract the best value for cp
+bestCP <- function(myTree)
+{
+  cpTable <- myTree$cptable
+  i <- which.min(cpTable[,"xerror"])
+  return( cpTable[i,"CP"] )
+}
+
+# "prune" the tree to the optimal size
+treeFinal <- prune(tree1, cp=bestCP(tree1))
+
+# predict using the tree
+# generate a sequence, of length 200, over the range of the acid ratio
+x <- seq(min(dAge$ratio), max(dAge$ratio), length.out=200)
+
+# predict age for the 200 ratios
+y <- predict(treeFinal, newdata=data.frame(ratio=x))
+
+# plot the actual data
+plot(age~ratio,
+     data=dAge,
+     xlab="ratio", ylab="age", pch=16)
+# draw lines for the fitted tree
+lines(x,y)
+```
+
+# Analysis of the glass data - a classification problem
+
+Note here that I reset `minsplit=20` and `minbucket=7`, their default values. Like this `rpart()` will not consider splitting a node unless there are at least 20 observations in it and each subsequent node must have at least 7 observations. Also note that I have set `method="class"`. This changes the loss function from least squares to misclassification rate. Misclassification costs default to equal costs, so the threshold for predicting window glass is $p>0.5$.
+
+This time we will use the full glass dataset from the UCI machine learning  archive. The glass type variable `type` can take on seven different values for seven different types of glass. While the CART algorithm can be used for multiclass classification problems, for simplicity we will just try to identify glass of type 1, float-processed building window glass (the most typical window glass made by pouring molten glass on to molten  tin..., by the way, four companies make almost all of the world's glass). Here is the full list of the 
+
+1.  building windows, float processed
+2.  building windows, non-float processed
+3.  vehicle windows, float processed
+4.  vehicle windows, non-float processed (none in this database)
+5.  containers
+6.  tableware
+7.  headlamps
+
+If you want to do the full multiclass classification, make sure that `type` is a factor variable and set `method="class"`. I will make a new variable `window` as a 0/1 indicator of float processed building window glass. Then I will fit the classification tree and try to use cross-validation to estimate the optimal tree size.
+
+```{r}
+#| label: fig-cvGlass
+#| fig-cap: Cross-validated error of glass classification by complexity parameter and tree size
+dGlass <- read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/glass/glass.data",
+                  header=FALSE, 
+                  col.names = c("ID","RI","Na","Mg","Al","Si",
+                                "K","Ca","Ba","Fe","type")) |>
+  # create 0/1 outcome for float
+  mutate(window = as.numeric(type==1))
+
+set.seed(20240214)
+tree1 <- rpart(window~RI+Na,
+               data=dGlass,
+               method="class",
+               cp=0.0,
+               minsplit=20, # default
+               minbucket=7) # default
+plotcp(tree1)
+```
+
+And let's also take a look at the raw numbers themselves.
+```{r}
+printcp(tree1)
+```
+
+The optimal tree size appears to have complexity parameter equal to `r bestCP(tree1)`. We use `prune()` to reduce the tree to this optimal size.
+```{r}
+#| label: fig-finalGlassTree
+#| fig-cap: Optimal classification tree for predicting building window glass
+treeFinal <- prune(tree1,
+                   cp=bestCP(tree1))
+par(xpd=NA)
+plot(treeFinal, uniform=TRUE)
+text(treeFinal)
+```
+
+Now let's try running it one more time including all of the glass features in the analysis.
+```{r}
+#| label: fig-cvGlassAllFeatures
+#| fig-cap: Cross-validated error of glass classification using all available feature by complexity parameter and tree size
+tree1 <- rpart(window~RI+Na+Mg+Al+Si+K+Ca+Ba+Fe,
+               data=dGlass,
+               method="class",
+               cp=0.0,
+               minsplit=20,
+               minbucket=7)
+plotcp(tree1)
+```
+
+```{r}
+printcp(tree1)
+```
+
+```{r}
+#| label: fig-finalGlassTreeAllFeatures
+#| fig-cap: Optimal classification tree using all available features for predicting building window glass
+treeFinal <- prune(tree1, cp=bestCP(tree1))
+par(xpd=NA)
+plot(treeFinal, uniform=TRUE)
+text(treeFinal)
+```
+
+# Other topics
+
+1.  Missing data. Some tree algorithms allow for a third branch for missing values (like having a separate branch for each of age<16, age $\geq$ 16, age missing). Other tree implementations weight missing observations by what fraction of cases go to a left branch and what fraction go to the right branch.
+
+2.  Splits where the variable is ordinal. For ordinal variables (like education), tree algorithms simply search among all possible ways of splitting the ordinal variable that maintains the ordering (like \[education=less than HS or HS\] and \[education=some college, BA/BS, MA/MS, MD/JD/PhD\]).
+
+3.  Splits where the variable is nominal. For nominal variables, tree algorithms consider all possible ways of splitting the observations into two groups. For race, this means that the algorithm needs to consider all possible ways to group five race categories into two groups.
+
+    -   \[Asian\] and \[Black, Hispanic, White, Other\]
+
+    -   \[Black\] and \[Asian, Hispanic, White, Other\]
+
+    -   \[Hispanic\] and \[Asian, Black, White, Other\]
+
+    -   \[White\] and \[Asian, Black, Hispanic, Other\]
+
+    -   \[Other\] and \[Asian, Black, Hispanic, White\]
+
+    -   \[Asian, Black\] and \[Hispanic, White, Other\]
+
+    -   \[Asian, Hispanic\] and \[Black, White, Other\]
+
+    -   \[Asian, White\] and \[Black, Hispanic, Other\]
+
+    -   \[Asian, Other\] and \[Black, Hispanic, White\]
+
+    -   \[Black, Hispanic\] and \[Asian, White, Other\]
+
+    -   \[Black, White\] and \[Asian, Hispanic, Other\]
+
+    -   \[Black, Other\] and \[Asian, Hispanic, White\]
+
+    -   \[Hispanic, White\] and \[Asian, Black, Other\]
+
+    -   \[Hispanic, Other\] and \[Asian, Black, White\]
+
+    -   \[White, Other\] and \[Asian, Black, Hispanic\]
+
+The number of possible splits can get very large. A nominal feature with $m$ categories will have $2^m-1$ possible ways of splitting them. For example, if `state` is one of your features than there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, $y$, the race groups are sorted as
+
+| Race     | $\bar y$ |
+|:---------|---------:|
+| Hispanic | 1.7      |
+| Asian    | 2.8      |
+| Black    | 3.2      |
+| White    | 4.1      |
+| Other    | 5.4      |
+
+then the optimal split has to be one of the following
+
+-   \[Hispanic\] and \[Asian, Black, White, Other\]
+-   \[Hispanic, Asian\] and \[Black, White, Other\]
+-   \[Hispanic, Asian, Black\] and \[White, Other\]
+-   \[Hispanic, Asian, Black, White\] and \[Other\]
+
+Phew! Rather than having to evaluate all $2^m-1$ possibilities we just need to evaluate $m-1$ possible splits.
+
+4.  Interpretability. Part of the appeal of classification and regression trees is that they present a nice interpretable structure. However, exercise 5 in the homework assignment asks you to explore this property.
+
+5.  Names. There are a variety of tree algorithms. The best known algorithms are CART (Classification and Regression Tree), C4.5, and C5.0. The name CART is trademarked, so the R implementation is in the `rpart` package (recursive partitioning). C5.0 is also available with the R package `C50`. They are essentially identical, but they traditionally use different loss functions. Earlier tree structured models were ID3 and CHAID.
+
+6.  Out-of-sample predictive performance. The only way to properly evaluate the performance of a machine learning method is to make all the fitting and tuning parameter selection on one dataset and evaluate its performance on a completely independent test dataset.
+
+# CART on the NELS88 data
+
+In this section we will walk through using the CART algorithm on the NELS88 data. We'll start by loading some libraries and the dataset.
+
+```{r}
+#| message: false
+library(dplyr)
+library(tidyr)
+load("data/nels.RData")
+```
+
+## Practice finding the first split "by hand"
+
+Let's find the first split "by hand". We'll consider all possible ways of splitting the sample into two based on `ses`, predict the dropout percentage to the "left" and to the "right," and evaluate in terms of mean squared error. Note that this analysis incorporates `F4QWT`, which is the sampling weight. It upweights the kinds of students who are underrepresented in the sample and downweights those who are overrepresented in the sample.
+
+```{r}
+#| label: codeFindFirstSplitByHand
+# consider all possible splits on SES
+sesSplits <- nels0$ses |> unique() |> sort()
+# find mid-point between each unique split
+sesSplits <- (sesSplits[-1] + sesSplits[-length(sesSplits)])/2
+
+mse <- rep(0, length(sesSplits))
+for(i in 1:length(sesSplits))
+{
+  # note the use of F4QWT (sampling weight)
+  pred <- nels0 |>
+    group_by(ses<sesSplits[i]) |>
+    summarize(p=weighted.mean(wave4dropout, F4QWT))
+  yPred <- ifelse(nels0$ses<sesSplits[i], pred$p[2], pred$p[1])
+  mse[i] <- weighted.mean((nels0$wave4dropout - yPred)^2, nels0$F4QWT)
+}
+```
+
+Let's plot the mean squared error by the SES split point and determine which split point minimizes it.
+
+```{r}
+#| label: fig-mseTreeNELS
+#| fig-cap: Mean squared error by SES split point
+plot(mse~sesSplits, type="l")
+
+# which split point minimizes MSE?
+i <- which.min(mse)
+c(sesSplits[i], mse[i])
+```
+
+If splitting only on SES, then split at `r sesSplits[which.min(mse)]` is optimal. If we wished to involve other student features, then we would need to repeat the process on *all* other features to see if any split exists that gives an MSE less than `r min(mse)`.
+
+## Using `rpart` to predict dropout
+
+```{r}
+tree1 <- rpart(wave4dropout~ses+famIncome,
+               method="anova",
+               data=nels0,
+               weights=nels0$F4QWT,
+               control=rpart.control(cp=0.011, xval=0))
+```
+
+A few notes on this call to `rpart()`. Setting `method="anova"` is equivalent to telling `rpart()` to minimize squared error. The other most common option is `method="class"`. When selecting `method="class"` you can set misclassification costs using `parms=list(loss=rbind(c(0,1),c(9,0)))`. `cp=0.011` sets the "complexity parameter" to 0.011. `rpart()` will continue recursively partitioning the data as long as the reduction in the loss function is at least `cp`. Typically, you would want this to be a little bigger than 0 so that the algorithm does not consider branches that do not really improve predictive performance. For now, we will just let the tree grow. Setting `xval=0` tells `rpart()` not to do any cross-validation. We will change this in a moment.
+
+Let's take a look at the resulting tree. When `uniform=FALSE`, the lengths of the branches are drawn in proportion to the reduction in the loss function attributable to the split.
+```{r}
+#| label: fig-treeDropout1
+#| fig-cap: Decision tree predicting dropout risk from SES and family income
+par(xpd=NA)
+plot(tree1, uniform=FALSE)
+text(tree1, minlength = 20, cex=0.5)
+```
+
+Now let's get some predicted values from the fitted tree.
+
+```{r}
+# get predicted values
+nels0$yPred <- predict(tree1, newdata=nels0)
+```
+
+And let's see how the tree has has carved up the 2D space.
+
+```{r}
+plot(nels0$famIncome, nels0$ses,
+     xlab="Family income", ylab="SES")
+abline(h=c(-1.006, -0.1875, -1.494))
+lines(c(5.5,5.5), c(-3,-1.494))
+a <- nels0 |>
+  group_by(yPred = round(yPred,3)) |>
+  summarize(famIncome = mean(as.numeric(famIncome), na.rm=TRUE),
+            ses = mean(ses))
+text(a$famIncome, a$ses, a$yPred, col="#3D2C8D", cex=1.5)
+```
+
+## Using 10-fold cross-validation to select the tree size
+
+In the previous section, I  fixed the complexity parameter to limit the size of the tree. In this section, we will use 10-fold cross-validation (a more appropriate method) to find the tree depth (or equivalently the complexity parameter) that results in a tree with the best predictive performance.
+
+Ten-fold cross-validation proceeds by 
+
+1.  hold out 10% of the data 
+2.  fit a regression tree of depth 1, 2, 3, ... on the remaining 90% 
+3.  predict the trees of each depth on the held out 10% 
+4.  repeat 1-3 for each of the 10 holdout sets 
+5.  evaluate predictive performance 
+
+In this way, every observation's predicted value was produced by a model that did not include that observation in its model fitting stage.
+
+Let's give this a try to figure out the optimal sized tree for predicting `wave4dropout` from `ses`.
+
+Note that the first step that I do is to fix the random number generator seed. This is because right at the beginning I randomly assign each observation to a "fold". Setting the random number generator seed makes it so that if we rerun the same code, we will get the same answer again.
+
+```{r}
+set.seed(20240214)
+# compute baseline MSE
+pred0 <- nels0 |>
+  summarize(weighted.mean(wave4dropout, F4QWT)) |>
+  pull()
+mse0 <- nels0 |>
+  summarize(weighted.mean((wave4dropout - pred0)^2, 
+                          F4QWT)) |>
+  pull()
+
+# for storing the results
+mseCV <- c(mse0, rep(NA,10)) 
+
+# assign each observation to a random number 1 to 10
+iFold <- sample(rep(1:10, length.out=nrow(nels0)))
+# for storing predicted values
+nels0$yPred <- rep(0, nrow(nels0))
+
+# consider trees of size 1 to 10
+for(iDepth in 1:10)
+{
+  # loop through each fold
+  for(iCV in 1:10)
+  {
+    # fit tree to those observations *not* in fold iCV
+    tree1 <- rpart(wave4dropout~ses,
+                   method="anova",
+                   # exclude the 10% held out
+                   data=subset(nels0, iFold!=iCV),
+                   weights=nels0$F4QWT[iFold!=iCV],
+                   control=rpart.control(maxdepth=iDepth, cp=0.0, xval=0))
+    
+    # predict for the held out 10%
+    nels0$yPred[iFold==iCV] <- nels0 |>
+      filter(iFold==iCV) |>
+      predict(tree1, newdata = _)
+  }
+  mseCV[iDepth+1] <- nels0 |>
+    summarize(weighted.mean((wave4dropout - yPred)^2, F4QWT)) |>
+    pull()
+}
+```
+
+Now let's have a look at the results and assess what tree depth minimizes mean squared error.
+
+```{r}
+#| label: fig-10foldCVbyHand
+#| fig-cap: "10-fold cross-validation predicting dropout from SES"
+plot(0:10, mseCV, xlab="Tree depth", ylab="10-fold CV MSE",
+     pch=19)
+```
+
+Having determined that a tree of depth 2 is best, let's fit a tree to the entire dataset limiting the depth to 2.
+
+```{r}
+#| label: fig-10foldCVbyHandTree
+#| fig-cap: "Decision tree selected using 10-fold cross-validation to predict dropout from SES"
+tree1 <- rpart(wave4dropout~ses,
+               method="anova",
+               data=nels0, # using entire dataset here
+               weights=F4QWT,
+               control=rpart.control(maxdepth=2, 
+                                     cp=0.0, xval=0))
+par(xpd=NA)
+plot(tree1, uniform=TRUE, compress=TRUE)
+text(tree1, minlength = 20)
+```
+
+And let's see what the shape of this model is in how it relates `ses` to `wave4dropout`.
+
+```{r}
+#| label: fig-treeRelationshipSESvDropout
+#| fig-cap: "Predicted probability of dropout from a tree of depth 2"
+# Trees fit piecewise constant functions
+yPred <- predict(tree1, newdata=nels0)
+plot(nels0$ses, yPred,
+     xlab="SES", ylab="Dropout probability")
+abline(v=tree1$splits[,"index"], col="grey")
+```
+
+Recall that when we used a knn model, we got a shape that had a similar pattern: high rate of dropout with low SES with a decreasing dropout rate as SES increased, with evidence of threshold and saturation effects.
+
+Fortunately, `rpart()` has built in functionality to do cross-validation. By default the parameter `xval` is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let's test this out using two student features this time around.
+
+Again as a first step I set the random number generator seed. This is because `rpart()` will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.
+
+```{r}
+set.seed(20240214)
+tree1 <- rpart(wave4dropout~ses+famIncome,
+               method="anova",
+               data=nels0,
+               weights=nels0$F4QWT,
+               control=rpart.control(cp=0.001, xval=10))
+```
+
+`plotcp()` shows a plot of the relationship between the complexity parameter, `cp`, and the cross-validation error (normalized so that the tree of depth 0 has a loss of 1.0). There is an equivalence between the complexity parameter and the number of terminal nodes in the tree, which the plot includes at the top. The plot also adds $\pm 1$ standard deviation "whiskers" around each error estimate.
+
+```{r}
+#| label: fig-treeRelationshipSESIncomevDropout
+#| fig-cap: "Plot of complexity parameter (or number of terminal nodes) versus the relative cross-validated error"
+plotcp(tree1)
+```
+
+You can also just get a table showing the same information that is in the plot.
+
+```{r}
+printcp(tree1)
+```
+
+So let's extract the optimal value of `cp` and reduce the tree, using `prune()`, so that the tree size matches the one with the best cross-validated error. It is more efficient to prune back the larger tree than to refit the tree.
+
+```{r}
+#| label: fig-10foldCVRpart
+#| fig-cap: "Decision tree selected using rpart's 10-fold cross-validation to predict dropout from SES and family income"
+tree2 <- prune(tree1, cp = bestCP(tree1))
+
+par(xpd=NA)
+plot(tree2, uniform=TRUE, compress=TRUE)
+text(tree2, minlength = 20, cex=0.7)
+```
+
+Note this is a similar tree as the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.
+
+Let's push this a little further using more student features.
+
+```{r}
+set.seed(20240214)
+tree1 <- rpart(wave4dropout~typeSchool+urbanicity+region+pctMinor+pctFreeLunch+
+                 female+race+ses+parentEd+famSize+famStruct+parMarital+
+                 famIncome+langHome,
+               method="anova",
+               data=nels0,
+               weights=nels0$F4QWT,
+               control=rpart.control(cp=0.001, xval=10))
+```
+
+Let's get the information on how the 10-fold cross-validation evaluates the different choices for `cp`.
+
+```{r}
+#| label: fig-treeRelationshipManyVarsvDropout
+#| fig-cap: "Plot of complexity parameter (or number of terminal nodes) versus the relative cross-validated error for tree with many student features"
+plotcp(tree1)
+```
+
+Again we will use the value of `cp` that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.
+
+```{r}
+#| label: fig-10foldCVRpartAllFeatures
+#| fig-cap: "Decision tree selected using rpart's 10-fold cross-validation to predict dropout from all available features"
+tree2 <- prune(tree1, cp = bestCP(tree1))
+par(xpd=NA)
+plot(tree2, uniform=TRUE, compress=TRUE)
+text(tree2, minlength = 20)
+```
+
+Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or an other relative (not dad alone, not mom and step-dad, not dad and step-mom).
+
+# Summary
+
+We explored the principles and applications of classification and regression trees, focusing on their versatility in handling prediction problems of different kinds, such as having continuous or discrete outcomes and having continuous or categorical features.
+
+1. We learned how trees partition data into meaningful subgroups to optimize predictive accuracy for both classification and regression problems
+2. Using the glass and NELS88 examples, we went step-by-step through creation and evaluation of decision trees, emphasizing their interpretability and the trade-offs between depth and performance
+3. Selecting the optimal tree size is a critical part of decision tree models. The optimal tree size balances bias and variance. Cross-validation is the key method for figuring out how much to prune overly complex trees, ensuring generalization to unseen or future cases
+
+The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we sill study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness
