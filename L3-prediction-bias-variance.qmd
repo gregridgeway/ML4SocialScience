@@ -912,4 +912,3 @@ Using test sets or cross-validation we can choose the models and model parameter
 
 Ideally, a machine learning method could learn from the data what is the best way to transform the inputs to get the best predictive performance. knn requires a fair bit of *feature engineering* to improve predictive performance.
 
-# References
