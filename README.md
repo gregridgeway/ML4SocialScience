@@ -10,3 +10,7 @@ Table of contents
     -   Spam example
 4. [Differential calculus review](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L4-calculus-review.html)
 5. [Classification and regression trees](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L5-trees.html)
+6. [Linear algebra](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L6-linear-algebra.html)
+    -   Basic matrix operations, including matrix derivatives
+    -   Ordinary least squares and ridge regression
+    -   Multivariate Taylor series, Newton-Raphson, logistic regression, iteratively reweighted least squares (IRLS)
