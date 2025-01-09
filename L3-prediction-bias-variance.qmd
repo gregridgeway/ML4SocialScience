@@ -30,7 +30,7 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 set.seed(20010618)
 ```
 
-Having explored the naive Bayes classifier, how it learns from data, and how to evaluate its performance, we now turn to the general problem of supervised machine learning. "Supervised" machine learning is the area of machine learning in which we have existing data with known outcomes that we are trying to predict. In the case of the Georgia parolees, we observed their reoffense status within three years.
+Having explored the naïve Bayes classifier, how it learns from data, and how to evaluate its performance, we now turn to the general problem of supervised machine learning. "Supervised" machine learning is the area of machine learning in which we have existing data with known outcomes that we are trying to predict. In the case of the Georgia parolees, we observed their reoffense status within three years.
 
 # Overview of prediction models
 
