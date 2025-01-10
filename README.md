@@ -17,4 +17,4 @@ Table of contents
 7. [Singular value decomposition](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html)
     -   Image compression
     -   Image classification with emojis
-8. [Boosting and $L_1$ regularization](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L8-boosting.html)
+8. [Boosting and L1 regularization](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L8-boosting.html)
