@@ -1,5 +1,5 @@
 # ML4SocialScience
-Class notes for University of Pennsylvania course on machine learning for social science
+Class notes for University of Pennsylvania course on machine learning for social science (CRIM6012/SOCI6012)
 
 Table of contents
 1. [Probability review](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L1-probability-review.html)
@@ -15,3 +15,6 @@ Table of contents
     -   Ordinary least squares and ridge regression
     -   Multivariate Taylor series, Newton-Raphson, logistic regression, iteratively reweighted least squares (IRLS)
 7. [Singular value decomposition](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html)
+    -   Image compression
+    -   Image classification with emojis
+8. [Boosting and $L_1$ regularization](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L8-boosting.html)
