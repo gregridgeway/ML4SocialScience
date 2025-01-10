@@ -14,3 +14,4 @@ Table of contents
     -   Basic matrix operations, including matrix derivatives
     -   Ordinary least squares and ridge regression
     -   Multivariate Taylor series, Newton-Raphson, logistic regression, iteratively reweighted least squares (IRLS)
+7. [Singular value decomposition](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html)
