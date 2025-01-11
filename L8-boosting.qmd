@@ -1130,3 +1130,35 @@ gbm1$variables$var_names
 interact(gbm1, data=nels0, var_indices = c(8,11), 
          num_trees = bestNTree)
 ```
+
+# Summary
+
+The document titled "L8 Boosting and L1 Regularization" provides a detailed exploration of sparse machine learning methods, focusing on techniques like LASSO (Least Absolute Shrinkage and Selection Operator), forward stagewise selection, and various forms of boosting. It includes theoretical foundations, algorithmic explanations, and applied examples. Below is a suggested summary section:
+
+---
+
+### Summary
+
+We have covered key concepts for "sparse" machine learning, focusing on $L_1$ regularization and boosting algorithms.
+
+1. **$L_1$ Regularization and Sparse Models**:
+   - $L_1$ regularization penalizes the absolute size of coefficients to promote the selection of only the most important features
+   - LASSO eliminates irrelevant features while preserving predictive accuracy
+   - The coefficient paths appear to be linear segments the weight on the $L_1$ penalty ($\lambda$) changes
+
+2. **Forward Stagewise Selection**:
+   - We can incrementally build models by iteratively adding features that most reduce the prediction error
+   - The coefficient path was exactly the same as the LASSO, but with a much more computational efficient approach. This equivalency is best exemplified with the Least Angle Regression (LARS) algorithm
+
+3. **Boosting Algorithms**:
+   - Gradient boosting is flexible method using regression trees as basis functions and using a forward stagewise approach to get $L_1$-like sparsity
+   - **LogitBoost** uses the Bernoulli log-likelihood for classification tasks
+   - **AdaBoost** was the original boosting algorithm that minimized an exponential loss function acting as an upper bounds on misclassification rates
+
+4. **Generalized Boosted Models (gbm3)**:
+   - Used the `gbm3` package to test out boosting on real datasets
+   - Use cross-validation to select the shrinkage and the number of iterations
+   - Measured the relative influence of individual features
+   - Examine partial dependence plots to show relationships between features and the outcome
+
+Since about 2005, the use of $L_1$ penalties has become a widespread method for fitting machine learning data involving a large collection of candidate predictors. Boosting is one of the best off-the-shelf prediction models, requiring little to no tuning to get strong predictive performance. More recent implementations are worth exploring such as as `xgboost`. 
