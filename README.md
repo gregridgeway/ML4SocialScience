@@ -18,3 +18,6 @@ Table of contents
     -   Image compression
     -   Image classification with emojis
 8. [Boosting and L1 regularization](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L8-boosting.html)
+    - Lasso
+    - Forward stagewise selection
+    - Gradient boosting
