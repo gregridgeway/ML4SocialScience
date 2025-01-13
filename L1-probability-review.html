@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-04">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>L1 Probability Review</title>
 <style>
@@ -171,7 +171,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 4, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -183,6 +183,8 @@ window.Quarto = {
 </header>
 
 
+<!-- In terminal -->
+<!-- quarto render L1-probability-review.qmd -->
 <section id="sample-space-and-events" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Sample space and events</h1>
 <p><strong>Sample space</strong> is the set of all possible outcomes from a random process.</p>
@@ -223,7 +225,7 @@ window.Quarto = {
 <li><span class="math inline">\(P(\bar A) = 1-P(A)\)</span>, where <span class="math inline">\(\bar A\)</span> means “not <span class="math inline">\(A\)</span>”</li>
 <li>If <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are independent, then <span class="math inline">\(P(A \cap B) = P(A)P(B)\)</span></li>
 </ol>
-<p>Two events are <strong>independent</strong> if the chances for the second event are the same regardless of how the first event turns out. Otherwise the two events are <strong>dependent</strong>.</p>
+<p>Two events are <strong>independent</strong> if the chances for the second event are the same regardless of how the first event turns out. Otherwise, the two events are <strong>dependent</strong>.</p>
 </section>
 </section>
 <section id="conditional-probability" class="level1" data-number="3">
@@ -476,7 +478,7 @@ Expected value of discrete random variables
 \tag{3}\]</span></span></p>
 </div>
 </div>
-<p><a href="#eq-expectedvalue-discrete" class="quarto-xref">Equation&nbsp;3</a> says that the expected value is the sum over all the possible values <span class="math inline">\(Y\)</span> can have times the probability that that value of <span class="math inline">\(Y\)</span> occurs.</p>
+<p>Equation (<a href="#eq-expectedvalue-discrete" class="quarto-xref">3</a>) says that the expected value is the sum over all the possible values <span class="math inline">\(Y\)</span> can have times the probability that that value of <span class="math inline">\(Y\)</span> occurs.</p>
 <section id="examples" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="examples"><span class="header-section-number">6.1</span> Examples:</h2>
 <ul>
@@ -525,7 +527,7 @@ Expected value of continuous random variables
 \tag{4}\]</span></span></p>
 </div>
 </div>
-<p><a href="#eq-expectedvalue-cont" class="quarto-xref">Equation&nbsp;4</a> replaces the sum with an integral and the probability function <span class="math inline">\(P(Y=y)\)</span> with a probability density function, <span class="math inline">\(p(y)\)</span>. Physically, <span class="math inline">\(\mathbb{E}(Y)\)</span> is the place where the shape <span class="math inline">\(p(y)\)</span> would balance.</p>
+<p>(<a href="#eq-expectedvalue-cont" class="quarto-xref">4</a>) replaces the sum with an integral and the probability function <span class="math inline">\(P(Y=y)\)</span> with a probability density function, <span class="math inline">\(p(y)\)</span>. Physically, <span class="math inline">\(\mathbb{E}(Y)\)</span> is the place where the shape <span class="math inline">\(p(y)\)</span> would balance.</p>
 <p>Example:</p>
 <ul>
 <li>Let <span class="math inline">\(T\)</span> be the time to reoffense with an exponential distribution of the form <span class="math display">\[
@@ -579,7 +581,7 @@ Law of Large Numbers
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(nChildren)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.8532</code></pre>
+<pre><code>[1] 1.8677</code></pre>
 </div>
 </div>
 </section>
@@ -601,19 +603,16 @@ Variance
 \tag{6}\]</span></span></p>
 </div>
 </div>
-<p>In the coming weeks we will be looking at terms like the following where <span class="math inline">\(D\)</span> represents an entire dataset, <span class="math inline">\(Y\)</span> is an outcome, and <span class="math inline">\(\mathbf{x}_0\)</span> is a set of specific case features. <span class="math inline">\(f(\mathbf{x})\)</span> is the best possible predictive model equal to <span class="math inline">\(\mathbb{E}_{D}(Y|\mathbf{x}_0)\)</span> and <span class="math inline">\(\hat f(\mathbf{x}_0)\)</span> is our machine learning method attempting to best predict <span class="math inline">\(y\)</span>.</p>
-<p><span id="eq-noise"><span class="math display">\[
+<p>In the coming weeks we will be looking at terms like the following where <span class="math inline">\(D\)</span> represents an entire dataset, <span class="math inline">\(Y\)</span> is an outcome, and <span class="math inline">\(\mathbf{x}_0\)</span> is a set of specific case features. <span class="math inline">\(f(\mathbf{x})\)</span> is the best possible predictive model equal to <span class="math inline">\(\mathbb{E}_{D}(Y|\mathbf{x}_0)\)</span> and <span class="math inline">\(\hat f(\mathbf{x}_0)\)</span> is our machine learning method attempting to best predict <span class="math inline">\(y\)</span>. <span id="eq-noise"><span class="math display">\[
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2
 \tag{7}\]</span></span></p>
-<p><a href="#eq-noise" class="quarto-xref">Equation&nbsp;7</a> represents <em>noise</em>. It is the variance of <span class="math inline">\(Y\)</span> and is the part of the outcome that is simply random noise, which no possible machine learning method could hope to capture.</p>
-<p><span id="eq-bias"><span class="math display">\[
+<p>Equation (<a href="#eq-noise" class="quarto-xref">7</a>) represents <em>noise</em>. It is the variance of <span class="math inline">\(Y\)</span> and is the part of the outcome that is simply random noise, which no possible machine learning method could hope to capture. <span id="eq-bias"><span class="math display">\[
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ \left( f(\mathbf{x}_0) - \mathbb{E}_D \hat{f}(\mathbf{x}_0|D) \right)^2 \right]
 \tag{8}\]</span></span></p>
-<p><a href="#eq-bias" class="quarto-xref">Equation&nbsp;8</a> represents <em>bias</em>, on average how far away our model, <span class="math inline">\(\hat f(\mathbf{x}|D)\)</span>, is from the best model, <span class="math inline">\(f(\mathbf{x})\)</span>.</p>
-<p><span id="eq-var"><span class="math display">\[
+<p>Equation (<a href="#eq-bias" class="quarto-xref">8</a>) represents <em>bias</em>, on average how far away our model, <span class="math inline">\(\hat f(\mathbf{x}|D)\)</span>, is from the best model, <span class="math inline">\(f(\mathbf{x})\)</span>. <span id="eq-var"><span class="math display">\[
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (\hat f(\mathbf{x}_0|D)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2
 \tag{9}\]</span></span></p>
-<p>Lastly, <a href="#eq-var" class="quarto-xref">Equation&nbsp;9</a> represents <em>variance</em>, how much our predictions change from dataset to dataset. It is the variability of our machine learning approach and how sensitive it is to changes in the dataset that we use to train the machine learning method.</p>
+<p>Lastly, (<a href="#eq-var" class="quarto-xref">9</a>) represents <em>variance</em>, how much our predictions change from dataset to dataset. It is the variability of our machine learning approach and how sensitive it is to changes in the dataset that we use to train the machine learning method.</p>
 </section>
 </section>
 <section id="final-notes" class="level1" data-number="7">

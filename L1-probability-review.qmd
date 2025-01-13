@@ -66,7 +66,7 @@ Note: $\cup$ is like "or", $\cap$ is like "and"
 2.  $P(\bar A) = 1-P(A)$, where $\bar A$ means "not $A$"
 3.  If $A$ and $B$ are independent, then $P(A \cap B) = P(A)P(B)$
 
-Two events are **independent** if the chances for the second event are the same regardless of how the first event turns out. Otherwise the two events are **dependent**.
+Two events are **independent** if the chances for the second event are the same regardless of how the first event turns out. Otherwise, the two events are **dependent**.
 
 # Conditional probability
 
@@ -321,7 +321,7 @@ $$
 $$ {#eq-expectedvalue-discrete}
 :::
 
-@eq-expectedvalue-discrete says that the expected value is the sum over all the possible values $Y$ can have times the probability that that value of $Y$ occurs.
+Equation ([-@eq-expectedvalue-discrete]) says that the expected value is the sum over all the possible values $Y$ can have times the probability that that value of $Y$ occurs.
 
 ## Examples:
 
@@ -352,7 +352,7 @@ $$ {#eq-expectedvalue-cont}
 :::
 
 
-@eq-expectedvalue-cont replaces the sum with an integral and the probability function $P(Y=y)$ with a probability density function, $p(y)$. Physically, $\mathbb{E}(Y)$ is the place where the shape $p(y)$ would balance.
+([-@eq-expectedvalue-cont]) replaces the sum with an integral and the probability function $P(Y=y)$ with a probability density function, $p(y)$. Physically, $\mathbb{E}(Y)$ is the place where the shape $p(y)$ would balance.
 
 Example:
 
@@ -418,24 +418,21 @@ $$ {#eq-variance}
 :::
 
 In the coming weeks we will be looking at terms like the following where $D$ represents an entire dataset, $Y$ is an outcome, and $\mathbf{x}_0$ is a set of specific case features. $f(\mathbf{x})$ is the best possible predictive model equal to $\mathbb{E}_{D}(Y|\mathbf{x}_0)$ and $\hat f(\mathbf{x}_0)$ is our machine learning method attempting to best predict $y$.
-
 $$
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2
 $$ {#eq-noise}
 
-@eq-noise represents *noise*. It is the variance of $Y$ and is the part of the outcome that is simply random noise, which no possible machine learning method could hope to capture.
-
+Equation ([-@eq-noise]) represents *noise*. It is the variance of $Y$ and is the part of the outcome that is simply random noise, which no possible machine learning method could hope to capture.
 $$
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ \left( f(\mathbf{x}_0) - \mathbb{E}_D \hat{f}(\mathbf{x}_0|D) \right)^2 \right]
 $$ {#eq-bias}
 
-@eq-bias represents *bias*, on average how far away our model, $\hat f(\mathbf{x}|D)$, is from the best model, $f(\mathbf{x})$.
-
+Equation ([-@eq-bias]) represents *bias*, on average how far away our model, $\hat f(\mathbf{x}|D)$, is from the best model, $f(\mathbf{x})$.
 $$
 \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (\hat f(\mathbf{x}_0|D)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2
 $$ {#eq-var}
 
-Lastly, @eq-var represents *variance*, how much our predictions change from dataset to dataset. It is the variability of our machine learning approach and how sensitive it is to changes in the dataset that we use to train the machine learning method.
+Lastly, ([-@eq-var]) represents *variance*, how much our predictions change from dataset to dataset. It is the variability of our machine learning approach and how sensitive it is to changes in the dataset that we use to train the machine learning method.
 
 # Final notes
 
