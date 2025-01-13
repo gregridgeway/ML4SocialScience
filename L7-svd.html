@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-10">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>Singular value decomposition</title>
 <style>
@@ -151,7 +151,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 10, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -293,7 +293,7 @@ $v
 \tag{4}\]</span></span></p>
 <p>If you notice, the second column is a multiple of the first column (by a factor of 2.388). By using just the first singular vectors we can compress the information in <span class="math inline">\(\mathbf{A}\)</span>. More precisely, there is no other matrix where one column is a multiple of the other (a matrix of “rank 1”) that matches <span class="math inline">\(\mathbf{A}\)</span> as closely as this one as measured with the sum of the squared differences between their elements. This is known as the <a href="https://en.wikipedia.org/wiki/Low-rank_approximation">Eckart–Young–Mirsky theorem</a>, (re)discovered in 1936.</p>
 <p>This property of the SVD, that it decomposes a large matrix into more compact representations, is what makes the SVD valuable in machine learning. We can take complicated objects like sound, images, video, and documents, convert them into a matrix form, and extract the most important features. Rather than needing to handcode specific features (does the sound hit a particular frequency often? does the text include a particular word?, does the photo have a green dot at a specific spot?), the SVD will tell you what the most important features are and place them in descending order of importance. We can use those features for prediction, classification, and clustering. Recommendation systems (Netflix, Amazon, Goodreads) and classifiers (facial recognition, Shazam) use variations on this idea to make their predictions.</p>
-<p>We will work through two image problems. First we will work with a single image to learn what SVD does with it and how well it can compress the image. Then we will work with a collection of face emojis to see if we can classify them into “positive” and “non-positive” groups.</p>
+<p>We will work through two image problems. First, we will work with a single image to learn what SVD does with it and how well it can compress the image. Then we will work with a collection of face emojis to see if we can classify them into “positive” and “non-positive” groups.</p>
 </section>
 <section id="svd-of-an-image" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> SVD of an image</h1>
@@ -522,7 +522,7 @@ Figure&nbsp;6: Stewarts with different rank reconstructions (2, 10, 20, 50, 100,
 </div>
 </div>
 </div>
-<p><a href="#fig-stewSV" class="quarto-xref">Figure&nbsp;6</a> shows just how much image information is in those first few singular vectors. Two singular vectors is definitely not enough. By 10 singular vectors you can already tell that there is a bird like shape in the picture. You really do not need more than 20 to know that there is bird perched on a container with flowers. The image based on 100 singular vectors is hard to distinguish from the original.</p>
+<p><a href="#fig-stewSV" class="quarto-xref">Figure&nbsp;6</a> shows just how much image information is in those first few singular vectors. Two singular vectors are definitely not enough. By 10 singular vectors you can already tell that there is a bird like shape in the picture. You really do not need more than 20 to know that there is bird perched on a container with flowers. The image based on 100 singular vectors is hard to distinguish from the original.</p>
 <section id="stewart-in-color" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="stewart-in-color"><span class="header-section-number">2.1</span> Stewart in color</h2>
 <p>To compress a color image of Stewart we can either apply SVD separately on each color channel or merge them into a single matrix and apply one SVD. We are going to do the latter. This allows SVD to share information across the color channels.</p>
@@ -804,7 +804,7 @@ Figure&nbsp;14: Emoji 19 reconstructed with fewer singular vectors
 </div>
 </div>
 </div>
-<p>With 50 singular vectors the emoji looks almost the same as when we used all 91 (<a href="#fig-emoji19reconstructed" class="quarto-xref">Figure&nbsp;13</a>). With 15 singular vectors, the emoji is still clearly the scream emoji, but with some light noisy features added. With 10 singular vectors the scream emoji is still evident. Maybe when we are down to only 5 singular vectors it becomes difficult to tell what emoji this is. This implies that with only 15 numbers we can pretty much determine, which emoji those few numbers describe. We do not need to know the color value of all 65,536 pixels, but only 15 numbers.</p>
+<p>With 50 singular vectors the emoji looks almost the same as when we used all 91 (<a href="#fig-emoji19reconstructed" class="quarto-xref">Figure&nbsp;13</a>). With 15 singular vectors, the emoji is still clearly the scream emoji, but with some light noisy features added. With 10 singular vectors the scream emoji is still evident. Maybe when we are down to only 5 singular vectors it becomes difficult to tell what emoji this is. This implies that with only 15 numbers we can pretty much determine which emoji those few numbers describe. We do not need to know the color value of all 65,536 pixels, but only 15 numbers.</p>
 <p>Those 15 numbers are stored in the first 15 columns of <span class="math inline">\(\mathbf{V}\)</span>. We can find two emojis that are “closest” to each other by finding the two rows of <span class="math inline">\(\mathbf{V}\)</span> that are most similar.</p>
 <p>Let’s start by just plotting out the emojis based on the first two right singular vectors.</p>
 <div class="cell">

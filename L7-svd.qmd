@@ -151,7 +151,7 @@ If you notice, the second column is a multiple of the first column (by a factor 
 
 This property of the SVD, that it decomposes a large matrix into more compact representations, is what makes the SVD valuable in machine learning. We can take complicated objects like sound, images, video, and documents, convert them into a matrix form, and extract the most important features. Rather than needing to handcode specific features (does the sound hit a particular frequency often? does the text include a particular word?, does the photo have a green dot at a specific spot?), the SVD will tell you what the most important features are and place them in descending order of importance. We can use those features for prediction, classification, and clustering. Recommendation systems (Netflix, Amazon, Goodreads) and classifiers (facial recognition, Shazam) use variations on this idea to make their predictions.
 
-We will work through two image problems. First we will work with a single image to learn what SVD does with it and how well it can compress the image. Then we will work with a collection of face emojis to see if we can classify them into "positive" and "non-positive" groups.
+We will work through two image problems. First, we will work with a single image to learn what SVD does with it and how well it can compress the image. Then we will work with a collection of face emojis to see if we can classify them into "positive" and "non-positive" groups.
 
 # SVD of an image
 
@@ -311,7 +311,7 @@ for(numSV in c(2,10,20,50,100))
 plot(stewartGray, axes=FALSE, main="Original")
 ```
 
-@fig-stewSV shows just how much image information is in those first few singular vectors. Two singular vectors is definitely not enough. By 10 singular vectors you can already tell that there is a bird like shape in the picture. You really do not need more than 20 to know that there is bird perched on a container with flowers. The image based on 100 singular vectors is hard to distinguish from the original.
+@fig-stewSV shows just how much image information is in those first few singular vectors. Two singular vectors are definitely not enough. By 10 singular vectors you can already tell that there is a bird like shape in the picture. You really do not need more than 20 to know that there is bird perched on a container with flowers. The image based on 100 singular vectors is hard to distinguish from the original.
 
 ## Stewart in color
 
@@ -549,7 +549,7 @@ for(numSV in c(50,15,10,5))
 }
 ```
 
-With 50 singular vectors the emoji looks almost the same as when we used all 91 (@fig-emoji19reconstructed). With 15 singular vectors, the emoji is still clearly the scream emoji, but with some light noisy features added. With 10 singular vectors the scream emoji is still evident. Maybe when we are down to only 5 singular vectors it becomes difficult to tell what emoji this is. This implies that with only 15 numbers we can pretty much determine, which emoji those few numbers describe. We do not need to know the color value of all 65,536 pixels, but only 15 numbers.
+With 50 singular vectors the emoji looks almost the same as when we used all 91 (@fig-emoji19reconstructed). With 15 singular vectors, the emoji is still clearly the scream emoji, but with some light noisy features added. With 10 singular vectors the scream emoji is still evident. Maybe when we are down to only 5 singular vectors it becomes difficult to tell what emoji this is. This implies that with only 15 numbers we can pretty much determine which emoji those few numbers describe. We do not need to know the color value of all 65,536 pixels, but only 15 numbers.
 
 Those 15 numbers are stored in the first 15 columns of $\mathbf{V}$. We can find two emojis that are "closest" to each other by finding the two rows of $\mathbf{V}$ that are most similar.
 
