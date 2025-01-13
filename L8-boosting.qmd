@@ -376,7 +376,7 @@ Note that $\mathbf{X}'\mathbf{X}$ will not be invertible because `MgAL` is a lin
 #| error: true
 solve(t(X) %*% X)
 ```
-If we try to run `lm()`, it will still run by give an `NA` for `MgAl`.
+If we try to run `lm()`, it will still run but gives an `NA` for `MgAl`.
 ```{r}
 lm(dGlass$window~X)
 ```
@@ -751,7 +751,7 @@ plot(nels0$ses[i], 1/(1+exp(-fxHat[i])), type="l",
 
 ## AdaBoost algorithm
 
-@FS proposed the first boosting algorithm, the adaptive boosting or AdaBoost algorithm. Although the paper appeared in 1997, the idea was circulating around for the 1-2 years earlier. It got tremendous attention after @Elkan tried a boosted naïve Bayes classifier and won the Knowledge Discovery and Data Mining Cup in 1997, a prediction contest in which his submission outperformed other extremely well-funded teams.
+@FS proposed the first boosting algorithm, the adaptive boosting or AdaBoost algorithm. Although the paper appeared in 1997, the idea was circulating around for 1-2 years earlier. It got tremendous attention after @Elkan tried a boosted naïve Bayes classifier and won the Knowledge Discovery and Data Mining Cup in 1997, a prediction contest in which his submission outperformed other extremely well-funded teams.
 
 The computer scientists described the approach algorithmically at the time. That is, they described the recipe for how to do it, but offered only some insight into why it should be better than other existing methods at the time. @FHT revealed that the algorithm was a gradient descent style algorithm with a particular objective function.
 
@@ -824,7 +824,7 @@ The figure shows the squared error bound in blue.
 
 ## Gradient boosting as an additive model
 
-In the our previous experiments with boosting we just tried out the method with a single variable and trees with single splits. I introduced it this way to keep it simpler and so that we could easily visualize the result. I will continue to use only single split decision trees but will introduce additional variables.
+In our previous experiments with boosting we just tried out the method with a single variable and trees with single splits. I introduced it this way to keep it simpler and so that we could easily visualize the result. I will continue to use only single split decision trees but will introduce additional variables.
 
 Because we are using only single split decision trees, each tree will be a function of only a single variable. As a result, the prediction function will be of the form
 $$
@@ -943,7 +943,7 @@ We will run 3,000 iterations and set $\lambda=0.003$ (shrinkage). The number of 
 
 `gbmt()` allows you to give it both a training and test set, but here we are going to ask `gbmt()` to learn from the entire NELS dataset by setting `num_train = nrow(nels0)`.
 
-We are going to allow up to three-way interactions by setting `interaction_depth = 3`. This limits the number of splits that any of the decision trees can have to 3. So every new tree added to the prediction function involves at most 3 distinct student features.
+We are going to allow up to three-way interactions by setting `interaction_depth = 3`. This limits the number of splits that any of the decision trees can have to 3. So, every new tree added to the prediction function involves at most 3 distinct student features.
 
 Lastly, we will do 10-fold cross-validation and use up to 12 cores to fit the model.
 ```{r gbmtNELS}
@@ -1046,7 +1046,7 @@ gbm3 <- gbmt(wave4dropout~typeSchool+urbanicity+region+
              is_verbose = FALSE)         # don't print progress
 gbmt_performance(gbm3,method="cv") |> plot()
 ```
-It does indeed reach a minimum quickly with many fewer iterations that the last two models we fit. However, it does not perform nearly as well. The best model we fit stored in `gbm1` had a $\lambda=0.003$ and had an average negative Bernoulli log-likelihood of `r min(gbm1$cv_error)`. The best performance we could get out of the fast learning model with $\lambda=0.03$ is `r min(gbm3$cv_error)`.
+It does indeed reach a minimum quickly with many fewer iterations than the last two models we fit. However, it does not perform nearly as well. The best model we fit stored in `gbm1` had a $\lambda=0.003$ and had an average negative Bernoulli log-likelihood of `r min(gbm1$cv_error)`. The best performance we could get out of the fast learning model with $\lambda=0.03$ is `r min(gbm3$cv_error)`.
 Therefore, when fitting gradient boosted models, set `shrinkage` to be as small as possible while still being able to fit the model in a reasonable amount of computer time.
 
 ## Relative influence
@@ -1133,12 +1133,6 @@ interact(gbm1, data=nels0, var_indices = c(8,11),
 
 # Summary
 
-The document titled "L8 Boosting and L1 Regularization" provides a detailed exploration of sparse machine learning methods, focusing on techniques like LASSO (Least Absolute Shrinkage and Selection Operator), forward stagewise selection, and various forms of boosting. It includes theoretical foundations, algorithmic explanations, and applied examples. Below is a suggested summary section:
-
----
-
-### Summary
-
 We have covered key concepts for "sparse" machine learning, focusing on $L_1$ regularization and boosting algorithms.
 
 1. **$L_1$ Regularization and Sparse Models**:
@@ -1151,9 +1145,9 @@ We have covered key concepts for "sparse" machine learning, focusing on $L_1$ re
    - The coefficient path was exactly the same as the LASSO, but with a much more computational efficient approach. This equivalency is best exemplified with the Least Angle Regression (LARS) algorithm
 
 3. **Boosting Algorithms**:
-   - Gradient boosting is flexible method using regression trees as basis functions and using a forward stagewise approach to get $L_1$-like sparsity
+   - Gradient boosting is a flexible method using regression trees as basis functions and using a forward stagewise approach to get $L_1$-like sparsity
    - **LogitBoost** uses the Bernoulli log-likelihood for classification tasks
-   - **AdaBoost** was the original boosting algorithm that minimized an exponential loss function acting as an upper bounds on misclassification rates
+   - **AdaBoost** was the original boosting algorithm that minimized an exponential loss function acting as an upper bound on misclassification rates
 
 4. **Generalized Boosted Models (gbm3)**:
    - Used the `gbm3` package to test out boosting on real datasets
@@ -1161,4 +1155,4 @@ We have covered key concepts for "sparse" machine learning, focusing on $L_1$ re
    - Measured the relative influence of individual features
    - Examine partial dependence plots to show relationships between features and the outcome
 
-Since about 2005, the use of $L_1$ penalties has become a widespread method for fitting machine learning data involving a large collection of candidate predictors. Boosting is one of the best off-the-shelf prediction models, requiring little to no tuning to get strong predictive performance. More recent implementations are worth exploring such as as `xgboost`. 
+Since about 2005, the use of $L_1$ penalties has become a widespread method for fitting machine learning data involving a large collection of candidate predictors. Boosting is one of the best off-the-shelf prediction models, requiring little to no tuning to get strong predictive performance. More recent implementations are worth exploring such as `xgboost`. 

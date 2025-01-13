@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-10">
+<meta name="dcterms.date" content="2025-01-13">
 
 <title>L8 Boosting and L_1 regularization</title>
 <style>
@@ -151,10 +151,7 @@ window.Quarto = {
   <li><a href="#relative-influence" id="toc-relative-influence" class="nav-link" data-scroll-target="#relative-influence"><span class="header-section-number">3.1</span> Relative influence</a></li>
   <li><a href="#partial-dependence-plots" id="toc-partial-dependence-plots" class="nav-link" data-scroll-target="#partial-dependence-plots"><span class="header-section-number">3.2</span> Partial dependence plots</a></li>
   </ul></li>
-  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4</span> Summary</a>
-  <ul class="collapse">
-  <li><a href="#summary-1" id="toc-summary-1" class="nav-link" data-scroll-target="#summary-1"><span class="header-section-number">4.0.1</span> Summary</a></li>
-  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4</span> Summary</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L8-boosting.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -186,7 +183,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 10, 2025</p>
+      <p class="date">January 13, 2025</p>
     </div>
   </div>
   
@@ -639,7 +636,7 @@ Figure&nbsp;5: Coefficient path for LASSO penalty
 <pre><code>Error in solve.default(t(X) %*% X): system is computationally singular: reciprocal condition number = 4.86532e-19</code></pre>
 </div>
 </div>
-<p>If we try to run <code>lm()</code>, it will still run by give an <code>NA</code> for <code>MgAl</code>.</p>
+<p>If we try to run <code>lm()</code>, it will still run but gives an <code>NA</code> for <code>MgAl</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(dGlass<span class="sc">$</span>window<span class="sc">~</span>X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -772,11 +769,11 @@ f(\mathbf{x}) = \beta_0 + \beta_1T_1(\mathbf{x}) + \beta_2T_2(\mathbf{x}) + \ldo
 <span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(timeL1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
- 184.97    5.56 1373.11 </code></pre>
+ 165.65    4.33 1270.59 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stopCluster</span>(cl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Ten-fold cross-validation with a dataset with 11381 students and 2554 features took my computer 23 minutes. That is a long time to figure out the relationship with a single feature.</p>
+<p>Ten-fold cross-validation with a dataset with 11381 students and 2554 features took my computer 21 minutes. That is a long time to figure out the relationship with a single feature.</p>
 <p>Let’s plot the cross-validated error to see how well it worked.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lasso1)</span>
@@ -1084,7 +1081,7 @@ Figure&nbsp;14: Prediction model after 1,000 iterations of the LogitBoost algori
 </section>
 <section id="adaboost-algorithm" class="level2" data-number="2.5">
 <h2 data-number="2.5" class="anchored" data-anchor-id="adaboost-algorithm"><span class="header-section-number">2.5</span> AdaBoost algorithm</h2>
-<p><span class="citation" data-cites="FS">Freund and Schapire (<a href="#ref-FS" role="doc-biblioref">1997</a>)</span> proposed the first boosting algorithm, the adaptive boosting or AdaBoost algorithm. Although the paper appeared in 1997, the idea was circulating around for the 1-2 years earlier. It got tremendous attention after <span class="citation" data-cites="Elkan">Elkan (<a href="#ref-Elkan" role="doc-biblioref">1997</a>)</span> tried a boosted naïve Bayes classifier and won the Knowledge Discovery and Data Mining Cup in 1997, a prediction contest in which his submission outperformed other extremely well-funded teams.</p>
+<p><span class="citation" data-cites="FS">Freund and Schapire (<a href="#ref-FS" role="doc-biblioref">1997</a>)</span> proposed the first boosting algorithm, the adaptive boosting or AdaBoost algorithm. Although the paper appeared in 1997, the idea was circulating around for 1-2 years earlier. It got tremendous attention after <span class="citation" data-cites="Elkan">Elkan (<a href="#ref-Elkan" role="doc-biblioref">1997</a>)</span> tried a boosted naïve Bayes classifier and won the Knowledge Discovery and Data Mining Cup in 1997, a prediction contest in which his submission outperformed other extremely well-funded teams.</p>
 <p>The computer scientists described the approach algorithmically at the time. That is, they described the recipe for how to do it, but offered only some insight into why it should be better than other existing methods at the time. <span class="citation" data-cites="FHT">Friedman, Hastie, and Tibshirani (<a href="#ref-FHT" role="doc-biblioref">2000</a>)</span> revealed that the algorithm was a gradient descent style algorithm with a particular objective function.</p>
 <p>Consider the following representation of the misclassification error rate <span class="math display">\[
 J(\mathbf{y},f) = \frac{1}{n}\sum_{i=1}^n I(2y_i-1 \neq \mathrm{sign}(f(\mathbf{x}_i)))
@@ -1150,7 +1147,7 @@ J(\mathbf{y},f) &amp;= \frac{1}{n}\sum_{i=1}^n I(2y_i-1 \neq \mathrm{sign}(f(\ma
 </section>
 <section id="gradient-boosting-as-an-additive-model" class="level2" data-number="2.6">
 <h2 data-number="2.6" class="anchored" data-anchor-id="gradient-boosting-as-an-additive-model"><span class="header-section-number">2.6</span> Gradient boosting as an additive model</h2>
-<p>In the our previous experiments with boosting we just tried out the method with a single variable and trees with single splits. I introduced it this way to keep it simpler and so that we could easily visualize the result. I will continue to use only single split decision trees but will introduce additional variables.</p>
+<p>In our previous experiments with boosting we just tried out the method with a single variable and trees with single splits. I introduced it this way to keep it simpler and so that we could easily visualize the result. I will continue to use only single split decision trees but will introduce additional variables.</p>
 <p>Because we are using only single split decision trees, each tree will be a function of only a single variable. As a result, the prediction function will be of the form <span class="math display">\[
 \begin{split}
 f(\mathbf{x}) =&amp; \beta_0 +\beta_1 T_1(\mathrm{ses})+\beta_2 T_2(\mathrm{pctFreeLunch})+
@@ -1258,7 +1255,7 @@ Figure&nbsp;16: Decomposition of functions predicting droput
 <p>We will run 3,000 iterations and set <span class="math inline">\(\lambda=0.003\)</span> (shrinkage). The number of iterations and <span class="math inline">\(\lambda\)</span> go together. Generally smaller values of <span class="math inline">\(\lambda\)</span> result in better predictive performance. However, models fit with smaller values of <span class="math inline">\(\lambda\)</span> will require more iterations. Cutting <span class="math inline">\(\lambda\)</span> by a factor of 2 generally requires doubling the number of iterations. I generally try to run about 3,000 iterations and set <span class="math inline">\(\lambda\)</span> as small as I can but still get the best number of iterations to be right around 3,000.</p>
 <p><span class="citation" data-cites="StochasticBoost">Friedman (<a href="#ref-StochasticBoost" role="doc-biblioref">2002</a>)</span> showed that fitting the trees to a randomly sampled half of the dataset at each iteration doubles the computation speed <em>and</em> results in improved predictive performance. Setting <code>bag_fraction=0.5</code> implements this. Some have experimented with randomly sampling features to consider at each iteration as well, but we will consider all of them by setting <code>num_features = 14</code>.</p>
 <p><code>gbmt()</code> allows you to give it both a training and test set, but here we are going to ask <code>gbmt()</code> to learn from the entire NELS dataset by setting <code>num_train = nrow(nels0)</code>.</p>
-<p>We are going to allow up to three-way interactions by setting <code>interaction_depth = 3</code>. This limits the number of splits that any of the decision trees can have to 3. So every new tree added to the prediction function involves at most 3 distinct student features.</p>
+<p>We are going to allow up to three-way interactions by setting <code>interaction_depth = 3</code>. This limits the number of splits that any of the decision trees can have to 3. So, every new tree added to the prediction function involves at most 3 distinct student features.</p>
 <p>Lastly, we will do 10-fold cross-validation and use up to 12 cores to fit the model.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240316</span>)</span>
@@ -1374,7 +1371,7 @@ Figure&nbsp;19: Training and cross-validated performance by number of iterations
 </div>
 </div>
 </div>
-<p>It does indeed reach a minimum quickly with many fewer iterations that the last two models we fit. However, it does not perform nearly as well. The best model we fit stored in <code>gbm1</code> had a <span class="math inline">\(\lambda=0.003\)</span> and had an average negative Bernoulli log-likelihood of 0.3927299. The best performance we could get out of the fast learning model with <span class="math inline">\(\lambda=0.03\)</span> is 0.3911301. Therefore, when fitting gradient boosted models, set <code>shrinkage</code> to be as small as possible while still being able to fit the model in a reasonable amount of computer time.</p>
+<p>It does indeed reach a minimum quickly with many fewer iterations than the last two models we fit. However, it does not perform nearly as well. The best model we fit stored in <code>gbm1</code> had a <span class="math inline">\(\lambda=0.003\)</span> and had an average negative Bernoulli log-likelihood of 0.3927299. The best performance we could get out of the fast learning model with <span class="math inline">\(\lambda=0.03\)</span> is 0.3911301. Therefore, when fitting gradient boosted models, set <code>shrinkage</code> to be as small as possible while still being able to fit the model in a reasonable amount of computer time.</p>
 <section id="relative-influence" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="relative-influence"><span class="header-section-number">3.1</span> Relative influence</h2>
 <p><span class="citation" data-cites="GradientBoost">Friedman (<a href="#ref-GradientBoost" role="doc-biblioref">2001</a>)</span> also developed an extension of a variable’s “relative influence”. If our loss function is squared error, then every split included in a decision tree is reducing that squared error. We can look across all the splits on SES, for example, in every tree and total up all the associated reductions in squared error. This would give us an idea about how much of the reduction in squared error is attributable to splits on SES. We would do the same process for all of the features used in the model.</p>
@@ -1518,10 +1515,6 @@ H_{jk}^2= \frac{\sum_{i=1}^n \left(\hat f_{jk}(x_{ij},x_{ik}) - \hat f_{j}(x_j) 
 </section>
 <section id="summary" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Summary</h1>
-<p>The document titled “L8 Boosting and L1 Regularization” provides a detailed exploration of sparse machine learning methods, focusing on techniques like LASSO (Least Absolute Shrinkage and Selection Operator), forward stagewise selection, and various forms of boosting. It includes theoretical foundations, algorithmic explanations, and applied examples. Below is a suggested summary section:</p>
-<hr>
-<section id="summary-1" class="level3" data-number="4.0.1">
-<h3 data-number="4.0.1" class="anchored" data-anchor-id="summary-1"><span class="header-section-number">4.0.1</span> Summary</h3>
 <p>We have covered key concepts for “sparse” machine learning, focusing on <span class="math inline">\(L_1\)</span> regularization and boosting algorithms.</p>
 <ol type="1">
 <li><strong><span class="math inline">\(L_1\)</span> Regularization and Sparse Models</strong>:
@@ -1537,9 +1530,9 @@ H_{jk}^2= \frac{\sum_{i=1}^n \left(\hat f_{jk}(x_{ij},x_{ik}) - \hat f_{j}(x_j) 
 </ul></li>
 <li><strong>Boosting Algorithms</strong>:
 <ul>
-<li>Gradient boosting is flexible method using regression trees as basis functions and using a forward stagewise approach to get <span class="math inline">\(L_1\)</span>-like sparsity</li>
+<li>Gradient boosting is a flexible method using regression trees as basis functions and using a forward stagewise approach to get <span class="math inline">\(L_1\)</span>-like sparsity</li>
 <li><strong>LogitBoost</strong> uses the Bernoulli log-likelihood for classification tasks</li>
-<li><strong>AdaBoost</strong> was the original boosting algorithm that minimized an exponential loss function acting as an upper bounds on misclassification rates</li>
+<li><strong>AdaBoost</strong> was the original boosting algorithm that minimized an exponential loss function acting as an upper bound on misclassification rates</li>
 </ul></li>
 <li><strong>Generalized Boosted Models (gbm3)</strong>:
 <ul>
@@ -1549,9 +1542,8 @@ H_{jk}^2= \frac{\sum_{i=1}^n \left(\hat f_{jk}(x_{ij},x_{ik}) - \hat f_{j}(x_j) 
 <li>Examine partial dependence plots to show relationships between features and the outcome</li>
 </ul></li>
 </ol>
-<p>Since about 2005, the use of <span class="math inline">\(L_1\)</span> penalties has become a widespread method for fitting machine learning data involving a large collection of candidate predictors. Boosting is one of the best off-the-shelf prediction models, requiring little to no tuning to get strong predictive performance. More recent implementations are worth exploring such as as <code>xgboost</code>.</p>
+<p>Since about 2005, the use of <span class="math inline">\(L_1\)</span> penalties has become a widespread method for fitting machine learning data involving a large collection of candidate predictors. Boosting is one of the best off-the-shelf prediction models, requiring little to no tuning to get strong predictive performance. More recent implementations are worth exploring such as <code>xgboost</code>.</p>
 
-</section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
