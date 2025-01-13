@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-08">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>L3 Prediction, Bias, Variance, and Noise</title>
 <style>
@@ -141,7 +141,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#k-nearest-neighbor-regression" id="toc-k-nearest-neighbor-regression" class="nav-link" data-scroll-target="#k-nearest-neighbor-regression"><span class="header-section-number">3</span> <span class="math inline">\(k\)</span>-nearest neighbor regression</a></li>
   <li><a href="#sec-biasVarDecomp" id="toc-sec-biasVarDecomp" class="nav-link" data-scroll-target="#sec-biasVarDecomp"><span class="header-section-number">4</span> Bias/variance decomposition</a></li>
-  <li><a href="#predicting-high-school-drop-out-using-the-national-education-longitudinal-study-of-1988-nels88" id="toc-predicting-high-school-drop-out-using-the-national-education-longitudinal-study-of-1988-nels88" class="nav-link" data-scroll-target="#predicting-high-school-drop-out-using-the-national-education-longitudinal-study-of-1988-nels88"><span class="header-section-number">5</span> Predicting high school drop out using the National Education Longitudinal Study of 1988 (NELS88)</a>
+  <li><a href="#predicting-high-school-dropout-using-the-national-education-longitudinal-study-of-1988-nels88" id="toc-predicting-high-school-dropout-using-the-national-education-longitudinal-study-of-1988-nels88" class="nav-link" data-scroll-target="#predicting-high-school-dropout-using-the-national-education-longitudinal-study-of-1988-nels88"><span class="header-section-number">5</span> Predicting high school dropout using the National Education Longitudinal Study of 1988 (NELS88)</a>
   <ul class="collapse">
   <li><a href="#background-on-nels88" id="toc-background-on-nels88" class="nav-link" data-scroll-target="#background-on-nels88"><span class="header-section-number">5.1</span> Background on NELS88</a></li>
   <li><a href="#a-1000-nearest-neighbor-classifier" id="toc-a-1000-nearest-neighbor-classifier" class="nav-link" data-scroll-target="#a-1000-nearest-neighbor-classifier"><span class="header-section-number">5.2</span> A <span class="math inline">\(1000\)</span>-nearest neighbor classifier?</a></li>
@@ -149,7 +149,6 @@ window.Quarto = {
   </ul></li>
   <li><a href="#filtering-spam" id="toc-filtering-spam" class="nav-link" data-scroll-target="#filtering-spam"><span class="header-section-number">6</span> Filtering spam</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">7</span> Summary</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L3-prediction-bias-variance.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -181,7 +180,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 8, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -196,7 +195,7 @@ window.Quarto = {
 <!-- In terminal -->
 <!-- quarto render L3-prediction-bias-variance.qmd -->
 <!-- quarto render L3-prediction-bias-variance.qmd --cache-refresh  -->
-<p>Having explored the naive Bayes classifier, how it learns from data, and how to evaluate its performance, we now turn to the general problem of supervised machine learning. “Supervised” machine learning is the area of machine learning in which we have existing data with known outcomes that we are trying to predict. In the case of the Georgia parolees, we observed their reoffense status within three years.</p>
+<p>Having explored the naïve Bayes classifier, how it learns from data, and how to evaluate its performance, we now turn to the general problem of supervised machine learning. “Supervised” machine learning is the area of machine learning in which we have existing data with known outcomes that we are trying to predict. In the case of the Georgia parolees, we observed their reoffense status within three years.</p>
 <section id="overview-of-prediction-models" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Overview of prediction models</h1>
 <p>Refer to <span class="citation" data-cites="Hast:Tibs:2001">Hastie, Tibshirani, and Friedman (<a href="#ref-Hast:Tibs:2001" role="doc-biblioref">2001</a>)</span> Chapters 2.4 and 3.2.</p>
@@ -365,7 +364,7 @@ du &amp;= dy
 \mathrm{noise}  
 &amp;= \frac{1}{3}\int_0^3 \color{orange}{\int_{-\infty}^\infty (u-0)^2\,
    \frac{1}{\sqrt{2\pi \cdot \frac{1}{4}}} e^{-\frac{1}{2}\left(\frac{u-0}{\frac{1}{2}}\right)^2}
-   \,dy}\,dx \\
+   \,du}\,dx \\
 \end{split}
 \]</span> The term in orange is the definition of the variance of a <span class="math inline">\(N(0, \frac{1}{4})\)</span> random variable. <span class="math display">\[
 \begin{split}
@@ -395,7 +394,7 @@ Figure&nbsp;2: OLS estimate <span class="math inline">\(\hat f(x)\)</span>
 </div>
 </div>
 </div>
-<p>This particular lines y-intercept and slope depend on the specific collection of 100 simulated pairs <span class="math inline">\((x_i, y_i)\)</span>. There are many lines that we <em>could</em> have gotten from 100 randomly generated <span class="math inline">\(x\)</span>s and <span class="math inline">\(y\)</span>s. Let’s see what kind of lines we <em>could</em> have observed. I’ll generate 50 datasets and draw the OLS line for each of them in grey.</p>
+<p>This particular line’s y-intercept and slope depend on the specific collection of 100 simulated pairs <span class="math inline">\((x_i, y_i)\)</span>. There are many lines that we <em>could</em> have gotten from 100 randomly generated <span class="math inline">\(x\)</span>s and <span class="math inline">\(y\)</span>s. Let’s see what kind of lines we <em>could</em> have observed. I’ll generate 50 datasets and draw the OLS line for each of them in grey.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">50</span></span>
@@ -468,7 +467,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <pre><code>[1] 0.01403683</code></pre>
 </div>
 </div>
-<p>The variance estimated from that single sample is rather close to to the true value we got from simulation. Variance is the one component that we can actually get a handle on even if we do not know the true <span class="math inline">\(f(x)\)</span>.</p>
+<p>The variance estimated from that single sample is rather close to the true value we got from simulation. Variance is the one component that we can actually get a handle on even if we do not know the true <span class="math inline">\(f(x)\)</span>.</p>
 </section>
 <section id="bias" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="bias"><span class="header-section-number">2.3</span> Bias</h2>
@@ -521,7 +520,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <p>The vertical line at <span class="math inline">\(x_0=\frac{1}{2}\)</span> marks the difference between the true model and the prediction that we would get if we averaged over a lot of datasets. This is the bias caused by our insistence in using a linear model when a quadratic is the true model. This is another quantity that we will never know in reality. Here we see that limiting the flexibility of our model will create uncureable bias in our predictions.</p>
 <p>Formally, the squared bias is <span class="math display">\[
 \mathbb{E}_{D|\mathbf{X}=\mathbf{x}_0} \left(f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D)\right)^2
-\]</span> ## Prediction error is noise + variance + squared bias We are going to put this all together now. In the end we are interested in the expected prediciton error, the difference between the actual value, <span class="math inline">\(y\)</span>, and our predicted value, <span class="math inline">\(\hat f\left(\frac{1}{2}\right)\)</span>. Formally, <span class="math display">\[
+\]</span> ## Prediction error is noise + variance + squared bias We are going to put this all together now. In the end we are interested in the expected prediction error, the difference between the actual value, <span class="math inline">\(y\)</span>, and our predicted value, <span class="math inline">\(\hat f\left(\frac{1}{2}\right)\)</span>. Formally, <span class="math display">\[
 \mathbb{E}_{D,y|\mathbf{X}=\mathbf{x}_0} \left(y-\hat f(\mathbf{x}_0|D)\right)^2
 \]</span> This averages over all the distribution of datasets we might see and the values of <span class="math inline">\(y\)</span> that we might see. Let’s compute this quantity for our simulation.</p>
 <div class="cell">
@@ -588,15 +587,30 @@ J(f)&amp;=\mathbb{E}_{y,\mathbf{x}}(y-f(\mathbf{x}))^2 \\
 <section id="sec-biasVarDecomp" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Bias/variance decomposition</h1>
 <p>Refer to <span class="citation" data-cites="Hast:Tibs:2001">Hastie, Tibshirani, and Friedman (<a href="#ref-Hast:Tibs:2001" role="doc-biblioref">2001</a>)</span> Chapter 2.9.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Bias/variance/noise decomposition of expected prediction error
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[
+\mathrm{EPE} = \mathrm{noise} + \mathrm{variance} + \mathrm{bias}^2
+\]</span></p>
+</div>
+</div>
 <p>This section uses the notation <span class="math inline">\(\hat f(\mathbf{x}_0|D)\)</span> to show that the prediction model we estimate depends on the dataset <span class="math inline">\(D\)</span>, which is random. Since <span class="math inline">\(D\)</span> is random we can think of <span class="math inline">\(\mathbb{E}_D \hat f(\mathbf{x}_0|D)\)</span> as the predicted value at <span class="math inline">\(\mathbf{x}_0\)</span> averaged over all the datasets we draw from <span class="math inline">\(P(y,\mathbf{x})\)</span>. For squared error we already know that <span class="math inline">\(f(\mathbf{x}_0)=\mathbb{E}(Y|\mathbf{x}_0)\)</span>. The expected prediction error (<span class="math inline">\(EPE\)</span>) can be decomposed as:</p>
 <p><span id="eq-BiasVar2"><span class="math display">\[
 \begin{split}
 EPE(\mathbf{x}_0)
    =&amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-\hat f(\mathbf{x}_0|D))^2 \right] \\
-   =&amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-f(\mathbf{x}_0)+f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D) +\mathbb{E}_D \hat f(\mathbf{x}_0|D) \right. \nonumber\\
+   =&amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-f(\mathbf{x}_0)+f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D) +\mathbb{E}_D \hat f(\mathbf{x}_0|D) \right. \\
    &amp; \hspace{1in}\left. -\hat f(\mathbf{x}_0|D) )^2\right]\\
-   =&amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2 + \nonumber \\
-   &amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 + \nonumber \\
+   =&amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2 +  \\
+   &amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 +  \\
    &amp; \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (\hat f(\mathbf{x}_0|D)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 \\
    =&amp; \sigma^2 + \mathrm{Bias}(\hat f(\mathbf{x}_0|D))^2 + \mathrm{Var}(\hat f(\mathbf{x}_0|D))
 \end{split}
@@ -606,7 +620,7 @@ EPE(\mathbf{x}_0)
 <ol type="a">
 <li><p><strong>Noise</strong>: The first term represents noise inherent in the system. There is nothing we can do about this given the data that we have. Only observing additional predictors (more covariates) that are predictive of <span class="math inline">\(Y\)</span> could possibly reduce this</p></li>
 <li><p><strong>Bias</strong>: The bias term measures the difference between the true function and the average of the predicted values at <span class="math inline">\(\mathbf{x}_0\)</span>. If <span class="math inline">\(f\)</span> is not linear but <span class="math inline">\(\hat f(\mathbf{x}|D)\)</span> is restricted to be linear then this term can be large</p></li>
-<li><p><strong>Variance</strong>: The variance term measures how sensitive the predicted value at <span class="math inline">\(\mathbf{x}_0\)</span> is to random fluctuations in the dataset. If the model predicts the same value at <span class="math inline">\(\mathbf{x}_0\)</span> no matter what dataset <span class="math inline">\(D\)</span> we use, then this term is 0. Of course, this is not a particularly useful model but we can get the variance term to go away. The “model” <span class="math inline">\(\hat f(x)=4\)</span> has variance 0, but has large bias for almost all prediction questions of interest (except, say, “what is 2+2?”)</p></li>
+<li><p><strong>Variance</strong>: The variance term measures how sensitive the predicted value at <span class="math inline">\(\mathbf{x}_0\)</span> is to random fluctuations in the dataset. If the model predicts the same value at <span class="math inline">\(\mathbf{x}_0\)</span> no matter what dataset <span class="math inline">\(D\)</span> we use, then this term is 0. Of course, this is not a particularly useful model, but we can get the variance term to go away. The “model” <span class="math inline">\(\hat f(x)=4\)</span> has variance 0, but has large bias for almost all prediction questions of interest (except, say, “what is 2+2?”)</p></li>
 </ol></li>
 <li><p><strong>Bias/variance tradeoff</strong>: The bias/variance decomposition leads to one of the fundamental principles of prediction models: If an analyst wants to reduce variance, the price will be an increase in bias. If an analyst wants to reduce bias, the price will be an increase in variance.</p>
 <ol type="a">
@@ -623,13 +637,13 @@ EPE(\mathbf{x}_0)
 </ol></li>
 </ol>
 </section>
-<section id="predicting-high-school-drop-out-using-the-national-education-longitudinal-study-of-1988-nels88" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> Predicting high school drop out using the National Education Longitudinal Study of 1988 (NELS88)</h1>
+<section id="predicting-high-school-dropout-using-the-national-education-longitudinal-study-of-1988-nels88" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Predicting high school dropout using the National Education Longitudinal Study of 1988 (NELS88)</h1>
 <section id="background-on-nels88" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="background-on-nels88"><span class="header-section-number">5.1</span> Background on NELS88</h2>
 <p>The <em>National Education Longitudinal Study of 1988</em> (NELS88) is a U.S.-based longitudinal dataset designed to track the educational experiences and outcomes of students, starting with those in the 8th grade in 1988. It provides a wealth of data about students, their academic performance, and their transitions through high school, post-secondary education, and into the workforce. The NELS88 dataset is widely used in education research, policy analysis, and studies on the social determinants of academic success.</p>
 <p>The study began with a nationally representative sample of over 24,000 8th-grade students in 1988 and followed those students over multiple survey waves, in 1990 (10th grade), 1992 (12th grade), 1994 (two years post-high school), and 2000 (eight years post-high school). In each of these waves the survey captured data on students’ educational, occupational, and life trajectories. We will focus on the student-level data (test scores, socio-demographic characteristics, and attitudes and behaviors) and their relationship to dropping out of high school.</p>
-<p>I have already acquired and cleaned up the dataset. If you want to do further work with the NELS data you may want to look at the <code>NELS data prep.R</code> script. We will start by loading some necesary R packages and the cleaned up dataset.</p>
+<p>I have already acquired and cleaned up the dataset. If you want to do further work with the NELS data you may want to look at the <code>NELS data prep.R</code> script. We will start by loading some necessary R packages and the cleaned up dataset.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
@@ -756,7 +770,7 @@ Figure&nbsp;4: Predicted probability of dropout from 1000-nn model
 </section>
 <section id="how-many-nearest-neighbors-for-k-nearest-neighbor-classifier" class="level2" data-number="5.3">
 <h2 data-number="5.3" class="anchored" data-anchor-id="how-many-nearest-neighbors-for-k-nearest-neighbor-classifier"><span class="header-section-number">5.3</span> How many nearest neighbors for <span class="math inline">\(k\)</span>-nearest neighbor classifier?</h2>
-<p>We were rather presumptuous in the previous section to set <span class="math inline">\(k=1000\)</span>. Perhaps there is another value of <span class="math inline">\(k\)</span> that could do even better. Let’s try a range of values for <span class="math inline">\(k\)</span> and measure their misclassification costs. I first make a <code>design</code> data frame that lists the values of <span class="math inline">\(k\)</span> that I want to try. It will take to long to try <em>every</em> choice for <span class="math inline">\(k\)</span> between 1 and 5000, so I created a selection of 36 values for <span class="math inline">\(k\)</span> in that range. This will allow us to narrow in on the best choice for <span class="math inline">\(k\)</span>.</p>
+<p>We were rather presumptuous in the previous section to set <span class="math inline">\(k=1000\)</span>. Perhaps there is another value of <span class="math inline">\(k\)</span> that could do even better. Let’s try a range of values for <span class="math inline">\(k\)</span> and measure their misclassification costs. I first make a <code>design</code> data frame that lists the values of <span class="math inline">\(k\)</span> that I want to try. It will take too long to try <em>every</em> choice for <span class="math inline">\(k\)</span> between 1 and 5000, so I created a selection of 36 values for <span class="math inline">\(k\)</span> in that range. This will allow us to narrow in on the best choice for <span class="math inline">\(k\)</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">10</span><span class="sc">*</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>), <span class="dv">100</span><span class="sc">*</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>), <span class="dv">500</span><span class="sc">*</span>(<span class="dv">3</span><span class="sc">:</span><span class="dv">10</span>)),</span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">misclassCost =</span> <span class="cn">NA</span>)</span>
@@ -811,7 +825,7 @@ Figure&nbsp;5: Misclassification cost by choice of <span class="math inline">\(k
 </div>
 </div>
 </div>
-<p>It appears that the best choice for <span class="math inline">\(k\)</span> is around 500. Let’s look at a narrower range around <span class="math inline">\(k=500\)</span>. If you ran the previous block of code you realized that it can take a while to try the 36 values of <span class="math inline">\(k\)</span>. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of <span class="math inline">\(k\)</span> at the same time. The <code>doParallel</code> package makes this really easy. You can use <code>detectCores()</code> to learn how many cores you have available to you.</p>
+<p>It appears that the best choice for <span class="math inline">\(k\)</span> is around 500. Let’s look at a narrower range around <span class="math inline">\(k=500\)</span>. If you ran the previous block of code, you realized that it can take a while to try the 36 values of <span class="math inline">\(k\)</span>. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of <span class="math inline">\(k\)</span> at the same time. The <code>doParallel</code> package makes this really easy. You can use <code>detectCores()</code> to learn how many cores you have available to you.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(doParallel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -865,7 +879,7 @@ Figure&nbsp;6: Misclassification cost by choice of <span class="math inline">\(k
 </div>
 </div>
 </div>
-<p>Let’s have a look at what this the optimal knn classifier look like.</p>
+<p>Let’s have a look at what the optimal knn classifier look like.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -1004,7 +1018,7 @@ Figure&nbsp;8: Plot of spam and non-spam emails based on $ and !
 </div>
 </div>
 </div>
-<p>Already from <a href="#fig-plotDollarExclamation" class="quarto-xref">Figure&nbsp;8</a> you can see some separation between spam and non-spam emails. Spam have a strange number of dollar signs and exclamation marks and non-spam emails tend to have none.</p>
+<p>Already from <a href="#fig-plotDollarExclamation" class="quarto-xref">Figure&nbsp;8</a> you can see some separation between spam and non-spam emails. Spam emails tend to have a strange number of dollar signs and exclamation marks and non-spam emails tend to have none.</p>
 <p>While for the NELS88 dataset we built our knn classifier “by hand,” here we will use a more efficient implementation from the R package <code>FNN</code>, Fast Nearest Neighbor Search Algorithms. Inside the <code>FNN</code> package is a <code>knn()</code> function that works well. So you are aware, the <code>class</code> package also has a <code>knn()</code> function but it does not handle ties gracefully and it does not like <span class="math inline">\(k &gt; 1000\)</span>. If you get errors, then you are likely calling <code>class::knn()</code> instead of <code>FNN::knn()</code>. To be sure you are using the right <code>knn()</code>, prefix it with <code>FNN::</code> like <code>FNN::knn()</code>. This way you can be sure you are using the right version.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FNN) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1066,7 +1080,7 @@ Figure&nbsp;9: Predicted probability based on percentage of $ and ! using 10-nn 
 </div>
 </div>
 </div>
-<p>Note that there is a a bit of a “scaling” issue. The percentage of characters that are dollar signs ranges from 0% to 6% while the percentage of characters that are exclamation marks ranges from 0% to 30%. Therefore, emails tend to be closer to each other in terms of dollar signs than they are in terms of exclamation marks just because the difference in spread. Let’s regenerate the figure, but this time I am going to divide all the <code>char_freq_$</code> values by their maximum (6) and all the <code>char_freq_!</code> by their maximum (30) so that the new versions both range from 0 to 1.</p>
+<p>Note that there is a bit of a “scaling” issue. The percentage of characters that are dollar signs ranges from 0% to 6% while the percentage of characters that are exclamation marks ranges from 0% to 30%. Therefore, emails tend to be closer to each other in terms of dollar signs than they are in terms of exclamation marks just because of the difference in spread. Let’s regenerate the figure, but this time I am going to divide all the <code>char_freq_$</code> values by their maximum (6) and all the <code>char_freq_!</code> by their maximum (30) so that the new versions both range from 0 to 1.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span> </span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(dollar,exclam), <span class="cf">function</span>(x) x<span class="sc">/</span><span class="fu">max</span>(x)))</span>
@@ -1104,7 +1118,7 @@ Figure&nbsp;10: Predicted probability based on percentage of $ and !, rescaled t
 </div>
 </div>
 </div>
-<p>The classification boundaries have changed just by changing how we measure distance between emails. This is one of the fundamental challenges of using the knn classifier. The choice of distance measure will change the predicted probablities, the classification boundaries, and ultimately the predictive performance of the model.</p>
+<p>The classification boundaries have changed just by changing how we measure distance between emails. This is one of the fundamental challenges of using the knn classifier. The choice of distance measure will change the predicted probabilities, the classification boundaries, and ultimately the predictive performance of the model.</p>
 <p>Now for a larger experiment. First, let’s go ahead and include all 57 recorded email features. Second, let’s experiment with five different ways of transforming the features. They include</p>
 <ol type="1">
 <li>Rescale by dividing by the maximum value (like we did before)</li>
@@ -1189,14 +1203,14 @@ Figure&nbsp;10: Predicted probability based on percentage of $ and !, rescaled t
 <img src="L3-prediction-bias-variance_files/figure-html/fig-TransformExperiment-1.png" class="img-fluid figure-img" width="576">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-TransformExperiment-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Misclassification Rate by k and Transformation
+Figure&nbsp;11: Misclassification Rate by <span class="math inline">\(k\)</span> and Transformation
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>First, it seems that the single nearest neighbor (<span class="math inline">\(k=1\)</span>) works best.</p>
-<p>Also you can see that how we transform the email features has an effect on the misclassification rate. Taking the tenth root of the each of the features and standardizing seems to do the best. Why tenth root? I have no idea. Almost certainly there is another way to transform these email features to get even better predictive performance.</p>
+<p>Also, you can see that how we transform the email features has an effect on the misclassification rate. Taking the tenth root of each of the features and standardizing seems to do the best. Why tenth root? I have no idea. Almost certainly there is another way to transform these email features to get even better predictive performance.</p>
 <p>This process is “feature engineering”… trying to figure out what aspects and transforms of the inputs result in the best performance. knn’s performance depends heavily on the scale of the features. One desirable property of a machine learning method is that either the method is indifferent to the scale or that it can learn on its own what transformations result in the best predictive performance.</p>
 <p>This dataset was already heavily feature engineered. The researchers already pulled 57 specific features from the emails presumably thinking that these were already good signs of spam. The best known performance on this dataset is 4%. To get that performance the researchers used boosting, a method that is indifferent to the scales of the features as well as any one-to-one transformations (e.g.&nbsp;log, exp, square root, square) of the features.</p>
 </section>
@@ -1209,16 +1223,13 @@ Figure&nbsp;11: Misclassification Rate by k and Transformation
 <li>Variance</li>
 </ul>
 <p><span class="math inline">\(k\)</span>-nearest neighbors is a rather simple approach for prediction problems. It is based on the idea that when trying to predict an outcome for an observation with features <span class="math inline">\(\mathbf{x}\)</span> finding the outcomes for known observations with features similar to <span class="math inline">\(\mathbf{x}\)</span> should work reasonably well.</p>
-<p>There is a bias-variance tradeoff. If we choose more neighbors we reduce variance but increase bias. If we choose few neighbors, then we increase variance but decrease bias.</p>
+<p>There is a bias-variance tradeoff. If we choose more neighbors, we reduce variance but increase bias. If we choose few neighbors, then we increase variance but decrease bias.</p>
 <p>Using test sets or cross-validation we can choose the models and model parameters that offer the best predictive performance, balancing the bias-variance tradeoff.</p>
 <p>Ideally, a machine learning method could learn from the data what is the best way to transform the inputs to get the best predictive performance. knn requires a fair bit of <em>feature engineering</em> to improve predictive performance.</p>
-</section>
-<section id="references" class="level1 unnumbered" data-number="8">
-
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">8 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-Hast:Tibs:2001" class="csl-entry" role="listitem">
 Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer-Verlag.
 </div>

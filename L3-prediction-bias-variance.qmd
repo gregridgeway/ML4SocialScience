@@ -195,7 +195,7 @@ $$
 \mathrm{noise}  
  &= \frac{1}{3}\int_0^3 \color{orange}{\int_{-\infty}^\infty (u-0)^2\,
    \frac{1}{\sqrt{2\pi \cdot \frac{1}{4}}} e^{-\frac{1}{2}\left(\frac{u-0}{\frac{1}{2}}\right)^2}
-   \,dy}\,dx \\
+   \,du}\,dx \\
 \end{split}
 $$
 The term in orange is the definition of the variance of a $N(0, \frac{1}{4})$ random variable.
@@ -217,7 +217,7 @@ plot(y~x, data=d)
 lm1 <- lm(y~x, data=d)
 abline(lm1, lwd=3)
 ```
-This particular lines y-intercept and slope depend on the specific collection of 100 simulated pairs $(x_i, y_i)$. There are many lines that we *could* have gotten from 100 randomly generated $x$s and $y$s. Let's see what kind of lines we *could* have observed. I'll generate 50 datasets and draw the OLS line for each of them in grey.
+This particular line's y-intercept and slope depend on the specific collection of 100 simulated pairs $(x_i, y_i)$. There are many lines that we *could* have gotten from 100 randomly generated $x$s and $y$s. Let's see what kind of lines we *could* have observed. I'll generate 50 datasets and draw the OLS line for each of them in grey.
 ```{r}
 #| label: fig-var2
 #| fig-cap: Variation in $\hat f(x)$ from different simulated datasets
@@ -275,7 +275,7 @@ fx0.5 <- predict(lm1, newdata=data.frame(x=0.5), se=TRUE)
 # square the standard error to get variance
 fx0.5$se.fit^2
 ```
-The variance estimated from that single sample is rather close to to the true value we got from simulation. Variance is the one component that we can actually get a handle on even if we do not know the true $f(x)$.
+The variance estimated from that single sample is rather close to the true value we got from simulation. Variance is the one component that we can actually get a handle on even if we do not know the true $f(x)$.
 
 ## Bias
 Lastly, we need to talk about the "bias". In this example we know that the true model is a quadratic function, but our model is limited to learning linear functions. No matter how many observations we collect, our linear model will never match the best possible model. That difference is bias.
@@ -326,7 +326,7 @@ $$
 \mathbb{E}_{D|\mathbf{X}=\mathbf{x}_0} \left(f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D)\right)^2
 $$
 ## Prediction error is noise + variance + squared bias
-We are going to put this all together now. In the end we are interested in the expected prediciton error, the difference between the actual value, $y$, and our predicted value, $\hat f\left(\frac{1}{2}\right)$. Formally,
+We are going to put this all together now. In the end we are interested in the expected prediction error, the difference between the actual value, $y$, and our predicted value, $\hat f\left(\frac{1}{2}\right)$. Formally,
 $$
 \mathbb{E}_{D,y|\mathbf{X}=\mathbf{x}_0} \left(y-\hat f(\mathbf{x}_0|D)\right)^2
 $$
@@ -398,16 +398,25 @@ $$
 
 Refer to @Hast:Tibs:2001 Chapter 2.9.
 
+::: {.callout-tip}
+## Bias/variance/noise decomposition of expected prediction error
+
+$$
+\mathrm{EPE} = \mathrm{noise} + \mathrm{variance} + \mathrm{bias}^2
+$$
+:::
+
+
 This section uses the notation $\hat f(\mathbf{x}_0|D)$ to show that the prediction model we estimate depends on the dataset $D$, which is random. Since $D$ is random we can think of $\mathbb{E}_D \hat f(\mathbf{x}_0|D)$ as the predicted value at $\mathbf{x}_0$ averaged over all the datasets we draw from $P(y,\mathbf{x})$. For squared error we already know that $f(\mathbf{x}_0)=\mathbb{E}(Y|\mathbf{x}_0)$. The expected prediction error ($EPE$) can be decomposed as:
 
 $$
 \begin{split}
 EPE(\mathbf{x}_0)
    =& \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-\hat f(\mathbf{x}_0|D))^2 \right] \\
-   =& \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-f(\mathbf{x}_0)+f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D) +\mathbb{E}_D \hat f(\mathbf{x}_0|D) \right. \nonumber\\
+   =& \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ (Y-f(\mathbf{x}_0)+f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D) +\mathbb{E}_D \hat f(\mathbf{x}_0|D) \right. \\
    & \hspace{1in}\left. -\hat f(\mathbf{x}_0|D) )^2\right]\\
-   =& \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2 + \nonumber \\
-   & \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 + \nonumber \\
+   =& \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2 +  \\
+   & \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 +  \\
    & \mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (\hat f(\mathbf{x}_0|D)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2 \\
    =& \sigma^2 + \mathrm{Bias}(\hat f(\mathbf{x}_0|D))^2 + \mathrm{Var}(\hat f(\mathbf{x}_0|D))
 \end{split}
@@ -419,7 +428,7 @@ $$ {#eq-BiasVar2}
 
     b.  **Bias**: The bias term measures the difference between the true function and the average of the predicted values at $\mathbf{x}_0$. If $f$ is not linear but $\hat f(\mathbf{x}|D)$ is restricted to be linear then this term can be large
 
-    c.  **Variance**: The variance term measures how sensitive the predicted value at $\mathbf{x}_0$ is to random fluctuations in the dataset. If the model predicts the same value at $\mathbf{x}_0$ no matter what dataset $D$ we use, then this term is 0. Of course, this is not a particularly useful model but we can get the variance term to go away. The "model" $\hat f(x)=4$ has variance 0, but has large bias for almost all prediction questions of interest (except, say, "what is 2+2?")
+    c.  **Variance**: The variance term measures how sensitive the predicted value at $\mathbf{x}_0$ is to random fluctuations in the dataset. If the model predicts the same value at $\mathbf{x}_0$ no matter what dataset $D$ we use, then this term is 0. Of course, this is not a particularly useful model, but we can get the variance term to go away. The "model" $\hat f(x)=4$ has variance 0, but has large bias for almost all prediction questions of interest (except, say, "what is 2+2?")
 
 2.  **Bias/variance tradeoff**: The bias/variance decomposition leads to one of the fundamental principles of prediction models: If an analyst wants to reduce variance, the price will be an increase in bias. If an analyst wants to reduce bias, the price will be an increase in variance.
 
@@ -434,14 +443,14 @@ $$ {#eq-BiasVar2}
         \end{split}
         $$ $k$ controls the bias/variance tradeoff for the $k$-nearest neighbor model. Clearly large $k$ results in small variance. However, large $k$ also makes the neighborhoods larger so that the bias term gets larger as the model utilizes observations further away from $\mathbf{x}_0$. The reverse is true when $k$ is small.
         
-# Predicting high school drop out using the National Education Longitudinal Study of 1988 (NELS88)
+# Predicting high school dropout using the National Education Longitudinal Study of 1988 (NELS88)
 
 ## Background on NELS88
 The *National Education Longitudinal Study of 1988* (NELS88) is a U.S.-based longitudinal dataset designed to track the educational experiences and outcomes of students, starting with those in the 8th grade in 1988. It provides a wealth of data about students, their academic performance, and their transitions through high school, post-secondary education, and into the workforce. The NELS88 dataset is widely used in education research, policy analysis, and studies on the social determinants of academic success.
 
 The study began with a nationally representative sample of over 24,000 8th-grade students in 1988 and followed those students over multiple survey waves, in 1990 (10th grade), 1992 (12th grade), 1994 (two years post-high school), and 2000 (eight years post-high school). In each of these waves the survey captured data on students' educational, occupational, and life trajectories. We will focus on the student-level data (test scores, socio-demographic characteristics, and attitudes and behaviors) and their relationship to dropping out of high school.
 
-I have already acquired and cleaned up the dataset. If you want to do further work with the NELS data you may want to look at the `NELS data prep.R` script. We will start by loading some necesary R packages and the cleaned up dataset.
+I have already acquired and cleaned up the dataset. If you want to do further work with the NELS data you may want to look at the `NELS data prep.R` script. We will start by loading some necessary R packages and the cleaned up dataset.
 
 ```{r}
 #| message: false
@@ -540,7 +549,7 @@ This figure shows strong threshold and saturation effects. A threshold effect is
 
 ## How many nearest neighbors for $k$-nearest neighbor classifier?
 
-We were rather presumptuous in the previous section to set $k=1000$. Perhaps there is another value of $k$ that could do even better. Let's try a range of values for $k$ and measure their misclassification costs. I first make a `design` data frame that lists the values of $k$ that I want to try. It will take to long to try *every* choice for $k$ between 1 and 5000, so I created a selection of 36 values for $k$ in that range. This will allow us to narrow in on the best choice for $k$.
+We were rather presumptuous in the previous section to set $k=1000$. Perhaps there is another value of $k$ that could do even better. Let's try a range of values for $k$ and measure their misclassification costs. I first make a `design` data frame that lists the values of $k$ that I want to try. It will take too long to try *every* choice for $k$ between 1 and 5000, so I created a selection of 36 values for $k$ in that range. This will allow us to narrow in on the best choice for $k$.
 
 ```{r}
 #| label: codeSearchOptimalK
@@ -586,7 +595,7 @@ kBest <- design |>
 abline(v=kBest)
 kBest
 ```
-It appears that the best choice for $k$ is around 500. Let's look at a narrower range around $k=500$. If you ran the previous block of code you realized that it can take a while to try the 36 values of $k$. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of $k$ at the same time. The `doParallel` package makes this really easy. You can use `detectCores()` to learn how many cores you have available to you.
+It appears that the best choice for $k$ is around 500. Let's look at a narrower range around $k=500$. If you ran the previous block of code, you realized that it can take a while to try the 36 values of $k$. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of $k$ at the same time. The `doParallel` package makes this really easy. You can use `detectCores()` to learn how many cores you have available to you.
 ```{r}
 #| message: false
 library(doParallel)
@@ -632,7 +641,7 @@ abline(v=kBest)
 kBest
 ```
 
-Let's have a look at what this the optimal knn classifier look like.
+Let's have a look at what the optimal knn classifier look like.
 ```{r}
 #| label: fig-fxDropoutOptimalK
 #| fig-cap: !expr paste0("Predicted probability of dropout from optimal knn model, $k=", kBest,"$")
@@ -664,6 +673,7 @@ L.F. Cranor and B.A. LaMacchia (1998) "Spam!," *Communications of the ACM*, 41(8
 
 ```{r}
 #| label: readSpamData
+#| cache: true
 # download the spam dataset from the UCI machine learning archive
 dSpam <- read.table('https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data',
                     header=FALSE,
@@ -704,7 +714,7 @@ ggplot(dSpam, aes(`char_freq_$`, `char_freq_!`, color = factor(spam))) +
   scale_x_continuous(trans='sqrt') +
   scale_y_continuous(trans='sqrt')
 ```
-Already from @fig-plotDollarExclamation you can see some separation between spam and non-spam emails. Spam have a strange number of dollar signs and exclamation marks and non-spam emails tend to have none.
+Already from @fig-plotDollarExclamation you can see some separation between spam and non-spam emails. Spam emails tend to have a strange number of dollar signs and exclamation marks and non-spam emails tend to have none.
 
 While for the NELS88 dataset we built our knn classifier "by hand," here we will use a more efficient implementation from the R package `FNN`, Fast Nearest Neighbor Search Algorithms. Inside the `FNN` package is a `knn()` function that works well. So you are aware, the `class` package also has a `knn()` function but it does not handle ties gracefully and it does not like $k > 1000$. If you get errors, then you are likely calling `class::knn()` instead of `FNN::knn()`. To be sure you are using the right `knn()`, prefix it with `FNN::` like `FNN::knn()`. This way you can be sure you are using the right version.
 ```{r}
@@ -765,7 +775,7 @@ ggplot() +
   scale_x_continuous(trans='sqrt') +
   scale_y_continuous(trans='sqrt')
 ```
-Note that there is a a bit of a "scaling" issue. The percentage of characters that are dollar signs ranges from 0% to 6% while the percentage of characters that are exclamation marks ranges from 0% to 30%. Therefore, emails tend to be closer to each other in terms of dollar signs than they are in terms of exclamation marks just because the difference in spread. Let's regenerate the figure, but this time I am going to divide all the `char_freq_$` values by their maximum (6) and all the `char_freq_!` by their maximum (30) so that the new versions both range from 0 to 1.
+Note that there is a bit of a "scaling" issue. The percentage of characters that are dollar signs ranges from 0% to 6% while the percentage of characters that are exclamation marks ranges from 0% to 30%. Therefore, emails tend to be closer to each other in terms of dollar signs than they are in terms of exclamation marks just because of the difference in spread. Let's regenerate the figure, but this time I am going to divide all the `char_freq_$` values by their maximum (6) and all the `char_freq_!` by their maximum (30) so that the new versions both range from 0 to 1.
 
 
 
@@ -798,7 +808,7 @@ ggplot() +
   scale_x_continuous(trans='sqrt') +
   scale_y_continuous(trans='sqrt')
 ```
-The classification boundaries have changed just by changing how we measure distance between emails. This is one of the fundamental challenges of using the knn classifier. The choice of distance measure will change the predicted probablities, the classification boundaries, and ultimately the predictive performance of the model.
+The classification boundaries have changed just by changing how we measure distance between emails. This is one of the fundamental challenges of using the knn classifier. The choice of distance measure will change the predicted probabilities, the classification boundaries, and ultimately the predictive performance of the model.
 
 Now for a larger experiment. First, let's go ahead and include all 57 recorded email features. Second, let's experiment with five different ways of transforming the features. They include
 
@@ -866,7 +876,7 @@ for(i in 1:nrow(design))
 
 ```{r}
 #| label: fig-TransformExperiment
-#| fig-cap: Misclassification Rate by k and Transformation
+#| fig-cap: Misclassification Rate by $k$ and Transformation
 #| fig-width: 6
 #| fig-height: 5
 
@@ -890,7 +900,7 @@ design |>
 ```
 First, it seems that the single nearest neighbor ($k=1$) works best.
 
-Also you can see that how we transform the email features has an effect on the misclassification rate. Taking the tenth root of the each of the features and standardizing seems to do the best. Why tenth root? I have no idea. Almost certainly there is another way to transform these email features to get even better predictive performance.
+Also, you can see that how we transform the email features has an effect on the misclassification rate. Taking the tenth root of each of the features and standardizing seems to do the best. Why tenth root? I have no idea. Almost certainly there is another way to transform these email features to get even better predictive performance.
 
 This process is "feature engineering"... trying to figure out what aspects and transforms of the inputs result in the best performance. knn's performance depends heavily on the scale of the features. One desirable property of a machine learning method is that either the method is indifferent to the scale or that it can learn on its own what transformations result in the best predictive performance.
 
@@ -906,7 +916,7 @@ Predictive performance depends on
 
 $k$-nearest neighbors is a rather simple approach for prediction problems. It is based on the idea that when trying to predict an outcome for an observation with features $\mathbf{x}$ finding the outcomes for known observations with features similar to $\mathbf{x}$ should work reasonably well.
 
-There is a bias-variance tradeoff. If we choose more neighbors we reduce variance but increase bias. If we choose few neighbors, then we increase variance but decrease bias.
+There is a bias-variance tradeoff. If we choose more neighbors, we reduce variance but increase bias. If we choose few neighbors, then we increase variance but decrease bias.
 
 Using test sets or cross-validation we can choose the models and model parameters that offer the best predictive performance, balancing the bias-variance tradeoff.
 
