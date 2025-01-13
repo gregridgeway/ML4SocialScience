@@ -26,7 +26,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 
 ```{r}
 #| echo: false
-colTab <- ifelse(knitr::is_html_output(), "white", "black")
+library(kableExtra)
+kable_material_opt <- ifelse(knitr::is_html_output(), 
+                             kable_material_dark, 
+                             kable_material)
 ```
 
 # Introduction
@@ -87,7 +90,7 @@ $$
 $$
 where $m_j$ is the number of possible values that $x_j$ can have. For example, if $x_j$ is a 0/1 variable then $m_j=2$.
 
-This estimation step **is** machine learning. As new observations accumulate, we can update the probabilities in @eq-NBprob, which directly feed into the weights of evidence.
+This estimation step **is** machine learning. As new observations accumulate, we can update the probabilities in ([-@eq-NBprob]), which directly feed into the weights of evidence.
 
 The naïve Bayes classifier is particularly easy to estimate and update. It is certainly the simplest machine learning approach that we will encounter. It is particularly useful to start our exploration of machine learning with the naïve Bayes classifier because it sets up the issues that we will regularly encounter.
 
@@ -96,7 +99,7 @@ The naïve Bayes classifier is particularly easy to estimate and update. It is c
 |-------------------------------------------------|-----------------------------------------------------------------------------|
 | What is the structure of the machine learning method? | Additive on the log odds scale                                               |
 | What is the objective?                        | Produce good probabilities of class labels                                  |
-| How does it learn from data?                  | Simple calculation of probabilities like @eq-NBprob                       |
+| How does it learn from data?                  | Simple calculation of probabilities like ([-@eq-NBprob])                       |
 | How computationally difficult is it to learn from data? | Easy, involving a single scan of the dataset                                |
 | Is the method interpretable?                  | Yes. Simple addition of weights of evidence                                 |
 | Can it handle different types of data sources?  | Limited to categorical data. Continuous features need to be discretized. Easily handles missing values |
@@ -153,7 +156,7 @@ wAge
 wAge <- log(wAge[2,]/wAge[1,])
 wAge
 ```
-Generally we see decreasing risk of reoffending with increasing age at release from prison.
+Generally, we see decreasing risk of reoffending with increasing age at release from prison.
 
 Let's take a step toward simplifying our code by making a weight of evidence function.
 ```{r}
@@ -197,13 +200,11 @@ modNB <- data.frame(var="Prior", value=NA, woe=w0) |>
 modNB |> 
   mutate(var = ifelse(duplicated(var), "", var)) |>
   kbl() |> 
-  kable_classic(full_width = FALSE) |> 
-  row_spec(0, color="black", background = "green") |>
-  row_spec(1:nrow(modNB), color=colTab)
+  kable_material_opt(lightable_options="striped", full_width = FALSE)
 ```
 
 ## Evidence balance sheet
-A positive $w_j(x_j)$ implies that the state of $x_j$ is evidence in favor of $Y = 1$ and a negative $w_j(x_j)$ is evidence in favor of $Y = 0$. After obtaining the weight of evidence estimates, we can construct an evidence balance sheet for a newly observed subject as described in @SK. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. @tbl-evidbalsheet shows the weights of evidence for a specific parolee's case.
+A positive $w_j(x_j)$ implies that the state of $x_j$ is evidence in favor of $Y = 1$ and a negative $w_j(x_j)$ is evidence in favor of $Y = 0$. After obtaining the weight of evidence estimates, we can construct an evidence balance sheet for a newly observed subject as described in @SK. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive, we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. @tbl-evidbalsheet shows the weights of evidence for a specific parolee's case.
 
 | Feature                    | WoE  | Feature                           | WoE    |
 |----------------------------|-----:|-----------------------------------|-------:|
@@ -310,10 +311,7 @@ kbl(tab,
     row.names = FALSE,
     align="lrlr",
     digits=0) |>
-  row_spec(0, color="black", background = "green") |>
-  row_spec(1:maxRows, color=colTab) |>
-  row_spec(maxRows+1:3,background="green") |>
-  kable_classic()
+  kable_material_opt(lightable_options="striped", full_width = FALSE)
 ```
 
 
@@ -326,7 +324,7 @@ $$
 The naïve Bayes classifier is unconcerned that $x_3$ is unavailable.
 
 # Evaluating performance
-Typically there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier's performance.
+Typically, there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier's performance.
 
 Of fundamental importance is evaluating the classifier on data that was not used in training the classifier. We will always evaluate "out-of-sample performance," performance on data held back from the model fitting process, sometimes called a "validation dataset" or "test set". Particularly for more complex machine learning methods, they can become "overfit" to a training dataset to the point that they do not predict well on a validation dataset.
 
@@ -399,7 +397,7 @@ datRecid |>
                           (Recidivism_Within_3years=="true" & p<0.5)))
 ```
 
-This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than than on the validation data (but really not by much in this example).
+This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than on the validation data (but really not by much in this example).
 
 We may also compare the **false positive** and **false negative** rates. The false positive rate is the fraction among those who really are 0s, but we in error predict them to be 1s. That is, by mistake we labeled them as a 1. False negatives are those cases we mistakenly label as a 0. The false negative rate, therefore, is the fraction of cases that are truly 1s that we predict erroneously to be 0s.
 
@@ -447,7 +445,7 @@ datRecid |>
 
 
 ## Receiver Operating Characteristic (ROC)
-It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.
+It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.
 
 To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. @fig-roc shows the result. The red dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.5)$, the equal misclassification cost decision rule.  The blue dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.25)$, the equal misclassification cost decision rule.
 
@@ -482,7 +480,7 @@ points(a[1,i], a[2,i], col="blue", pch=19, cex=2)
 ```
 Remember that the false positive rate takes all the parolees who did *not* reoffend and calculates the fraction of those the classifier predicted to reoffend (mistakenly labeling them as a "positive"). The true positive rate takes all the parolees who *did* reoffend and calculates the fraction of those the classifier predicted to reoffend (correctly labeling them as a "positive").
 
-Different machine learning methods can produce different ROC curves. Ideally we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.
+Different machine learning methods can produce different ROC curves. Ideally, we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.
 
 The Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier's performance at only one threshold the way misclassification rate does. It is sometimes called the "concordance index". AUC turns out to be equal to the probability that the classifier ranks a random selected case with $y_i=1$ to have higher probability than a random selected $y_i=0$ case. We can compute the integral under the ROC curve numerically using the trapezoid rule.
 
@@ -584,7 +582,7 @@ One feature (bug? quirk? complication?) of `naivebayes()` is that its `predict()
 #| eval: false
 Error in `[.default`(tab, V, ) : subscript out of bounds
 ```
-then it is caused by one of your variables having a blank (`""`) value. So let's fix this issue before we go any further.
+then it is caused by one of your variables having a blank (`""`) value. So, let's fix this issue before we go any further.
 
 ```{r}
 datRecid <- datRecid |>
@@ -622,6 +620,7 @@ datRecid$pNBpack <- predict(nb1, newdata=a, type="prob")[,2]
 
 Let's check that the predicted probabilities are nearly the same
 ```{r}
+#| label: fig-predprobsSame
 #| fig-cap: "Plot showing predicted probabilities from models are the same"
 #| fig-width: 6
 #| fig-height: 6
@@ -632,5 +631,5 @@ plot(p~pNBpack, data=datRecid,
 
 
 # Summary
-For more information on the topic, the article by @SK contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See @DomingosPazzani for example.
+For more information on the topic, the article by @SK contains a lengthy description of decision systems in use in the early 1980s. In addition, their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. They discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g. If the subject indicated that they had pain, where is the location of the pain?). They develop enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See @DomingosPazzani for example.
 

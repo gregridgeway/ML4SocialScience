@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-05">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -154,7 +154,6 @@ window.Quarto = {
   </ul></li>
   <li><a href="#the-naivebayes-package" id="toc-the-naivebayes-package" class="nav-link" data-scroll-target="#the-naivebayes-package"><span class="header-section-number">7</span> The <code>naivebayes</code> package</a></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">9</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L2-naive-Bayes.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -186,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 5, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -245,7 +244,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 <p>When the dataset is small or there are some values of <span class="math inline">\(x\)</span> that rarely occur, analysts frequently use the Laplace-corrected frequency. <span class="math display">\[
 \hat P(x_j=x|Y=y) = \frac{1+\sum (x_{ij}=x)(y_i=y)}{m_j+\sum (y_i=y)}
 \]</span> where <span class="math inline">\(m_j\)</span> is the number of possible values that <span class="math inline">\(x_j\)</span> can have. For example, if <span class="math inline">\(x_j\)</span> is a 0/1 variable then <span class="math inline">\(m_j=2\)</span>.</p>
-<p>This estimation step <strong>is</strong> machine learning. As new observations accumulate, we can update the probabilities in <a href="#eq-NBprob" class="quarto-xref">Equation&nbsp;1</a>, which directly feed into the weights of evidence.</p>
+<p>This estimation step <strong>is</strong> machine learning. As new observations accumulate, we can update the probabilities in (<a href="#eq-NBprob" class="quarto-xref">1</a>), which directly feed into the weights of evidence.</p>
 <p>The naïve Bayes classifier is particularly easy to estimate and update. It is certainly the simplest machine learning approach that we will encounter. It is particularly useful to start our exploration of machine learning with the naïve Bayes classifier because it sets up the issues that we will regularly encounter.</p>
 <table class="table">
 <colgroup>
@@ -269,7 +268,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </tr>
 <tr class="odd">
 <td>How does it learn from data?</td>
-<td>Simple calculation of probabilities like <a href="#eq-NBprob" class="quarto-xref">Equation&nbsp;1</a></td>
+<td>Simple calculation of probabilities like (<a href="#eq-NBprob" class="quarto-xref">1</a>)</td>
 </tr>
 <tr class="even">
 <td>How computationally difficult is it to learn from data?</td>
@@ -376,7 +375,7 @@ Recidivism_Within_3years      43-47 48 or older
  -0.6375824 </code></pre>
 </div>
 </div>
-<p>Generally we see decreasing risk of reoffending with increasing age at release from prison.</p>
+<p>Generally, we see decreasing risk of reoffending with increasing age at release from prison.</p>
 <p>Let’s take a step toward simplifying our code by making a weight of evidence function.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>WoE <span class="ot">&lt;-</span> <span class="cf">function</span>(x,y)</span>
@@ -451,9 +450,7 @@ $Prison_Years
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>modNB <span class="sc">|&gt;</span> </span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">var =</span> <span class="fu">ifelse</span>(<span class="fu">duplicated</span>(var), <span class="st">""</span>, var)) <span class="sc">|&gt;</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_classic</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">color=</span><span class="st">"black"</span>, <span class="at">background =</span> <span class="st">"green"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(modNB), <span class="at">color=</span>colTab)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div id="tbl-woe" class="cell quarto-float anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -462,139 +459,139 @@ Table&nbsp;1: NIJ Challenge weights of evidence
 <div aria-describedby="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <div>
-<table class="lightable-classic do-not-create-environment cell table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="lightable-material-dark lightable-striped do-not-create-environment cell table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th" style="text-align: left; color: black !important; background-color: green !important;">var</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; color: black !important; background-color: green !important;">value</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; color: black !important; background-color: green !important;">woe</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">var</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">value</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">woe</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left; color: white !important;">Prior</td>
-<td style="text-align: left; color: white !important;">NA</td>
-<td style="text-align: right; color: white !important;">31</td>
+<td style="text-align: left;">Prior</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">31</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Gender</td>
-<td style="text-align: left; color: white !important;">F</td>
-<td style="text-align: right; color: white !important;">-49</td>
+<td style="text-align: left;">Gender</td>
+<td style="text-align: left;">F</td>
+<td style="text-align: right;">-49</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">M</td>
-<td style="text-align: right; color: white !important;">7</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">M</td>
+<td style="text-align: right;">7</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Age_at_Release</td>
-<td style="text-align: left; color: white !important;">18-22</td>
-<td style="text-align: right; color: white !important;">63</td>
+<td style="text-align: left;">Age_at_Release</td>
+<td style="text-align: left;">18-22</td>
+<td style="text-align: right;">63</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">23-27</td>
-<td style="text-align: right; color: white !important;">37</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">23-27</td>
+<td style="text-align: right;">37</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">28-32</td>
-<td style="text-align: right; color: white !important;">16</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">28-32</td>
+<td style="text-align: right;">16</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">33-37</td>
-<td style="text-align: right; color: white !important;">-2</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">33-37</td>
+<td style="text-align: right;">-2</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">38-42</td>
-<td style="text-align: right; color: white !important;">-19</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">38-42</td>
+<td style="text-align: right;">-19</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">43-47</td>
-<td style="text-align: right; color: white !important;">-29</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">43-47</td>
+<td style="text-align: right;">-29</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">48 or older</td>
-<td style="text-align: right; color: white !important;">-64</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">48 or older</td>
+<td style="text-align: right;">-64</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;">Education_Level</td>
-<td style="text-align: left; color: white !important;">At least some college</td>
-<td style="text-align: right; color: white !important;">-52</td>
+<td style="text-align: left;">Education_Level</td>
+<td style="text-align: left;">At least some college</td>
+<td style="text-align: right;">-52</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">High School Diploma</td>
-<td style="text-align: right; color: white !important;">11</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">High School Diploma</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Less than HS diploma</td>
-<td style="text-align: right; color: white !important;">12</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Less than HS diploma</td>
+<td style="text-align: right;">12</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Prior_Conviction_Episodes_Viol</td>
-<td style="text-align: left; color: white !important;">false</td>
-<td style="text-align: right; color: white !important;">-7</td>
+<td style="text-align: left;">Prior_Conviction_Episodes_Viol</td>
+<td style="text-align: left;">false</td>
+<td style="text-align: right;">-7</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">true</td>
-<td style="text-align: right; color: white !important;">14</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">true</td>
+<td style="text-align: right;">14</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Prison_Offense</td>
-<td style="text-align: left; color: white !important;">NA</td>
-<td style="text-align: right; color: white !important;">-4</td>
+<td style="text-align: left;">Prison_Offense</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">-4</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Drug</td>
-<td style="text-align: right; color: white !important;">-15</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Drug</td>
+<td style="text-align: right;">-15</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Other</td>
-<td style="text-align: right; color: white !important;">15</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Other</td>
+<td style="text-align: right;">15</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Property</td>
-<td style="text-align: right; color: white !important;">28</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Property</td>
+<td style="text-align: right;">28</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Violent/Non-Sex</td>
-<td style="text-align: right; color: white !important;">-15</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Violent/Non-Sex</td>
+<td style="text-align: right;">-15</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Violent/Sex</td>
-<td style="text-align: right; color: white !important;">-108</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Violent/Sex</td>
+<td style="text-align: right;">-108</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Prison_Years</td>
-<td style="text-align: left; color: white !important;">1-2 years</td>
-<td style="text-align: right; color: white !important;">11</td>
+<td style="text-align: left;">Prison_Years</td>
+<td style="text-align: left;">1-2 years</td>
+<td style="text-align: right;">11</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Greater than 2 to 3 years</td>
-<td style="text-align: right; color: white !important;">-13</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Greater than 2 to 3 years</td>
+<td style="text-align: right;">-13</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Less than 1 year</td>
-<td style="text-align: right; color: white !important;">28</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Less than 1 year</td>
+<td style="text-align: right;">28</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">More than 3 years</td>
-<td style="text-align: right; color: white !important;">-45</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">More than 3 years</td>
+<td style="text-align: right;">-45</td>
 </tr>
 </tbody>
 </table>
@@ -609,7 +606,7 @@ Table&nbsp;1: NIJ Challenge weights of evidence
 </section>
 <section id="evidence-balance-sheet" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="evidence-balance-sheet"><span class="header-section-number">4.2</span> Evidence balance sheet</h2>
-<p>A positive <span class="math inline">\(w_j(x_j)\)</span> implies that the state of <span class="math inline">\(x_j\)</span> is evidence in favor of <span class="math inline">\(Y = 1\)</span> and a negative <span class="math inline">\(w_j(x_j)\)</span> is evidence in favor of <span class="math inline">\(Y = 0\)</span>. After obtaining the weight of evidence estimates, we can construct an evidence balance sheet for a newly observed subject as described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. <a href="#tbl-evidbalsheet" class="quarto-xref">Table&nbsp;2</a> shows the weights of evidence for a specific parolee’s case.</p>
+<p>A positive <span class="math inline">\(w_j(x_j)\)</span> implies that the state of <span class="math inline">\(x_j\)</span> is evidence in favor of <span class="math inline">\(Y = 1\)</span> and a negative <span class="math inline">\(w_j(x_j)\)</span> is evidence in favor of <span class="math inline">\(Y = 0\)</span>. After obtaining the weight of evidence estimates, we can construct an evidence balance sheet for a newly observed subject as described in <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span>. From the features of the new subject we can assemble those pieces of features with weights of evidence that favor recidivism and those features associated with no recidivism. Since the weights are additive, we can simply sum the weight totals for a full accounting of the evidence bearing on the particular subject. <a href="#tbl-evidbalsheet" class="quarto-xref">Table&nbsp;2</a> shows the weights of evidence for a specific parolee’s case.</p>
 <div id="tbl-evidbalsheet" class="quarto-float anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-evidbalsheet-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -859,63 +856,60 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">align=</span><span class="st">"lrlr"</span>,</span>
 <span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits=</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="dv">0</span>, <span class="at">color=</span><span class="st">"black"</span>, <span class="at">background =</span> <span class="st">"green"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb31-35"><a href="#cb31-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(<span class="dv">1</span><span class="sc">:</span>maxRows, <span class="at">color=</span>colTab) <span class="sc">|&gt;</span></span>
-<span id="cb31-36"><a href="#cb31-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">row_spec</span>(maxRows<span class="sc">+</span><span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,<span class="at">background=</span><span class="st">"green"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb31-37"><a href="#cb31-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
-<table class="lightable-classic table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="lightable-material-dark lightable-striped table table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th" style="text-align: left; color: black !important; background-color: green !important;">Feature</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; color: black !important; background-color: green !important;">Weight of evidence</th>
-<th data-quarto-table-cell-role="th" style="text-align: left; color: black !important; background-color: green !important;">Feature</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; color: black !important; background-color: green !important;">Weight of evidence</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Feature</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Weight of evidence</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Feature</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Weight of evidence</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left; color: white !important;">Prior</td>
-<td style="text-align: right; color: white !important;">31</td>
-<td style="text-align: left; color: white !important;">Education_Level=At least some college</td>
-<td style="text-align: right; color: white !important;">-52</td>
+<td style="text-align: left;">Prior</td>
+<td style="text-align: right;">31</td>
+<td style="text-align: left;">Education_Level=At least some college</td>
+<td style="text-align: right;">-52</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;">Prison_Offense=Property</td>
-<td style="text-align: right; color: white !important;">28</td>
-<td style="text-align: left; color: white !important;">Gender=F</td>
-<td style="text-align: right; color: white !important;">-49</td>
+<td style="text-align: left;">Prison_Offense=Property</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: left;">Gender=F</td>
+<td style="text-align: right;">-49</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; color: white !important;">Prison_Years=1-2 years</td>
-<td style="text-align: right; color: white !important;">11</td>
-<td style="text-align: left; color: white !important;">Age_at_Release=38-42</td>
-<td style="text-align: right; color: white !important;">-19</td>
+<td style="text-align: left;">Prison_Years=1-2 years</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: left;">Age_at_Release=38-42</td>
+<td style="text-align: right;">-19</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; color: white !important;"></td>
-<td style="text-align: right; color: white !important;"></td>
-<td style="text-align: left; color: white !important;">Prior_Conviction_Episodes_Viol=false</td>
-<td style="text-align: right; color: white !important;">-7</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;">Prior_Conviction_Episodes_Viol=false</td>
+<td style="text-align: right;">-7</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; background-color: green !important;">Total positive weight</td>
-<td style="text-align: right; background-color: green !important;">70</td>
-<td style="text-align: left; background-color: green !important;">Total negative weight</td>
-<td style="text-align: right; background-color: green !important;">-127</td>
+<td style="text-align: left;">Total positive weight</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: left;">Total negative weight</td>
+<td style="text-align: right;">-127</td>
 </tr>
 <tr class="even">
-<td style="text-align: left; background-color: green !important;"></td>
-<td style="text-align: right; background-color: green !important;"></td>
-<td style="text-align: left; background-color: green !important;">Total weight of evidence</td>
-<td style="text-align: right; background-color: green !important;">-57</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;">Total weight of evidence</td>
+<td style="text-align: right;">-57</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left; background-color: green !important;"></td>
-<td style="text-align: right; background-color: green !important;"></td>
-<td style="text-align: left; background-color: green !important;">Probability =</td>
-<td style="text-align: right; background-color: green !important;">0.36</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: left;">Probability =</td>
+<td style="text-align: right;">0.36</td>
 </tr>
 </tbody>
 </table>
@@ -934,7 +928,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </section>
 <section id="evaluating-performance" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Evaluating performance</h1>
-<p>Typically there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier’s performance.</p>
+<p>Typically, there is no single metric that summarizes the performance of a classifier. This section will review several of the most common ways to describe a classifier’s performance.</p>
 <p>Of fundamental importance is evaluating the classifier on data that was not used in training the classifier. We will always evaluate “out-of-sample performance,” performance on data held back from the model fitting process, sometimes called a “validation dataset” or “test set”. Particularly for more complex machine learning methods, they can become “overfit” to a training dataset to the point that they do not predict well on a validation dataset.</p>
 <p>Previously, we used all of the parolee data to estimate our weights of evidence. In reality, the dataset is split between a “training” set and a “test” set.</p>
 <div class="cell">
@@ -1019,7 +1013,7 @@ Misclassification rate
 2               1    0.364</code></pre>
 </div>
 </div>
-<p>This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than than on the validation data (but really not by much in this example).</p>
+<p>This breaks down the misclassification rate separately for training data and validation data. Note that the classification error on the training data is slightly lower than on the validation data (but really not by much in this example).</p>
 <p>We may also compare the <strong>false positive</strong> and <strong>false negative</strong> rates. The false positive rate is the fraction among those who really are 0s, but we in error predict them to be 1s. That is, by mistake we labeled them as a 1. False negatives are those cases we mistakenly label as a 0. The false negative rate, therefore, is the fraction of cases that are truly 1s that we predict erroneously to be 0s.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -1086,7 +1080,7 @@ False negative rate
 </section>
 <section id="receiver-operating-characteristic-roc" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</h2>
-<p>It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to get eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.</p>
+<p>It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.</p>
 <p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.5)\)</span>, the equal misclassification cost decision rule. The blue dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.25)\)</span>, the equal misclassification cost decision rule.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Receiver Operating Characteristic (ROC) plots FPR vs TPR</span></span>
@@ -1125,7 +1119,7 @@ Figure&nbsp;1: Receiver Operating Characteristic (ROC) curve for the Naïve Baye
 </div>
 </div>
 <p>Remember that the false positive rate takes all the parolees who did <em>not</em> reoffend and calculates the fraction of those the classifier predicted to reoffend (mistakenly labeling them as a “positive”). The true positive rate takes all the parolees who <em>did</em> reoffend and calculates the fraction of those the classifier predicted to reoffend (correctly labeling them as a “positive”).</p>
-<p>Different machine learning methods can produce different ROC curves. Ideally we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.</p>
+<p>Different machine learning methods can produce different ROC curves. Ideally, we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.</p>
 <p>The Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier’s performance at only one threshold the way misclassification rate does. It is sometimes called the “concordance index”. AUC turns out to be equal to the probability that the classifier ranks a random selected case with <span class="math inline">\(y_i=1\)</span> to have higher probability than a random selected <span class="math inline">\(y_i=0\)</span> case. We can compute the integral under the ROC curve numerically using the trapezoid rule.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rev</span>(a[<span class="dv">1</span>,])</span>
@@ -1244,7 +1238,7 @@ Figure&nbsp;4: Calibration plot, smoothed calibration curve
 <div class="cell">
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>Error <span class="cf">in</span> <span class="st">`</span><span class="at">[.default</span><span class="st">`</span>(tab, V, ) <span class="sc">:</span> subscript out of bounds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>then it is caused by one of your variables having a blank (<code>""</code>) value. So let’s fix this issue before we go any further.</p>
+<p>then it is caused by one of your variables having a blank (<code>""</code>) value. So, let’s fix this issue before we go any further.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Prison_Offense=</span><span class="fu">case_match</span>(Prison_Offense,</span>
@@ -1384,10 +1378,14 @@ Gender      FALSE       TRUE
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Predictions from naivebayes package"</span>,</span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="L2-naive-Bayes_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="576"></p>
-<figcaption>Plot showing predicted probabilities from models are the same</figcaption>
+<div id="fig-predprobsSame" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-predprobsSame-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L2-naive-Bayes_files/figure-html/fig-predprobsSame-1.png" class="img-fluid figure-img" width="576">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-predprobsSame-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Plot showing predicted probabilities from models are the same
+</figcaption>
 </figure>
 </div>
 </div>
@@ -1395,14 +1393,11 @@ Gender      FALSE       TRUE
 </section>
 <section id="summary" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
-<p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. In particular they discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g.&nbsp;If the subject indicated that they had pain, where is the location of the pain?). In addition they discuss enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
-</section>
-<section id="references" class="level1 unnumbered" data-number="9">
-
+<p>For more information on the topic, the article by <span class="citation" data-cites="SK">Spiegelhalter and Knill-Jones (<a href="#ref-SK" role="doc-biblioref">1984</a>)</span> contains a lengthy description of decision systems in use in the early 1980s. In addition, their section 4 offers an extensive discussion on the use of the naïve Bayes model in decision systems with various special cases. They discuss the case of branching questions, those features that would be further inspected if some other feature turned up positive (e.g.&nbsp;If the subject indicated that they had pain, where is the location of the pain?). They develop enhanced estimates of the weights of evidence that offer improved predictive performance. Although their work is many decades old, the naïve Bayes classifier is still used as a competitive classifier due to its robustness and simplicity. See <span class="citation" data-cites="DomingosPazzani">Domingos and Pazzani (<a href="#ref-DomingosPazzani" role="doc-biblioref">1997</a>)</span> for example.</p>
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">9 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-BKS" class="csl-entry" role="listitem">
 Becker, B., R. Kohavi, and D. Sommerfield. 1997. <span>“Visualizing the Simple <span>Bayesian</span> Classifier.”</span> In <em>KDD 1997 Workshop on Issues in the Integration of Data Mining and Data Visualization</em>.
 </div>
