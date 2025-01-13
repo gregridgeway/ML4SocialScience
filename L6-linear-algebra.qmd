@@ -460,7 +460,7 @@ $$
     \hat\beta &= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y} 
 \end{split}
 $$
-This is the classic solution to the least squares estimation problem. Some variants of this solution were known to the ancient Chinese and in the Arab world. A clear description of the problem and solution arrived with Legendre in 1805, but the matrix representation we use today probably did not appear until the early 1900s. In the last 100 years, this equation and its variations has driven a lot of scientific efforts.
+This is the classic solution to the least squares estimation problem. Some variants of this solution were known to the ancient Chinese and in the Arab world. A clear description of the problem and solution arrived with Legendre in 1805, but the matrix representation we use today probably did not appear until the early 1900s. In the last 100 years, this equation and its variations have driven a lot of scientific efforts.
 
 ## Example
 
@@ -628,7 +628,7 @@ for(i in 1:nrow(betas))
         lwd=2)
 }
 ```
-In general you can see that the coefficients are getting squeezed closer to 0 as $\lambda$ increases. Eventually with a large enough value for $\lambda$, they will all get squeezed to 0. In this example, just a modest amount of penalizing the coefficients results in a smoother, more stable fit to the data.
+In general, you can see that the coefficients are getting squeezed closer to 0 as $\lambda$ increases. Eventually with a large enough value for $\lambda$, they will all get squeezed to 0. In this example, just a modest amount of penalizing the coefficients results in a smoother, more stable fit to the data.
 
 
 # Multivariate Taylor series and gradient descent
@@ -798,7 +798,7 @@ $$
 
 where $z_i=\hat\beta'\mathbf{x}_i +\frac{y_i-p_i}{p_i(1-p_i)}$ and is called the "working response."
 
-The Iteratively Reweighted Least Squares (IRLS) algorithm initiates $\hat\beta$ to some reasonable guess (like all coefficients are 0 except for the intercept), computes $p_i=\frac{1}{1+e^{-\hat\beta'\mathbf{x}_i}}$, sets weights to $w_i=p_i(1-p_i)$, computes the working response $z_i$, and then runs a standard weighted least squares procedures to obtain a better estimate of $\hat\beta$. Then IRLS recomputes $p_i$, $w_i$, and $z_i$ and repeats the process until convergences. Typically IRLS converges in 3-4 iterations.
+The Iteratively Reweighted Least Squares (IRLS) algorithm initiates $\hat\beta$ to some reasonable guess (like all coefficients are 0 except for the intercept), computes $p_i=\frac{1}{1+e^{-\hat\beta'\mathbf{x}_i}}$, sets weights to $w_i=p_i(1-p_i)$, computes the working response $z_i$, and then runs a standard weighted least squares procedures to obtain a better estimate of $\hat\beta$. Then IRLS recomputes $p_i$, $w_i$, and $z_i$ and repeats the process until convergences. Typically, IRLS converges in 3-4 iterations.
 
 ## IRLS R example
 
@@ -931,6 +931,3 @@ Many predictive models, such as the naïve Bayes classifier, trees, and decision
 We reformulated ridge regression as a matrix algebra problem and saw how we can fit flexible models without overfitting. Placing a penalty on the size of $\sum \beta_j^2$ prevents any one coefficient from getting too large. This kind of "regularization" is a key concept in machine learning, indexing the complexity of the model by a single value. Here it is $\lambda$ but for knn it was $k$, the number of neighbors.
 
 While OLS has a closed form matrix algebra solution, other important models, like logistic regression, do not. However, the multivariate version of Taylor series allowed us to squeeze the logistic regression problem into a weighted OLS problem.
-
-
-

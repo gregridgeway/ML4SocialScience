@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-09">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>Introduction to Linear Algebra</title>
 <style>
@@ -171,7 +171,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 9, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -589,7 +589,7 @@ J(\beta) &amp;=     (\mathbf{y} -\mathbf{X}\beta)'(\mathbf{y} -\mathbf{X}\beta)\
     (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{X}\hat\beta &amp;= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y} \\
     \hat\beta &amp;= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}
 \end{split}
-\]</span> This is the classic solution to the least squares estimation problem. Some variants of this solution were known to the ancient Chinese and in the Arab world. A clear description of the problem and solution arrived with Legendre in 1805, but the matrix representation we use today probably did not appear until the early 1900s. In the last 100 years, this equation and its variations has driven a lot of scientific efforts.</p>
+\]</span> This is the classic solution to the least squares estimation problem. Some variants of this solution were known to the ancient Chinese and in the Arab world. A clear description of the problem and solution arrived with Legendre in 1805, but the matrix representation we use today probably did not appear until the early 1900s. In the last 100 years, this equation and its variations have driven a lot of scientific efforts.</p>
 </section>
 <section id="example" class="level2" data-number="4.2">
 <h2 data-number="4.2" class="anchored" data-anchor-id="example"><span class="header-section-number">4.2</span> Example</h2>
@@ -816,7 +816,7 @@ Figure&nbsp;3: Coefficient paths with increasing ridge penalty
 </div>
 </div>
 </div>
-<p>In general you can see that the coefficients are getting squeezed closer to 0 as <span class="math inline">\(\lambda\)</span> increases. Eventually with a large enough value for <span class="math inline">\(\lambda\)</span>, they will all get squeezed to 0. In this example, just a modest amount of penalizing the coefficients results in a smoother, more stable fit to the data.</p>
+<p>In general, you can see that the coefficients are getting squeezed closer to 0 as <span class="math inline">\(\lambda\)</span> increases. Eventually with a large enough value for <span class="math inline">\(\lambda\)</span>, they will all get squeezed to 0. In this example, just a modest amount of penalizing the coefficients results in a smoother, more stable fit to the data.</p>
 </section>
 </section>
 <section id="multivariate-taylor-series-and-gradient-descent" class="level1" data-number="6">
@@ -948,7 +948,7 @@ J(\beta) &amp;\approx J(b) + (\beta-b)'
 \end{split}
 \]</span></p>
 <p>where <span class="math inline">\(z_i=\hat\beta'\mathbf{x}_i +\frac{y_i-p_i}{p_i(1-p_i)}\)</span> and is called the “working response.”</p>
-<p>The Iteratively Reweighted Least Squares (IRLS) algorithm initiates <span class="math inline">\(\hat\beta\)</span> to some reasonable guess (like all coefficients are 0 except for the intercept), computes <span class="math inline">\(p_i=\frac{1}{1+e^{-\hat\beta'\mathbf{x}_i}}\)</span>, sets weights to <span class="math inline">\(w_i=p_i(1-p_i)\)</span>, computes the working response <span class="math inline">\(z_i\)</span>, and then runs a standard weighted least squares procedures to obtain a better estimate of <span class="math inline">\(\hat\beta\)</span>. Then IRLS recomputes <span class="math inline">\(p_i\)</span>, <span class="math inline">\(w_i\)</span>, and <span class="math inline">\(z_i\)</span> and repeats the process until convergences. Typically IRLS converges in 3-4 iterations.</p>
+<p>The Iteratively Reweighted Least Squares (IRLS) algorithm initiates <span class="math inline">\(\hat\beta\)</span> to some reasonable guess (like all coefficients are 0 except for the intercept), computes <span class="math inline">\(p_i=\frac{1}{1+e^{-\hat\beta'\mathbf{x}_i}}\)</span>, sets weights to <span class="math inline">\(w_i=p_i(1-p_i)\)</span>, computes the working response <span class="math inline">\(z_i\)</span>, and then runs a standard weighted least squares procedures to obtain a better estimate of <span class="math inline">\(\hat\beta\)</span>. Then IRLS recomputes <span class="math inline">\(p_i\)</span>, <span class="math inline">\(w_i\)</span>, and <span class="math inline">\(z_i\)</span> and repeats the process until convergences. Typically, IRLS converges in 3-4 iterations.</p>
 <section id="irls-r-example" class="level2" data-number="7.1">
 <h2 data-number="7.1" class="anchored" data-anchor-id="irls-r-example"><span class="header-section-number">7.1</span> IRLS R example</h2>
 <p>Let’s start by simulating some data where <span class="math inline">\(\beta=\begin{bmatrix} -1 &amp; 1 &amp; -1\end{bmatrix}\)</span>.</p>
