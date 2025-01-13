@@ -29,10 +29,13 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ```{r}
 #| echo: false
 #| message: false
+set.seed(20010618)
+
 library(dplyr)
 library(kableExtra)
-set.seed(20010618)
-colTab <- ifelse(knitr::is_html_output(), "white", "black")
+kable_material_opt <- ifelse(knitr::is_html_output(), 
+                             kable_material_dark, 
+                             kable_material)
 ```
 
 # Introduction to regression trees
@@ -53,8 +56,7 @@ dAge <- data.frame(ratio=c(0.040,0.070,0.070,0.075,0.080,0.085,0.105,0.110,0.115
 #| echo: false
 kbl(dAge, col.names = c("Ratio of D-aspartic to L-aspartic acid","Age")) |> 
   kable_classic() |>
-  row_spec(0, color="black", background = "green") |>
-  row_spec(1:nrow(dAge), color=colTab)
+  kable_material_opt(lightable_options="striped", full_width = FALSE)
 ```
 </div>
 
@@ -108,7 +110,7 @@ We just need to find values for $c$, $y_L$, and $y_R$ that minimize $\hat J(c,y_
 | 0.165 | 39  | ratio $\leq$ 0.1625 | 18.15           | 39.5             | 76.0          |
 | 0.170 | 40  | ratio $\leq$ 0.1675 | 19.64           | 40               | 102.9         |
 
-: Choosing split points {#tab-ratioDLacidSplit1}
+: Choosing split points {#tbl-ratioDLacidSplit1}
 
 Which split point should we choose?
 
@@ -182,7 +184,7 @@ Where should we split? The first table shows the data sorted by refractive index
 | 1.52171                   | 11.56 | 0            |
 | 1.52369                   | 13.44 | 0            |
 
-: Refractive index, sodium concentration, and window glass (sorted by refractive index) {#tab-glassSortRI}
+: Refractive index, sodium concentration, and window glass (sorted by refractive index) {#tbl-glassSortRI}
 </div>
 
 <div style="max-width: 50%; margin: auto;">
@@ -199,12 +201,12 @@ Where should we split? The first table shows the data sorted by refractive index
 | 1.51613          | 13.88         | 0            |
 | 1.51829          | 14.46         | 0            |
 
-: Refractive index, sodium concentration, and window glass (sorted by sodium concentration)  {#tab-glassSortNA}
+: Refractive index, sodium concentration, and window glass (sorted by sodium concentration)  {#tbl-glassSortNA}
 </div>
 
 The best split on refractive index is between 1.51811 and 1.51829, giving a misclassification rate of 2/10. The best split on sodium concentration is between 13.30 and 13.44, which also gives a misclassification rate of 2/10. Splitting on either refractive index or on sodium concentration gives the identical misclassification rate. In both cases we have two misclassified observations. The most common way to break such ties is to go with the split that results in more pure nodes. Splitting on sodium concentration peels off three observations that are not window glass, creating a pure non-window glass group. Note that this is not the only possible choice, just a common one.
 
-Here is the best two-split classification tree. I first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.
+Here is the best two-split classification tree. It first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.
 ```{r}
 #| label: fig-ratioDLacidSplit3
 #| fig-cap: "Best two split classification tree using sodium concentration and refractive index to predict window glass (2D plot)"
@@ -289,7 +291,7 @@ Cross-validation is the standard way for optimizing the choice for tuning parame
 
 Now put the first observation back in the dataset and remove the second one. Repeat the process. This leave-one-out procedure simulates what would happen in reality, fitting a tree to a fixed dataset and then having to predict for a future observation.
 
-When the dataset is small, LOOCV is feasible, but it quickly becomes too much computatinal effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10\% of the data at a time and uses the remaining 90\% of the data for learning the tree.
+When the dataset is small, LOOCV is feasible, but it quickly becomes too much computational effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10\% of the data at a time and uses the remaining 90\% of the data for learning the tree.
 
 1.  Randomly assign every observation a number between 1 and 10. For example, `mydata$fold <- rep(1:10, length.out=nrow(mydata)) |> sample()`
 2.  Hold out all observations with `fold==1`
@@ -436,7 +438,7 @@ text(treeFinal)
 Now let's try running it one more time including all of the glass features in the analysis.
 ```{r}
 #| label: fig-cvGlassAllFeatures
-#| fig-cap: Cross-validated error of glass classification using all available feature by complexity parameter and tree size
+#| fig-cap: Cross-validated error of glass classification using all available features by complexity parameter and tree size
 tree1 <- rpart(window~RI+Na+Mg+Al+Si+K+Ca+Ba+Fe,
                data=dGlass,
                method="class",
@@ -497,7 +499,7 @@ text(treeFinal)
 
     -   \[White, Other\] and \[Asian, Black, Hispanic\]
 
-The number of possible splits can get very large. A nominal feature with $m$ categories will have $2^m-1$ possible ways of splitting them. For example, if `state` is one of your features than there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, $y$, the race groups are sorted as
+The number of possible splits can get very large. A nominal feature with $m$ categories will have $2^m-1$ possible ways of splitting them. For example, if `state` is one of your features, then there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, $y$, the race groups are sorted as
 
 | Race     | $\bar y$ |
 |:---------|---------:|
@@ -598,7 +600,7 @@ Now let's get some predicted values from the fitted tree.
 nels0$yPred <- predict(tree1, newdata=nels0)
 ```
 
-And let's see how the tree has has carved up the 2D space.
+And let's see how the tree has carved up the 2D space.
 
 ```{r}
 plot(nels0$famIncome, nels0$ses,
@@ -713,9 +715,9 @@ abline(v=tree1$splits[,"index"], col="grey")
 
 Recall that when we used a knn model, we got a shape that had a similar pattern: high rate of dropout with low SES with a decreasing dropout rate as SES increased, with evidence of threshold and saturation effects.
 
-Fortunately, `rpart()` has built in functionality to do cross-validation. By default the parameter `xval` is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let's test this out using two student features this time around.
+Fortunately, `rpart()` has built in functionality to do cross-validation. By default, the parameter `xval` is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let's test this out using two student features this time around.
 
-Again as a first step I set the random number generator seed. This is because `rpart()` will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.
+Again, as a first step I set the random number generator seed. This is because `rpart()` will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.
 
 ```{r}
 set.seed(20240214)
@@ -752,7 +754,7 @@ plot(tree2, uniform=TRUE, compress=TRUE)
 text(tree2, minlength = 20, cex=0.7)
 ```
 
-Note this is a similar tree as the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.
+Note that this tree is similar to the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.
 
 Let's push this a little further using more student features.
 
@@ -775,7 +777,7 @@ Let's get the information on how the 10-fold cross-validation evaluates the diff
 plotcp(tree1)
 ```
 
-Again we will use the value of `cp` that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.
+Again, we will use the value of `cp` that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.
 
 ```{r}
 #| label: fig-10foldCVRpartAllFeatures
@@ -786,7 +788,7 @@ plot(tree2, uniform=TRUE, compress=TRUE)
 text(tree2, minlength = 20)
 ```
 
-Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or an other relative (not dad alone, not mom and step-dad, not dad and step-mom).
+Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or another relative (not dad alone, not mom and step-dad, not dad and step-mom).
 
 # Summary
 
@@ -796,4 +798,4 @@ We explored the principles and applications of classification and regression tre
 2. Using the glass and NELS88 examples, we went step-by-step through creation and evaluation of decision trees, emphasizing their interpretability and the trade-offs between depth and performance
 3. Selecting the optimal tree size is a critical part of decision tree models. The optimal tree size balances bias and variance. Cross-validation is the key method for figuring out how much to prune overly complex trees, ensuring generalization to unseen or future cases
 
-The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we sill study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness
+The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we will study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness

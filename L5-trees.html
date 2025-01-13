@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-08">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>Classification and regression trees</title>
 <style>
@@ -183,7 +183,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 8, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -209,73 +209,73 @@ window.Quarto = {
 </div>
 <div style="max-width: 50%; margin: auto;">
 <div>
-<table class="lightable-classic table" data-quarto-postprocess="true">
+<table class="lightable-classic lightable-material-dark lightable-striped table" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
-<th data-quarto-table-cell-role="th" style="text-align: right; color: black !important; background-color: green !important;">Ratio of D-aspartic to L-aspartic acid</th>
-<th data-quarto-table-cell-role="th" style="text-align: right; color: black !important; background-color: green !important;">Age</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Ratio of D-aspartic to L-aspartic acid</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Age</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.040</td>
-<td style="text-align: right; color: white !important;">0</td>
+<td style="text-align: right;">0.040</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.070</td>
-<td style="text-align: right; color: white !important;">2</td>
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.070</td>
-<td style="text-align: right; color: white !important;">16</td>
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">16</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.075</td>
-<td style="text-align: right; color: white !important;">10</td>
+<td style="text-align: right;">0.075</td>
+<td style="text-align: right;">10</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.080</td>
-<td style="text-align: right; color: white !important;">18</td>
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">18</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.085</td>
-<td style="text-align: right; color: white !important;">19</td>
+<td style="text-align: right;">0.085</td>
+<td style="text-align: right;">19</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.105</td>
-<td style="text-align: right; color: white !important;">16</td>
+<td style="text-align: right;">0.105</td>
+<td style="text-align: right;">16</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.110</td>
-<td style="text-align: right; color: white !important;">21</td>
+<td style="text-align: right;">0.110</td>
+<td style="text-align: right;">21</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.115</td>
-<td style="text-align: right; color: white !important;">21</td>
+<td style="text-align: right;">0.115</td>
+<td style="text-align: right;">21</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.130</td>
-<td style="text-align: right; color: white !important;">25</td>
+<td style="text-align: right;">0.130</td>
+<td style="text-align: right;">25</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.140</td>
-<td style="text-align: right; color: white !important;">26</td>
+<td style="text-align: right;">0.140</td>
+<td style="text-align: right;">26</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.150</td>
-<td style="text-align: right; color: white !important;">28</td>
+<td style="text-align: right;">0.150</td>
+<td style="text-align: right;">28</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.160</td>
-<td style="text-align: right; color: white !important;">34</td>
+<td style="text-align: right;">0.160</td>
+<td style="text-align: right;">34</td>
 </tr>
 <tr class="even">
-<td style="text-align: right; color: white !important;">0.165</td>
-<td style="text-align: right; color: white !important;">39</td>
+<td style="text-align: right;">0.165</td>
+<td style="text-align: right;">39</td>
 </tr>
 <tr class="odd">
-<td style="text-align: right; color: white !important;">0.170</td>
-<td style="text-align: right; color: white !important;">40</td>
+<td style="text-align: right;">0.170</td>
+<td style="text-align: right;">40</td>
 </tr>
 </tbody>
 </table>
@@ -317,8 +317,13 @@ Figure&nbsp;1: Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age
 <p><span class="math display">\[
 \hat J(c,y_L,y_R) = \sum_{i=1}^N I(x_i\leq c)(y_i-y_L)^2 + I(x_i&gt;c)(y_i-y_R)^2.
 \]</span> We just need to find values for <span class="math inline">\(c\)</span>, <span class="math inline">\(y_L\)</span>, and <span class="math inline">\(y_R\)</span> that minimize <span class="math inline">\(\hat J(c,y_L,y_R)\)</span>.</p>
+<div id="tbl-ratioDLacidSplit1" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Choosing split points
+</figcaption>
+<div aria-describedby="tbl-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table">
-<caption>Choosing split points {#tab-ratioDLacidSplit1}</caption>
 <colgroup>
 <col style="width: 8%">
 <col style="width: 6%">
@@ -460,6 +465,9 @@ Figure&nbsp;1: Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age
 </tr>
 </tbody>
 </table>
+</div>
+</figure>
+</div>
 <p>Which split point should we choose?</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge, <span class="at">pch=</span><span class="dv">19</span>)</span>
@@ -533,8 +541,13 @@ Figure&nbsp;5: Best depth 2 tree partition of ratio to predict age (decision tre
 <p>At crime scenes investigators need to determine whether glass fragments came from a window, eyeglasses, wine glass, or some other source. In this example we want to discriminate between window glass and other types of glass based on the samples’ refractive index and sodium concentration.</p>
 <p>Where should we split? The first table shows the data sorted by refractive index and the second table shows the same data sorted on sodium concentration.</p>
 <div style="max-width: 50%; margin: auto;">
+<div id="tbl-glassSortRI" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-glassSortRI-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Refractive index, sodium concentration, and window glass (sorted by refractive index)
+</figcaption>
+<div aria-describedby="tbl-glassSortRI-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table">
-<caption>Refractive index, sodium concentration, and window glass (sorted by refractive index) {#tab-glassSortRI}</caption>
 <thead>
 <tr class="header">
 <th style="text-align: right;">Refractive index (sorted)</th>
@@ -596,9 +609,17 @@ Figure&nbsp;5: Best depth 2 tree partition of ratio to predict age (decision tre
 </tbody>
 </table>
 </div>
+</figure>
+</div>
+</div>
 <div style="max-width: 50%; margin: auto;">
+<div id="tbl-glassSortNA" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-glassSortNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Refractive index, sodium concentration, and window glass (sorted by sodium concentration)
+</figcaption>
+<div aria-describedby="tbl-glassSortNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table">
-<caption>Refractive index, sodium concentration, and window glass (sorted by sodium concentration) {#tab-glassSortNA}</caption>
 <thead>
 <tr class="header">
 <th style="text-align: right;">Refractive index</th>
@@ -660,8 +681,11 @@ Figure&nbsp;5: Best depth 2 tree partition of ratio to predict age (decision tre
 </tbody>
 </table>
 </div>
+</figure>
+</div>
+</div>
 <p>The best split on refractive index is between 1.51811 and 1.51829, giving a misclassification rate of 2/10. The best split on sodium concentration is between 13.30 and 13.44, which also gives a misclassification rate of 2/10. Splitting on either refractive index or on sodium concentration gives the identical misclassification rate. In both cases we have two misclassified observations. The most common way to break such ties is to go with the split that results in more pure nodes. Splitting on sodium concentration peels off three observations that are not window glass, creating a pure non-window glass group. Note that this is not the only possible choice, just a common one.</p>
-<p>Here is the best two-split classification tree. I first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.</p>
+<p>Here is the best two-split classification tree. It first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dGlass <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">ri=</span><span class="fu">c</span>(<span class="fl">1.52171</span>,<span class="fl">1.51786</span>,<span class="fl">1.52058</span>,<span class="fl">1.51811</span>,<span class="fl">1.52152</span>,<span class="fl">1.51590</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                          <span class="fl">1.51673</span>,<span class="fl">1.52369</span>,<span class="fl">1.51613</span>,<span class="fl">1.51829</span>),</span>
@@ -746,7 +770,7 @@ Figure&nbsp;9: Tree partition of ratio to predict age with a single split
 <li>And carry on in this fashion until observation 1 has predictions from all sized trees.</li>
 </ol>
 <p>Now put the first observation back in the dataset and remove the second one. Repeat the process. This leave-one-out procedure simulates what would happen in reality, fitting a tree to a fixed dataset and then having to predict for a future observation.</p>
-<p>When the dataset is small, LOOCV is feasible, but it quickly becomes too much computatinal effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10% of the data at a time and uses the remaining 90% of the data for learning the tree.</p>
+<p>When the dataset is small, LOOCV is feasible, but it quickly becomes too much computational effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10% of the data at a time and uses the remaining 90% of the data for learning the tree.</p>
 <ol type="1">
 <li>Randomly assign every observation a number between 1 and 10. For example, <code>mydata$fold &lt;- rep(1:10, length.out=nrow(mydata)) |&gt; sample()</code></li>
 <li>Hold out all observations with <code>fold==1</code></li>
@@ -1002,7 +1026,7 @@ Figure&nbsp;15: Optimal classification tree for predicting building window glass
 <img src="L5-trees_files/figure-html/fig-cvGlassAllFeatures-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cvGlassAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;16: Cross-validated error of glass classification using all available feature by complexity parameter and tree size
+Figure&nbsp;16: Cross-validated error of glass classification using all available features by complexity parameter and tree size
 </figcaption>
 </figure>
 </div>
@@ -1077,7 +1101,7 @@ Figure&nbsp;17: Optimal classification tree using all available features for pre
 <li><p>[White, Other] and [Asian, Black, Hispanic]</p></li>
 </ul></li>
 </ol>
-<p>The number of possible splits can get very large. A nominal feature with <span class="math inline">\(m\)</span> categories will have <span class="math inline">\(2^m-1\)</span> possible ways of splitting them. For example, if <code>state</code> is one of your features than there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, <span class="math inline">\(y\)</span>, the race groups are sorted as</p>
+<p>The number of possible splits can get very large. A nominal feature with <span class="math inline">\(m\)</span> categories will have <span class="math inline">\(2^m-1\)</span> possible ways of splitting them. For example, if <code>state</code> is one of your features, then there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, <span class="math inline">\(y\)</span>, the race groups are sorted as</p>
 <table class="table">
 <thead>
 <tr class="header">
@@ -1208,7 +1232,7 @@ Figure&nbsp;19: Decision tree predicting dropout risk from SES and family income
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get predicted values</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>nels0<span class="sc">$</span>yPred <span class="ot">&lt;-</span> <span class="fu">predict</span>(tree1, <span class="at">newdata=</span>nels0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>And let’s see how the tree has has carved up the 2D space.</p>
+<p>And let’s see how the tree has carved up the 2D space.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nels0<span class="sc">$</span>famIncome, nels0<span class="sc">$</span>ses,</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Family income"</span>, <span class="at">ylab=</span><span class="st">"SES"</span>)</span>
@@ -1347,8 +1371,8 @@ Figure&nbsp;22: Predicted probability of dropout from a tree of depth 2
 </div>
 </div>
 <p>Recall that when we used a knn model, we got a shape that had a similar pattern: high rate of dropout with low SES with a decreasing dropout rate as SES increased, with evidence of threshold and saturation effects.</p>
-<p>Fortunately, <code>rpart()</code> has built in functionality to do cross-validation. By default the parameter <code>xval</code> is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let’s test this out using two student features this time around.</p>
-<p>Again as a first step I set the random number generator seed. This is because <code>rpart()</code> will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.</p>
+<p>Fortunately, <code>rpart()</code> has built in functionality to do cross-validation. By default, the parameter <code>xval</code> is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let’s test this out using two student features this time around.</p>
+<p>Again, as a first step I set the random number generator seed. This is because <code>rpart()</code> will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>ses<span class="sc">+</span>famIncome,</span>
@@ -1451,7 +1475,7 @@ Figure&nbsp;24: Decision tree selected using rpart’s 10-fold cross-validation 
 </div>
 </div>
 </div>
-<p>Note this is a similar tree as the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.</p>
+<p>Note that this tree is similar to the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.</p>
 <p>Let’s push this a little further using more student features.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
@@ -1479,7 +1503,7 @@ Figure&nbsp;25: Plot of complexity parameter (or number of terminal nodes) versu
 </div>
 </div>
 </div>
-<p>Again we will use the value of <code>cp</code> that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.</p>
+<p>Again, we will use the value of <code>cp</code> that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>tree2 <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1, <span class="at">cp =</span> <span class="fu">bestCP</span>(tree1))</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
@@ -1498,7 +1522,7 @@ Figure&nbsp;26: Decision tree selected using rpart’s 10-fold cross-validation 
 </div>
 </div>
 </div>
-<p>Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or an other relative (not dad alone, not mom and step-dad, not dad and step-mom).</p>
+<p>Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or another relative (not dad alone, not mom and step-dad, not dad and step-mom).</p>
 </section>
 </section>
 <section id="summary" class="level1" data-number="8">
@@ -1509,7 +1533,7 @@ Figure&nbsp;26: Decision tree selected using rpart’s 10-fold cross-validation 
 <li>Using the glass and NELS88 examples, we went step-by-step through creation and evaluation of decision trees, emphasizing their interpretability and the trade-offs between depth and performance</li>
 <li>Selecting the optimal tree size is a critical part of decision tree models. The optimal tree size balances bias and variance. Cross-validation is the key method for figuring out how much to prune overly complex trees, ensuring generalization to unseen or future cases</li>
 </ol>
-<p>The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we sill study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness</p>
+<p>The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we will study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness</p>
 
 </section>
 
