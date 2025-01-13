@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-08">
+<meta name="dcterms.date" content="2025-01-12">
 
 <title>Differential calculus review</title>
 <style>
@@ -130,6 +130,7 @@ window.Quarto = {
   <li><a href="#derivatives-of-multivariate-functions" id="toc-derivatives-of-multivariate-functions" class="nav-link" data-scroll-target="#derivatives-of-multivariate-functions"><span class="header-section-number">3.2</span> Derivatives of multivariate functions</a></li>
   <li><a href="#multivariate-gradient-descent" id="toc-multivariate-gradient-descent" class="nav-link" data-scroll-target="#multivariate-gradient-descent"><span class="header-section-number">3.3</span> Multivariate gradient descent</a></li>
   </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">4</span> Summary</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L4-calculus-review.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -161,7 +162,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 8, 2025</p>
+      <p class="date">January 12, 2025</p>
     </div>
   </div>
   
@@ -206,7 +207,7 @@ window.Quarto = {
 <li>Compute <span class="math inline">\(\frac{d}{d\beta} \sum_{i=1}^n (y_i-\beta)^2\)</span></li>
 <li>Compute <span class="math inline">\(\frac{d}{dp} \log(p) + \log(1-p)\)</span></li>
 <li>Compute <span class="math inline">\(\frac{d}{dp} y\log(p) + (1-y)\log(1-p)\)</span></li>
-<li>Compute <span class="math inline">\(\frac{d}{dx} |x|\)</span></li>
+<li>Compute <span class="math inline">\(\frac{d}{dx} |x|\)</span> (Hint: draw a picture of <span class="math inline">\(f(x)=|x|\)</span>)</li>
 <li>Compute <span class="math inline">\(\frac{d}{dx} |a+bx|\)</span></li>
 <li>Compute <span class="math inline">\(\frac{d}{dx} \frac{1}{1+e^{-x}}\)</span></li>
 </ol>
@@ -305,7 +306,7 @@ window.Quarto = {
 <li>Find <span class="math inline">\(\hat x\)</span> that optimizes <span class="math inline">\(f(x)=2x+\frac{200}{x}\)</span>. Is it a maximum or a minimum?</li>
 <li>Find <span class="math inline">\(\hat x\)</span> that optimizes <span class="math inline">\(f(x)=\log(x)+\log(1-x)+3\)</span>. Is it a maximum or a minimum?</li>
 <li>Find <span class="math inline">\(\hat t\)</span> that optimizes <span class="math inline">\(f(x)=100+\frac{800t}{t^2+90000}\)</span>. Is it a maximum or a minimum?</li>
-<li>Find <span class="math inline">\(\hat p\)</span> that optimizes <span class="math inline">\(\ell(p)=6\log(p)+10\log(1-p)\)</span>. Is it a maximum of minimum?</li>
+<li>Find <span class="math inline">\(\hat p\)</span> that optimizes <span class="math inline">\(\ell(p)=6\log(p)+10\log(1-p)\)</span>. Is it a maximum or a minimum?</li>
 </ol>
 </section>
 </section>
@@ -374,7 +375,7 @@ J(x) = J(x_0) + J'(x_0)(x-x_0) + \frac{1}{2}J''(x_0)(x-x_0)^2 + \ldots + \frac{1
     J'(x_0) + J''(x_0)(\hat x-x_0) &amp;= 0 \\
     \hat x &amp;= x_0 - \frac{J'(x_0)}{J''(x_0)}
 \end{split}
-\tag{1}\]</span></span> This implies that if we have a guess, <span class="math inline">\(x_0\)</span>, for the optimal value, then we should be able to get a better guess by calculating <a href="#eq-newton" class="quarto-xref">Equation&nbsp;1</a>. We will need to repeat this several times until it converges on a final answer. This is known as Newton’s method.</p>
+\tag{1}\]</span></span> This implies that if we have a guess, <span class="math inline">\(x_0\)</span>, for the optimal value, then we should be able to get a better guess by calculating (<a href="#eq-newton" class="quarto-xref">1</a>). We will need to repeat this several times until it converges on a final answer. This is known as Newton’s method.</p>
 <p><strong>Example</strong> In a previous exercise we optimized <span class="math inline">\(\ell(p)=6\log(p)+10\log(1-p)\)</span> directly. Let’s pretend it was too hard and try Newton’s method on this one instead. <span class="math display">\[
 \begin{split}
     \ell(p) &amp;= 6\log(p)+10\log(1-p) \\
@@ -386,7 +387,7 @@ J(x) = J(x_0) + J'(x_0)(x-x_0) + \frac{1}{2}J''(x_0)(x-x_0)^2 + \ldots + \frac{1
      &amp;= p_0 + \frac{p_0(1-p_0)(3-8p_0)}
                     {3-6p_0+8p_0^2}
 \end{split}
-\]</span> There are plenty of examples where Newton’s method does not work well (slow to converge) or at all (diverges or converges to a local maximium/minimum). For example, if we started with <span class="math inline">\(p_0=0\)</span> or <span class="math inline">\(p_0=1\)</span>, then for this problem <span class="math inline">\(\hat p\)</span> would get stuck at 0 or 1 and never move to a better value. Also note that if we started at <span class="math inline">\(p_0=\frac{3}{8}\)</span> then it also does not change, but that is because <span class="math inline">\(\frac{3}{8}\)</span> is the right answer!</p>
+\]</span> There are plenty of examples where Newton’s method does not work well (slow to converge) or at all (diverges or converges to a local maximum/minimum). For example, if we started with <span class="math inline">\(p_0=0\)</span> or <span class="math inline">\(p_0=1\)</span>, then for this problem <span class="math inline">\(\hat p\)</span> would get stuck at 0 or 1 and never move to a better value. Also note that if we started at <span class="math inline">\(p_0=\frac{3}{8}\)</span> then it also does not change, but that is because <span class="math inline">\(\frac{3}{8}\)</span> is the right answer!</p>
 <p>Running this in R shows that it converges to the exact answer in just a few steps</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
@@ -405,7 +406,7 @@ J(x) = J(x_0) + J'(x_0)(x-x_0) + \frac{1}{2}J''(x_0)(x-x_0)^2 + \ldots + \frac{1
 [1] 0.375</code></pre>
 </div>
 </div>
-<p>R has built-in optimization functions that you can use for any similar optimization problem. You just need to specify the function, the first derivative (also called the gradient), and the second derivative (also called the Hessian), and then pass those functions to <code>nlm()</code>. Note that <code>nlm()</code> only solves <em>minimization</em> problems. So if you have a maximization problem, just multiply all your functions and derivatives by -1 to make it a minimization problem.</p>
+<p>R has built-in optimization functions that you can use for any similar optimization problem. You just need to specify the function, the first derivative (also called the gradient), and the second derivative (also called the Hessian), and then pass those functions to <code>nlm()</code>. Note that <code>nlm()</code> only solves <em>minimization</em> problems. So, if you have a maximization problem, just multiply all your functions and derivatives by -1 to make it a minimization problem.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(p)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -475,6 +476,32 @@ $iterations
 \]</span> for some <span class="math inline">\(\lambda\)</span> that is sufficiently small.</p>
 <p>We will get more into this when we pick up some linear algebra skills and matrix derivatives.</p>
 </section>
+</section>
+<section id="summary" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Summary</h1>
+<p>We have complete a quick review of differential calculus concepts essential for understanding optimization and machine learning algorithms.</p>
+<ol type="1">
+<li><strong>Properties of Derivatives</strong>:
+<ul>
+<li>Important derivative rules (power rule, product rule, quotient rule, chain rule)</li>
+<li>Analyzed and optimized functions</li>
+</ul></li>
+<li><strong>Optimization</strong>:
+<ul>
+<li>Found local maxima and minima using first and second derivatives</li>
+<li>Solved common optimization problems (minimizing squared differences, estimating probabilities for Bernoulli random variables)</li>
+</ul></li>
+<li><strong>Gradient Descent</strong>:
+<ul>
+<li>Reviewed Taylor series approximations for analyzing complex functions</li>
+<li>Used gradient descent as an iterative optimization method for finding minima when direct solutions are infeasible</li>
+</ul></li>
+<li><strong>Multivariate Gradient Descent</strong>:
+<ul>
+<li>Extended calculus principles to multivariate functions, introducing partial derivatives and gradients</li>
+<li>Introduced gradient descent for multivariate functions</li>
+</ul></li>
+</ol>
 </section>
 
 </main>

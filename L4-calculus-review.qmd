@@ -62,7 +62,7 @@ $$
 3.  Compute $\frac{d}{d\beta} \sum_{i=1}^n (y_i-\beta)^2$
 4.  Compute $\frac{d}{dp} \log(p) + \log(1-p)$
 5.  Compute $\frac{d}{dp} y\log(p) + (1-y)\log(1-p)$
-6.  Compute $\frac{d}{dx} |x|$
+6.  Compute $\frac{d}{dx} |x|$ (Hint: draw a picture of $f(x)=|x|$)
 7.  Compute $\frac{d}{dx} |a+bx|$
 8.  Compute $\frac{d}{dx} \frac{1}{1+e^{-x}}$
 
@@ -173,7 +173,7 @@ This shows that the maximum likelihood estimator for $p$ is the sample mean of t
 1.  Find $\hat x$ that optimizes $f(x)=2x+\frac{200}{x}$. Is it a maximum or a minimum?
 2.  Find $\hat x$ that optimizes $f(x)=\log(x)+\log(1-x)+3$. Is it a maximum or a minimum?
 3.  Find $\hat t$ that optimizes $f(x)=100+\frac{800t}{t^2+90000}$. Is it a maximum or a minimum?
-4.  Find $\hat p$ that optimizes $\ell(p)=6\log(p)+10\log(1-p)$. Is it a maximum of minimum?
+4.  Find $\hat p$ that optimizes $\ell(p)=6\log(p)+10\log(1-p)$. Is it a maximum or a minimum?
 
 
 # Gradient descent
@@ -244,7 +244,7 @@ $$
     \hat x &= x_0 - \frac{J'(x_0)}{J''(x_0)}
 \end{split}
 $$ {#eq-newton}
-This implies that if we have a guess, $x_0$, for the optimal value, then we should be able to get a better guess by calculating @eq-newton. We will need to repeat this several times until it converges on a final answer. This is known as Newton's method.
+This implies that if we have a guess, $x_0$, for the optimal value, then we should be able to get a better guess by calculating ([-@eq-newton]). We will need to repeat this several times until it converges on a final answer. This is known as Newton's method.
 
 **Example**
 In a previous exercise we optimized $\ell(p)=6\log(p)+10\log(1-p)$ directly. Let's pretend it was too hard and try Newton's method on this one instead.
@@ -260,7 +260,7 @@ $$
                     {3-6p_0+8p_0^2}
 \end{split}
 $$
-There are plenty of examples where Newton's method does not work well (slow to converge) or at all (diverges or converges to a local maximium/minimum). For example, if we started with $p_0=0$ or $p_0=1$, then for this problem $\hat p$ would get stuck at 0 or 1 and never move to a better value. Also note that if we started at $p_0=\frac{3}{8}$ then it also does not change, but that is because $\frac{3}{8}$ is the right answer!
+There are plenty of examples where Newton's method does not work well (slow to converge) or at all (diverges or converges to a local maximum/minimum). For example, if we started with $p_0=0$ or $p_0=1$, then for this problem $\hat p$ would get stuck at 0 or 1 and never move to a better value. Also note that if we started at $p_0=\frac{3}{8}$ then it also does not change, but that is because $\frac{3}{8}$ is the right answer!
 
 Running this in R shows that it converges to the exact answer in just a few steps
 ```{r}
@@ -273,7 +273,7 @@ for(i in 1:6)
 }
 ```
 
-R has built-in optimization functions that you can use for any similar optimization problem. You just need to specify the function, the first derivative (also called the gradient), and the second derivative (also called the Hessian), and then pass those functions to `nlm()`. Note that `nlm()` only solves *minimization* problems. So if you have a maximization problem, just multiply all your functions and derivatives by -1 to make it a minimization problem.
+R has built-in optimization functions that you can use for any similar optimization problem. You just need to specify the function, the first derivative (also called the gradient), and the second derivative (also called the Hessian), and then pass those functions to `nlm()`. Note that `nlm()` only solves *minimization* problems. So, if you have a maximization problem, just multiply all your functions and derivatives by -1 to make it a minimization problem.
 
 ```{r}
 f <- function(p)
@@ -340,3 +340,23 @@ for some $\lambda$ that is sufficiently small.
 
 We will get more into this when we pick up some linear algebra skills and matrix derivatives.
 
+
+# Summary
+
+We have complete a quick review of differential calculus concepts essential for understanding optimization and machine learning algorithms.
+
+1. **Properties of Derivatives**:
+   - Important derivative rules (power rule, product rule, quotient rule, chain rule)
+   - Analyzed and optimized functions
+
+2. **Optimization**:
+   - Found local maxima and minima using first and second derivatives
+   - Solved common optimization problems (minimizing squared differences, estimating probabilities for Bernoulli random variables)
+
+3. **Gradient Descent**:
+   - Reviewed Taylor series approximations for analyzing complex functions
+   - Used gradient descent as an iterative optimization method for finding minima when direct solutions are infeasible
+
+4. **Multivariate Gradient Descent**:
+   - Extended calculus principles to multivariate functions, introducing partial derivatives and gradients
+   - Introduced gradient descent for multivariate functions
