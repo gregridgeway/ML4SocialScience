@@ -21,3 +21,9 @@ Table of contents
     - Lasso
     - Forward stagewise selection
     - Gradient boosting
+9. [Propensity score estimation](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L9-propensity-score-estimation.html)
+    - Simpson's paradox and confounders
+    - Neyman-Rubin causal model
+    - Propensity score weighting
+       - using machine learning to estimate propensity scores
+       - `fastDR` package
