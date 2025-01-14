@@ -1,0 +1,1139 @@
+---
+title: "L10 Neural networks"
+author:
+- affiliation: University of Pennsylvania
+  email: gridge@upenn.edu
+  name: Greg Ridgeway
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+format:
+  html:
+    theme: 
+      dark: darkly
+      light: default
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    toc: true
+prefer-html: true
+number-sections: true
+editor_options: 
+  chunk_output_type: console
+bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
+---
+
+<!-- In terminal -->
+<!-- quarto render L10-neural-nets.qmd -->
+<!-- quarto render L10-neural-nets.qmd --cache-refresh  -->
+<!-- Include C:\cygwin64\bin in path to get to rsvg-convert -->
+
+
+
+```{r}
+#| echo: false
+#| message: false
+col1 <- "#0072B2"
+col2 <- "#E69F00"
+col1and2 <- c(col1, col2)
+# Find color codes to make these somewhat transparent
+col1and2transparent <- 
+  apply(col2rgb(col=col1and2), 2,
+        function(x) rgb(x[1]/255, x[2]/255, x[3]/255)) |>
+  paste0("10")
+# col1and2transparent <- c("#FF69B410","#00FF7F10")
+```
+
+
+# Reading 
+
+Read @Hast:Tibs:2001 Chapter 11.
+
+Read @ISLR2 Chapter 10.
+
+Read Y. LeCun, Y. Bengio, and G. Hinton (2015). "Deep learning," *Nature* 521, 436–444.
+
+# A simple neural network
+
+Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter a linear transformation, which outputs a prediction. Let's further assume that we wish to minimize squared error, $J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2$. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is
+
+```{r}
+#| echo: false
+#| results: false
+2+2
+```
+
+```{tikz nnlinearmodel}
+#| label: fig-linearnn
+#| echo: false
+#| fig-cap: "A linear model as a network"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+\tikzstyle{mynode}=[thick,draw=blue,fill=blue!20,circle,minimum size=22]
+\usetikzlibrary{arrows.meta} % for arrow size
+\tikzset{>=latex} % for LaTeX arrow head
+
+\colorlet{myred}{red!80!black}
+\colorlet{myblue}{blue!80!black}
+\colorlet{mygreen}{green!60!black}
+\colorlet{myorange}{orange!70!red!60!black}
+\colorlet{mydarkred}{red!30!black}
+\colorlet{mydarkblue}{blue!40!black}
+\colorlet{mydarkgreen}{green!30!black}
+\tikzset{
+  >=latex, % for default LaTeX arrow head
+  node/.style={thick,circle,draw=myblue,minimum size=22,inner sep=0.5,outer sep=0.6},
+  node in/.style={node,green!20!black,draw=mygreen!30!black,fill=mygreen!25},
+  node hidden/.style={node,blue!80!black,draw=myblue!30!black,fill=myblue!20},
+  node convol/.style={node,orange!20!black,draw=myorange!30!black,fill=myorange!20},
+  node out/.style={node,red!20!black,draw=myred!30!black,fill=myred!20},
+  connect/.style={thick,mydarkblue}, %,line cap=round
+  connect arrow/.style={-{Latex[length=4,width=3.5]},thick,mydarkblue,shorten <=0.5,shorten >=1},
+  node 1/.style={node in}, % node styles, numbered for easy mapping with \nstyle
+  node 2/.style={node hidden},
+  node 3/.style={node out}
+}
+\def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)} % map layer number onto 1, 2, or 3
+
+\begin{tikzpicture}[x=4cm,y=1.4cm]
+    \node[mynode](1) at (1,2) {$x_1$};
+    \node[mynode](2) at (1,1) {$x_2$};
+    \node[mynode](3) at (2,1.5) {$\beta_0+\beta_1x_1+\beta_2x_2$};
+    \node[mynode](4) at (3,1.5) {$\hat y$};
+    \draw[connect arrow] (1) -- (3);
+    \draw[connect arrow] (2) -- (3);
+    \draw[connect arrow] (3) -- (4);
+\end{tikzpicture}
+```
+
+We start with some guess for $\hat\beta$, perhaps $(0,0,0)$. Then once we pass our data through the neural network we get predicted values and we learn how badly we did by computing $\sum (y_i-\hat y_i)^2$. Now we can improve our guess for $\hat\beta$ by computing the gradient of $J$ with respect to $\beta$. We will chain rule our way to figure out the gradient.
+
+$$
+\begin{split}
+    \frac{\partial J}{\partial\hat y_i} &= -2(y_i-\hat y_i) \\
+    \frac{\partial\hat y_i}{\partial \beta_0} &= 1 \\
+    \frac{\partial\hat y_i}{\partial \beta_1} &= x_{i1} \\
+    \frac{\partial\hat y_i}{\partial \beta_2} &= x_{i2} \\
+    \frac{\partial J}{\partial \beta_0} &= 
+    \frac{\partial J}{\partial\hat y_1}\frac{\partial\hat y_1}{\partial \beta_0} + \ldots + \frac{\partial J}{\partial\hat y_n}\frac{\partial\hat y_n}{\partial \beta_0} \\
+    &= -2(y_1-\hat y_1)(1) + \ldots + -2(y_n-\hat y_n)(1) \\
+    &= -2\sum(y_i-\hat y_i)
+\end{split}
+$$
+
+So, to reduce the loss function $J$ we need to adjust $\hat\beta_0$ as $$
+    \hat\beta_0 \leftarrow \hat\beta_0 - \lambda\left(-2\sum(y_i-\hat y_i)\right)
+$$ where $\lambda$ is the "learning rate." Similarly for $\hat\beta_1$ and $\hat\beta_2$ $$
+\begin{split}
+\frac{\partial J}{\partial \beta_1} &=
+    \frac{\partial J}{\partial\hat y_1}\frac{\partial\hat y_1}{\partial \beta_1} + \ldots + \frac{\partial J}{\partial\hat y_n}\frac{\partial\hat y_n}{\partial \beta_1} \\
+    &= -2(y_1-\hat y_1)x_{11} + \ldots + -2(y_n-\hat y_n)x_{n1} \\
+    &= -2\sum(y_i-\hat y_i)x_{i1} \\
+\frac{\partial J}{\partial \beta_2} &= 
+    -2\sum(y_i-\hat y_i)x_{i2}
+\end{split}
+$$ Putting this all together, an algorithm for optimizing this simple neural network would be $$
+\begin{split}
+\begin{bmatrix} \hat\beta_0 \\ \hat\beta_1 \\ \hat\beta_2\end{bmatrix} 
+&\leftarrow
+\begin{bmatrix} \hat\beta_0 \\ \hat\beta_1 \\ \hat\beta_2\end{bmatrix} 
+- \lambda 
+\begin{bmatrix} -2\sum(y_i-\hat y_i) \\ -2\sum(y_i-\hat y_i)x_{i1} \\ -2\sum(y_i-\hat y_i)x_{i2}\end{bmatrix} \\
+\hat\beta &\leftarrow \hat\beta + \lambda \mathbf{X}'(\mathbf{y}-\mathbf{\hat y})
+\end{split}
+$$ 
+where in the last line the $\lambda$ absorbed the $2$.
+
+# Neural networks with hidden layers
+
+The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.
+
+The network in @fig-nnhidenlayer1 two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
+
+```{tikz nnhiddenlayer1}
+#| label: fig-nnhidenlayer1
+#| echo: false
+#| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
+#| fig-align: center
+#| fig-ext: svg
+#| out-width: 100%
+
+\tikzstyle{mynode}=[thick,draw=blue,fill=blue!20,circle,minimum size=22]
+\usetikzlibrary{arrows.meta} % for arrow size
+\tikzset{>=latex} % for LaTeX arrow head
+
+\colorlet{myred}{red!80!black}
+\colorlet{myblue}{blue!80!black}
+\colorlet{mygreen}{green!60!black}
+\colorlet{myorange}{orange!70!red!60!black}
+\colorlet{mydarkred}{red!30!black}
+\colorlet{mydarkblue}{blue!40!black}
+\colorlet{mydarkgreen}{green!30!black}
+\tikzset{
+  >=latex, % for default LaTeX arrow head
+  node/.style={thick,circle,draw=myblue,minimum size=22,inner sep=0.5,outer sep=0.6},
+  node in/.style={node,green!20!black,draw=mygreen!30!black,fill=mygreen!25},
+  node hidden/.style={node,blue!20!black,draw=myblue!30!black,fill=myblue!20},
+  node convol/.style={node,orange!20!black,draw=myorange!30!black,fill=myorange!20},
+  node out/.style={node,red!20!black,draw=myred!30!black,fill=myred!20},
+  connect/.style={thick,mydarkblue}, %,line cap=round
+  connect arrow/.style={-{Latex[length=4,width=3.5]},thick,mydarkblue,shorten <=0.5,shorten >=1},
+  node 1/.style={node in}, % node styles, numbered for easy mapping with \nstyle
+  node 2/.style={node hidden},
+  node 3/.style={node out}
+}
+\def\nstyle{int(\lay<\Nnodlen?min(2,\lay):3)} % map layer number onto 1, 2, or 3
+
+\begin{tikzpicture}[x=4cm,y=1.4cm]
+    \node[node 1](1) at (1,2) {$x_2$};
+    \node[node 1](2) at (1,3) {$x_1$};
+    \node[node 2](3) at (2,4) {$a_1^{[1]}$};
+    \node[node 2](4) at (2,3) {$a_2^{[1]}$};
+    \node[node 2](5) at (2,2) {$a_3^{[1]}$};
+    \node[node 2](6) at (2,1) {$a_4^{[1]}$};
+    \node[node 3](7) at (3,2.5) {$a^{[2]}$};
+    \node[node 3](8) at (3.5,2.5) {$\hat y$};
+    \draw[connect arrow] (1) -- (3);
+    \draw[connect arrow] (1) -- (4);
+    \draw[connect arrow] (1) -- (5);
+    \draw[connect arrow] (1) -- (6);
+    \draw[connect arrow] (2) -- (3);
+    \draw[connect arrow] (2) -- (4);
+    \draw[connect arrow] (2) -- (5);
+    \draw[connect arrow] (2) -- (6);
+    \draw[connect arrow] (3) -- (7);
+    \draw[connect arrow] (4) -- (7);
+    \draw[connect arrow] (5) -- (7);
+    \draw[connect arrow] (6) -- (7);
+    \draw[connect arrow] (7) -- (8);
+     \node[above=8,align=center,mygreen!60!black] at (2) {input\\[-0.2em]layer};
+  \node[above=8,align=center,myblue!60!black] at (3) {hidden layers};
+  \node[above=8,align=center,myred!60!black] at (7.9) {output\\[-0.2em]layer};
+\end{tikzpicture}
+```
+
+If all the nodes just did linear transformations, then the output node would also just be a linear transformation of $x_1$ and $x_2$, offering no improvement over ordinary least squares. Instead, neural networks apply a non-linear "activation function" to the linear combination of features from the previous node. With a single hidden layer and a non-linear activation function, a neural network can capture any shape decision boundary. It is a "universal approximator." The success of deep learning comes from how expressive neural networks can be with layers of these simple functions on top of each other.
+
+The most common activation functions are the sigmoid (also known as the inverse logit transform or expit), the hyperbolic tangent, the rectified linear unit (ReLU... pronounced ray-loo), and the Heaviside function.  @fig-activationFuncs shows their shape.
+
+```{r}
+#| label: fig-activationFuncs
+#| fig-cap: Four common activation functions
+x <- seq(-4,4,length.out=100)
+# sigmoid, 1/(1+exp(-x))
+plot(x, 1/(1+exp(-x)), type="l", lwd=3,
+     ylab=expression(sigma(x)))
+# hyperbolic tangent
+lines(x, (1+tanh(x))/2, col="red", lwd=3)
+# Heaviside function, perceptron
+lines(x, x>0, col="blue", lwd=4)   
+# ReLU - Rectified Linear Unit
+#   gradient is 0 or 1
+lines(x, pmax(0,x), col="orange", lwd=3)
+legend(-4,0.8,legend = c("sigmoid","tanh","ReLU","Heaviside"),
+       col=c("black","red","orange","blue"),
+       lwd=3)
+```
+
+Each node applies one of these activation functions to the linear combination of inputs from the previous layer. Used in this manner, they are called "ridge" activation functions.
+
+Returning to the network in @fig-nnhidenlayer1, the hidden nodes marked with a $[1]$ superscript in them all have the form
+$$
+\mathbf{a}^{[1]} = 
+\begin{bmatrix}
+    a_1^{[1]} \\ a_2^{[1]} \\ a_3^{[1]} \\a_4^{[1]}
+\end{bmatrix}
+=
+\begin{bmatrix}
+    \sigma\left(\mathbf{w}_1^{[1]}{'}\mathbf{x}\right) \\
+    \sigma\left(\mathbf{w}_2^{[1]}{'}\mathbf{x}\right) \\
+    \sigma\left(\mathbf{w}_3^{[1]}{'}\mathbf{x}\right) \\
+    \sigma\left(\mathbf{w}_4^{[1]}{'}\mathbf{x}\right) \\
+\end{bmatrix}
+$$
+In some neural network discussions you will see a constant term separate from the linear transform of the $\mathbf{x}$, called the "bias". Instead here we assume that $\mathbf{x}$ includes a constant 1 as its first element so that $w_{11}^{[1]}$, for example, is that constant term.
+
+The output layer will also apply an activation function to the inputs from the hidden layer.
+$$
+\begin{split}
+\hat y=\mathbf{a}^{[2]} &= 
+    \sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a^{[1]}}\right) \\
+    &= 
+    \sigma\left(
+    w_0^{[2]} + w_1^{[2]}a_1^{[1]} + w_2^{[2]}a_2^{[1]} + 
+    w_3^{[2]}a_3^{[1]} + w_4^{[2]}a_4^{[1]}\right)
+\end{split}
+$$
+In its full, expanded form it can get rather messy.
+$$
+\hat y=\sigma\left(w_0^{[2]}+
+w_1^{[2]}\sigma\left(\mathbf{w}_1^{[1]}{'}\mathbf{x}\right) +
+w_2^{[2]}\sigma\left(\mathbf{w}_2^{[1]}{'}\mathbf{x}\right) +
+w_3^{[2]}\sigma\left(\mathbf{w}_3^{[1]}{'}\mathbf{x}\right) +
+w_4^{[2]}\sigma\left(\mathbf{w}_4^{[1]}{'}\mathbf{x}\right)
+\right)
+$$
+It gets a lot more complicated when there are several layers and a lot more nodes in each layer.
+
+Fitting a neural network means optimizing the values of $\mathbf{w}_{j}^{[1]}$ and $\mathbf{w}_{j}^{[2]}$ to minimize a loss function.
+
+This time for a loss function we will minimize the negative Bernoulli log-likelihood (sometimes referred to as cross-entropy for binary outputs in the neural network literature).
+$$
+J(\mathbf{y},\mathbf{\hat y})=-\sum_{i=1}^n y_i\log(\hat y_i) + (1-y_i)\log(1-\hat y_i)
+$$
+We will set $\sigma(\cdot)$ to be the sigmoid function. Now we need to compute the gradient with respect to all the parameters. Let's start at the output and work backwards. Recall that the derivative of the sigmoid function is $\sigma'(x)=\sigma(x)(1-\sigma(x))$.
+$$
+\begin{split}
+    \frac{\partial J}{\partial \hat y_i} &= 
+    -\frac{y_i}{\hat y_i} + \frac{1-y_i}{1-\hat y_i} \\
+    &= -\frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}
+\end{split}
+$$
+Now we need to move to the next level of parameters, the $\mathbf{w}^{[2]}$. Note that
+$$
+\begin{split}
+\frac{\partial \hat y_i}{\partial w_j^{[2]}} &=
+  \frac{\partial}{\partial w_j^{[2]}} \sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a}_i^{[1]}\right) \\
+  &= \sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a}_i^{[1]}\right)
+  \left(1-\sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a}_i^{[1]}\right)\right)a_{ij}^{[1]}\\
+  &= \hat y_i (1-\hat y_i)a_{ij}^{[1]}
+\end{split}
+$$
+We can chain rule these together to get the gradient for the output layer weights.
+$$
+\begin{split}
+    \frac{\partial J}{\partial w_j^{[2]}} &= 
+    \frac{\partial J}{\partial \hat y_1}\frac{\partial \hat y_1}{\partial w_j^{[2]}} + \ldots +
+    \frac{\partial J}{\partial \hat y_n}\frac{\partial \hat y_n}{\partial w_j^{[2]}} \\
+    &= -\frac{y_1-\hat y_1}{\hat y_1(1-\hat y_1)}
+        \hat y_1 (1-\hat y_1)a_{1j}^{[1]}
+         - \ldots 
+        -\frac{y_n-\hat y_n}{\hat y_n(1-\hat y_n)}
+        \hat y_n (1-\hat y_n)a_{nj}^{[1]} \\
+    &= -(y_1-\hat y_1)a_{ij}^{[1]} - \ldots -(y_n-\hat y_n)a_{nj}^{[1]} \\
+    &= -\sum (y_i-\hat y_i)a_{ij}^{[1]}
+\end{split}
+$$
+A rather complicated idea becomes a rather simple expression. To adjust the output layer weights to make the model perform a little better we need to update as
+$$
+    \mathbf{w}^{[2]} \leftarrow \mathbf{w}^{[2]} + \lambda\mathbf{A}^{[1]}{'}(\mathbf{y}-\mathbf{\hat y})
+$$
+Now that we have the algorithm for updating the output layer parameters, we can move backwards through the network to update the next layer's parameters. Here we look at layer $[1]$ and adjust the weight on input $k$ associated with hidden node $j$.
+$$
+\begin{split}
+    \frac{\partial J}{\partial w_{jk}^{[1]}} &= \sum_{i=1}^n  
+     \frac{\partial J}{\partial \hat y_i}
+     \frac{\partial\hat y_i}{\partial a_{ij}^{[1]}} 
+     \frac{\partial a_{ij}^{[1]}}{\partial w_{jk}^{[1]}} \\
+     &= -\sum_{i=1}^n \frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}
+        \hat y_i (1-\hat y_i)w_{j}^{[2]}
+        a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik} \\
+     &= -w_{j}^{[2]}\sum_{i=1}^n (y_i-\hat y_i)
+        a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}
+\end{split}
+$$
+Then we update as 
+$$
+    w_{jk}^{[1]} \leftarrow w_{jk}^{[1]} + \lambda w_{j}^{[2]}\sum_{i=1}^n (y_i-\hat y_i)a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}
+$$
+The components of this expression were already computed when we passed forward through the network to make predictions. Now we work backward through the network applying the chain rule over and over to compute the gradients for each layer's parameters. This process of working backwards computing the gradient is the "backpropagation" algorithm [@rosenblatt1962principles]. The particular nice property of the algorithm is that the gradient is (relatively) easy to calculate knowing the derivatives from the next layer. So, working backwards to get the updates results is reasonably efficient optimization.
+
+
+# Example in two-dimensions
+
+We are going to be using the sigmoid a lot, so I am going to go ahead and make a helper function.
+```{r}
+sigmoid <- function(x) {1/(1+exp(-x))}
+```
+
+Let's generate a dataset with a non-linear boundary, one for which a logistic regression model would not be ideal.
+
+```{r}
+#| label: fig-sigmoidSeparationSimulation1
+#| fig-cap: Simulated data with a sigmoid separation boundary
+set.seed(20240402)
+d <- data.frame(x0=1,
+                x1=rnorm(1000),
+                x2=rnorm(1000))
+d$y <- as.numeric(d$x2 > 2*(sigmoid(4*d$x1)-0.5))
+# show class separation
+plot(d$x1, d$x2, col=col1and2[d$y+1],
+     xlab="x1", ylab="x2")
+```
+
+We will use the algorithm we developed earlier to fit a "single-layer perceptron" model, like the one shown in @fig-linearnn.
+```{r}
+#| label: fig-singlelayerperceptron
+#| fig-cap: Predicted values from linear perceptron model
+# set some starting values
+beta <- c(0,-1,0)
+learnRate <- 0.0001
+X <- as.matrix(d[,c("x0","x1","x2")])
+
+par(mfrow=c(2,3))
+for(i in 1:100)
+{
+  yPred <- as.matrix(d[,1:3]) %*% beta |> as.numeric()
+  beta <- beta + learnRate*(t(X) %*% (d$y-yPred))
+
+  if(i %in% c(1,2,5,10,50,100))
+  {
+    plot(d$x1, d$x2, col=col1and2[(yPred>0.5) + 1],
+         xlab="x1", ylab="x2",
+         main=paste("Iteration:",i))
+    lines(seq(-3,3,length.out=100),
+          2*(sigmoid(4*seq(-3,3,length.out=100))-0.5))
+  }
+}
+```
+In @fig-singlelayerperceptron, the black curve shows the optimal decision boundary. The blue and orange points show the predicted values. The decision boundary is as best as you can get with a linear model. With a single-layer perceptron in which all relationships are linear, this is the best we can do. 
+
+# A more complex decision boundary in two dimensions
+
+## Searching for a linear boundary
+
+Let's consider a new decision boundary with which a linear neural network will really struggle.
+```{r}
+#| label: fig-simulationCircularBoundary
+#| fig-cap: Simulated circular classification boundary
+d$y <- with(d, as.numeric(x1^2+x2^2 > 1))
+plot(d$x1, d$x2, col=col1and2[d$y+1],
+     xlab="x1", ylab="x2")
+```
+
+And let's again try the same algorithm
+```{r}
+#| label: fig-singlelayerperceptronCircle
+#| fig-cap: Predicted values from linear perceptron model for circular decision boundary
+# learning algorithm for a single-layer perceptron
+beta <- c(0,-1,0)
+learnRate <- 0.0001
+yPred <- as.matrix(d[,1:3]) %*% beta |> as.numeric()
+
+X <- as.matrix(d[,c("x0","x1","x2")])
+
+par(mfrow=c(2,3))
+for(i in 1:50)
+{
+  yPred <- as.matrix(d[,1:3]) %*% beta |> as.numeric()
+  beta <- beta + learnRate*(t(X) %*% (d$y-yPred))
+
+  if(i %in% c(1,20,25,30,40,50))
+  {
+    plot(d$x1, d$x2, col=col1and2[(yPred>0.5) + 1],
+         xlab="x1", ylab="x2",
+         main=paste("Iteration:",i))
+    lines(cos(seq(0,2*pi,length.out=100)),
+          sin(seq(0,2*pi,length.out=100)))
+  }
+}
+```
+
+The mean of `y` for this simulation is `r mean(d$y)`. The final estimate of $\beta$ is `r beta`. In the end, the linear restrictions we have put on the neural network makes it abandon trying to separate the blue and the orange and just predicts all points to be in the majority class, orange.
+
+
+## Neural network with hidden layers
+
+To remedy the problem with the linear neural network, we are going to fit the model shown in @fig-nnhidenlayer1, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on [Building A Neural Net from Scratch Using R](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/). The code on the website has several bugs that have been fixed here.
+
+We start by setting up some functions to help us along the way. In this code, the "bias" terms (the "intercept" terms) `b1` and `b2` are stored separately from the weights.
+```{r}
+# a function to get the number of nodes at each level, input, hidden, and output
+getLayerSize <- function(X, y, hidden_neurons) {
+  n_x <- nrow(X)
+  n_h <- hidden_neurons
+  n_y <- nrow(y)   
+  
+  return( list(n_x=n_x, n_h=n_h, n_y=n_y) )
+}
+
+# set up some starting values by randomly selecting numbers between -1 and 1
+initializeParameters <- function(X, list_layer_size)
+{
+  m <- ncol(X)
+  
+  n_x <- list_layer_size$n_x
+  n_h <- list_layer_size$n_h
+  n_y <- list_layer_size$n_y
+  
+  W1 <- matrix(runif(n_h * n_x,-1,1), 
+               nrow = n_h, ncol = n_x, byrow = TRUE) #* 0.01
+  b1 <- matrix(rep(0, n_h), nrow = n_h)
+  W2 <- matrix(runif(n_y * n_h,-1,1), 
+               nrow = n_y, ncol = n_h, byrow = TRUE) #* 0.01
+  b2 <- matrix(rep(0, n_y), nrow = n_y)
+  
+  return( list(W1 = W1, b1 = b1, W2 = W2, b2 = b2) )
+}
+
+# run all the input data forward through the network to get predictions
+forwardPropagation <- function(X, params, list_layer_size)
+{
+  m <- ncol(X)
+  n_h <- list_layer_size$n_h
+  n_y <- list_layer_size$n_y
+  
+  W1 <- params$W1
+  b1 <- params$b1
+  W2 <- params$W2
+  b2 <- params$b2
+  
+  b1_new <- matrix(rep(b1, m), nrow = n_h)
+  b2_new <- matrix(rep(b2, m), nrow = n_y)
+  
+  Z1 <- W1 %*% X + b1_new
+  A1 <- sigmoid(Z1)
+  Z2 <- W2 %*% A1 + b2_new
+  A2 <- sigmoid(Z2)
+  
+  return( list(Z1 = Z1, A1 = A1, Z2 = Z2, A2 = A2) )
+}
+
+# compute the average negative Bernoulli log likelihood
+computeCost <- function(X, y, cache) 
+{
+  m <- ncol(X)
+  A2 <- cache$A2
+  logprobs <- y*log(A2) + (1-y)*log(1-A2)
+  cost <- -sum(logprobs/m)
+  return (cost)
+}
+
+# apply the chain rule working backwards through the network to update weights
+backwardPropagation <- function(X, y, cache, params, list_layer_size)
+{
+  m <- ncol(X)
+  
+  n_x <- list_layer_size$n_x
+  n_h <- list_layer_size$n_h
+  n_y <- list_layer_size$n_y
+  
+  A2 <- cache$A2
+  A1 <- cache$A1
+  W2 <- params$W2
+  
+  dZ2 <- A2 - y
+  dW2 <- 1/m * (dZ2 %*% t(A1)) 
+  db2 <- matrix(1/m * sum(dZ2), nrow = n_y)
+  db2_new <- matrix(rep(db2, m), nrow = n_y)
+  
+#  dZ1 <- (t(W2) %*% dZ2) * (1 - A1^2)
+  dZ1 <- (t(W2) %*% dZ2) * A1*(1 - A1)
+  dW1 <- 1/m * (dZ1 %*% t(X))
+  db1 <- matrix(1/m * rowSums(dZ1), nrow = n_h)
+  db1_new <- matrix(rep(db1, m), nrow = n_h)
+  
+  return( list(dW1 = dW1, db1 = db1, dW2 = dW2, db2 = db2) )
+}
+
+# take a gradient descent step
+updateParameters <- function(grads, params, learning_rate)
+{
+  W1 <- params$W1
+  b1 <- params$b1
+  W2 <- params$W2
+  b2 <- params$b2
+  
+  dW1 <- grads$dW1
+  db1 <- grads$db1
+  dW2 <- grads$dW2
+  db2 <- grads$db2
+  
+  W1 <- W1 - learning_rate * dW1
+  b1 <- b1 - learning_rate * db1
+  W2 <- W2 - learning_rate * dW2
+  b2 <- b2 - learning_rate * db2
+  
+  return( list(W1 = W1, b1 = b1, W2 = W2, b2 = b2) )
+}
+```
+
+Now that all those functions are set up, let's put all the steps in order and do one backpropagation step.
+```{r}
+# set up the data
+X <- as.matrix(cbind(d$x1, d$x2))
+y <- as.matrix(d$y, ncol=1)
+X <- t(X)
+y <- t(y)
+```
+
+Step 0. Set up the network
+```{r}
+layer_size <- getLayerSize(X, y, hidden_neurons = 4)
+layer_size
+curr_params <- initializeParameters(X, layer_size)
+curr_params
+```
+
+Step 1. Make predictions moving forward, storing key intermediate values
+```{r}
+fwd_prop <- forwardPropagation(X, curr_params, layer_size)
+# the linear combinations of inputs
+fwd_prop$Z1[,1:5]
+# sigmoid transform of the linear combinations of inputs
+fwd_prop$A1[,1:5]
+# linear transform of hidden layer
+fwd_prop$Z2[1:5]
+# sigmoid transform of linear combo from hidden layer
+fwd_prop$A2[1:5]
+```
+
+Step 2. Evaluate loss function
+```{r}
+cost <- computeCost(X, y, fwd_prop)
+cost
+```
+
+Step 3. Compute gradient moving back through the network
+```{r}
+back_prop <- backwardPropagation(X, y, fwd_prop, curr_params, layer_size)
+# gradient for the w1
+back_prop$dW1
+# gradient for the b1
+back_prop$db1
+# gradient for the w2
+back_prop$dW2
+# gradient for the b2
+back_prop$db2
+```
+
+Step 4. Gradient descent step
+```{r}
+curr_params <- updateParameters(back_prop, curr_params, learning_rate = 0.01)
+curr_params
+```
+
+And that's one step of the backpropagation algorithm. Repeating Steps 1, 2, 3, and 4 will push the parameters towards values that improve the fit of the neural network to the data.
+
+It is possible to create marvelously complex neural networks and apply the chain rule like crazy to tune the parameters of the neural network to fit the data. We use gradient descent, just like we did for optimizing logistic regression models, to learn the neural network. Most implementations of backpropagation today use some variation of *stochastic gradient descent*. Stochastic gradient descent looks largely the same as described here, except that the gradient is computed using a subsample of the data rather than the entire dataset. This can greatly speed up the computation and avoid locally minima, but can require more iterations to converge.
+
+Let's wrap these gradient steps into a `trainModel()` function that will iterate for `num_iterations` with a learning rate of `lr`.
+```{r}
+trainModel <- function(X, y, num_iteration, hidden_neurons, lr)
+{
+  layer_size <- getLayerSize(X, y, hidden_neurons)
+  init_params <- initializeParameters(X, layer_size)
+  cost_history <- rep(NA, num_iteration)
+  for (i in 1:num_iteration) {
+    fwd_prop <- forwardPropagation(X, init_params, layer_size)
+    cost <- computeCost(X, y, fwd_prop)
+    back_prop <- backwardPropagation(X, y, fwd_prop, init_params, layer_size)
+    update_params <- updateParameters(back_prop, init_params, learning_rate = lr)
+    init_params <- update_params
+    cost_history[i] <- cost
+    
+    if (i %% 10000 == 0) cat("Iteration", i, " | Cost: ", cost, "\n")
+  }
+  
+  model_out <- list("updated_params" = update_params,
+                    "cost_hist" = cost_history)
+  return (model_out)
+}
+
+
+makePrediction <- function(X, y, modNN, hidden_neurons)
+{
+  layer_size <- getLayerSize(X, y, 
+                             nrow(modNN$updated_params$W1))
+  params <- modNN$updated_params
+  fwd_prop <- forwardPropagation(X, params, layer_size)
+  
+  return(fwd_prop$A2)
+}
+```
+
+Let's first try fitting the neural net to the "circle" data, first using a network with two hidden nodes.
+```{r}
+#| cache: true
+#| label: fig-neuralnetIterationxLL
+#| fig-cap: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 2 hidden nodes
+train_model <- trainModel(X, y,
+                          hidden_neurons = 2, # are two hidden nodes enough?
+                          num_iteration = 50000, lr = 0.1)
+plot(train_model$cost_hist, type="l",
+     xlab="Iteration", ylab="Negative Bernoulli log likelihood")
+```
+The plot shows the reduction in the negative Bernoulli log likelihood with each iteration. But did it fit the data well?
+```{r}
+#| label: fig-nnFitCircular2HiddenNodes
+#| fig-cap: Predictions from a neural network with two hidden nodes
+y_pred <- makePrediction(X, y, train_model)
+
+plot(X[1,], X[2,], col=col1and2[(y_pred[1,]>0.5) + 1],
+     xlab="x1", ylab="x2")
+lines(cos(seq(0,2*pi,length.out=100)),
+      sin(seq(0,2*pi,length.out=100)))
+```
+Clearly with two hidden nodes, the neural network does not have sufficient complexity or capacity to capture the elliptical boundary. So, let's try again with a network with four hidden nodes.
+```{r trainNNbyHand}
+#| cache: true
+#| label: fig-neuralnetIterationxLL4HiddenNodes
+#| fig-cap: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes
+train_model <- trainModel(X, y,
+                          hidden_neurons = 4,
+                          num_iteration = 50000, lr = 0.1)
+plot(train_model$cost_hist, type="l")
+```
+We seem to get better predictive performance here since we got the cost much lower. Did we successfully capture the elliptical boundary?
+```{r}
+#| label: fig-nnFitCircular4HiddenNodes
+#| fig-cap: Predictions from a neural network with four hidden nodes
+y_pred <- makePrediction(X, y, train_model)
+
+dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
+                    x2=seq(-4.1,4.1,length.out=100))
+dAll$y <- 0
+dAll$y_pred <- makePrediction(t(as.matrix(dAll[,1:2])), 
+                              matrix(dAll$y,nrow=1), 
+                              train_model) |> as.numeric()
+
+
+
+plot(dAll$x1, dAll$x2, col=col1and2transparent[(dAll$y_pred>0.5) + 1],
+     xlab="x1", ylab="x2", pch=15)
+points(X[1,], X[2,], col=col1and2[(y[1,]>0.5) + 1])
+```
+Yes! With four hidden nodes, our neural network has enough "brain power" to capture the concept of an elliptical boundary separating the blue and orange points.
+
+
+Let's try this out on a more complex shape.
+```{r}
+#| label: fig-simulatedFlower
+#| fig-cap: Simulated data with a complex classification boundary
+planar_dataset <- function(){
+  set.seed(set.seed(20240402))
+  m <- 1000
+  N <- m/2
+  D <- 2
+  X <- matrix(0, nrow = m, ncol = D)
+  Y <- matrix(0, nrow = m, ncol = 1)
+  a <- 4
+  
+  for(j in 0:1){
+    ix <- seq((N*j)+1, N*(j+1))
+    t <- seq(j*3.12,(j+1)*3.12,length.out = N) + rnorm(N, sd = 0.2)
+    r <- a*sin(4*t) + rnorm(N, sd = 0.2)
+    X[ix,1] <- r*sin(t)
+    X[ix,2] <- r*cos(t)
+    Y[ix,] <- j
+  }
+  
+  d <- as.data.frame(cbind(X, Y))
+  names(d) <- c('X1','X2','Y')
+  d
+}
+
+df <- planar_dataset()
+X <- t(as.matrix(df[,1:2]))
+y <- t(df[,3])
+plot(X[1,], X[2,], col=col1and2[y[1,] + 1],
+     xlab="x1", ylab="x2")
+```
+
+This one has a more complex decision boundary, but let's see if four hidden nodes are sufficient.
+```{r}
+#| cache: true
+#| label: fig-neuralnetIterationxLLFlower4HiddenNodes
+#| fig-cap: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes, "flower shaped" data
+train_model <- trainModel(X, y,
+                          hidden_neurons = 4,
+                          num_iteration = 50000, lr = 0.1)
+plot(train_model$cost_hist, type="l")
+```
+
+```{r}
+#| label: fig-nnFitFlower4HiddenNodes
+#| fig-cap: Predictions from a neural network with four hidden nodes
+y_pred <- makePrediction(X, y, train_model)
+
+dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
+                    x2=seq(-4.1,4.1,length.out=100))
+dAll$y <- 0
+dAll$y_pred <- makePrediction(t(as.matrix(dAll[,1:2])), 
+                              matrix(dAll$y,nrow=1), 
+                              train_model) |> as.numeric()
+plot(dAll$x1, dAll$x2, col=col1and2transparent[(dAll$y_pred>0.5) + 1],
+     xlab="x1", ylab="x2", pch=15)
+points(X[1,], X[2,], col=col1and2[(y[1,]>0.5) + 1])
+```
+Yes! Four hidden nodes are sufficient to capture this pattern too.
+
+# R's `neuralnet` package
+
+Now that we have explored fitting a neural network "by hand," in this section we will cover using existing software to fit neural networks.
+
+First, we will walk through using the `neuralnet` package. There is also a `nnet` package, but it allows only one hidden layer. The `neuralnet` package simply allows for more flexibility. After that, we will experiment with Keras, a professional grade neural network system regularly used in scientific analyses.
+
+Start by loading the neuralnet package and revisiting our circular decision boundary dataset.
+```{r}
+#| label: fig-simulationCircularBoundary2
+#| fig-cap: Simulated circular classification boundary
+#| warning: false
+library(neuralnet)
+
+# our circular decision boundary
+plot(d$x1, d$x2, col=col1and2[d$y+1],
+     xlab="x1", ylab="x2")
+```
+
+Now we will fit a neural net with a single hidden layer with four nodes using squared error loss and the sigmoid activation function.
+```{r neuralnetpac}
+#| cache: true
+nn1 <- neuralnet(y ~ x1+x2,
+                 data=d,
+                 hidden=4,    
+                 linear.output = FALSE, # apply sigmoid to output
+                 stepmax = 1000000,
+                 err.fct="sse",         # squared error
+                 act.fct="logistic",    # sigmoid
+                 lifesign="minimal")    # how much detail to print
+```
+
+The plot function will draw the network graph for us with the coefficients on all of the edges.
+```{r}
+#| label: fig-drawNeuralNetwork
+#| fig-cap: Neural network estimated with `neuralnet()`
+plot(nn1,
+     show.weights = TRUE,
+     information = FALSE,
+     col.entry.synapse = col2,
+     col.out.synapse = col2,
+     col.hidden = col1,
+     col.hidden.synapse = "black",
+     fill = col1,
+     rep="best") # "best" request plot of single best, rather than all
+```
+Create a plot to show the decision boundary.
+```{r}
+#| label: fig-nnFitCircularNNpackage
+#| fig-cap: Predictions from a neural network from the `neuralnet` package with four hidden nodes
+dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
+                    x2=seq(-4.1,4.1,length.out=100))
+dAll$y <- 0
+dAll$y_pred <- predict(nn1, newdata = dAll)
+
+plot(dAll$x1, dAll$x2, col=col1and2transparent[dAll$y_pred + 1],
+     xlab="x1", ylab="x2", pch=15)
+points(d$x1, d$x2, col=col1and2[(d$y>0.5) + 1])
+```
+
+# Tensorflow and Keras
+
+[Tensorflow](https://www.tensorflow.org/) is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. [Keras](https://keras.io/) is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with [PyTorch](https://pytorch.org/), Facebook AI's group Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools. 
+
+A lot of the scientific community using deep learning works in Python. For that reason, you will find a lot of Python resources for developing neural networks. Since most social science research is conducted in R, I focused on R for this course. We will still use the R Keras library, which hooks into Python, which hooks into Keras, which hooks into Tensorflow. With all of your variations in computers, operating systems, and settings there is a lot of opportunity for some settings, versions, and options to not be compatible. I will have limited ability to troubleshoot why Keras, Tensorflow, or Python is giving you errors. In this case you will have to learn how to learn to figure these things out.
+
+For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into workign with Tensorflow (or PyTorch).
+
+As I developed these notes, Tensorflow and Keras do not work with Python 3.12 (at present the latest version). That will certainly change. You may wish to start by working with Python 3.11.
+
+First, we will do a one-time installation. 
+```{r}
+#| eval: false
+install.packages("keras")
+library(keras)
+install_keras(python_version="3.11") # doesn't work with 3.12 yet
+```
+You will need to restart R one last time after this installation.
+
+Now we can get busy with Keras by loading the library. If all is installed correctly, then this line will run with no errors.
+```{r}
+#| warning: false
+library(keras)
+```
+
+## MNIST postal digits data
+
+We are going to experiment with the NIST postal digits data ([MNIST database](https://en.wikipedia.org/wiki/MNIST_database)). Why? Because it seems to be a right of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.
+
+```{r loadMNIST}
+#| label: fig-MNIST4
+#| fig-cap: An example number 4 from the MNIST data
+numData <- dataset_mnist()
+
+xTrain <- numData$train$x
+yTrain <- numData$train$y
+
+xTest <- numData$test$x
+yTest <- numData$test$y
+
+i <- 3
+img <- t(apply(xTrain[i,,], 2, rev))
+image(1:28, 1:28, img, 
+      col = gray((255:0) / 255), 
+      axes = FALSE,
+      xlab="",ylab="",
+      main=yTrain[i])
+```
+That gives us a rough image of a handwritten number 4. Let's take a look at a number of other handwritten digits to get an idea of what these images look like.
+
+```{r}
+#| label: fig-MNIST25
+#| fig-cap: 25 examples from the MNIST data
+par(mfrow=c(5,5), mai=0.02+c(0,0,0.5,0))
+for(i in 1:25+25)
+{
+  img <- t(apply(xTrain[i,,], 2, rev))
+  image(1:28, 1:28, img, 
+        col = gray((255:0) / 255), 
+        xaxt = 'n', yaxt = 'n',
+        xlab="",ylab="",
+        mar=c(0,0,4,0)+0.01,
+        main=yTrain[i])
+}
+```
+We need to do a little restructuring of the dataset. Much like we did with the emoji data, we are going to stretch these data out wide, but we need to pay attention to how R stores array data.
+
+I am going to make a little array with three "images." The first image will have the numbers 1 to 4, the second 5 to 8, and the third 9 to 12.
+```{r}
+a <- array(NA, dim=c(3,2,2))
+a[1,,] <- matrix(1:4, ncol=2,byrow=TRUE)
+a[2,,] <- matrix(5:8, ncol=2,byrow=TRUE)
+a[3,,] <- matrix(9:12,ncol=2,byrow=TRUE)
+a
+```
+When we print out a three dimensional array in R, it prints it out so that the last index changes the "fastest." It first shows `a[,,1]` and then `a[,,2]`. To work with Keras, when we stretch the array out wide we need to put the array in "C" format in which the last index changes the fastest.
+```{r}
+array_reshape(a, c(3, 2*2), order="C") # C = last index changes fastest
+```
+
+Now we can apply this reformatting to our MNISt data.
+```{r}
+dim(xTrain)
+
+xTrain <- array_reshape(xTrain, c(60000, 28*28)) / 255
+xTest  <- array_reshape(xTest,  c(10000, 28*28)) / 255
+```
+
+We also need to convert our outcome values to be 0/1 indicators. So, rather than the outcome being "4," we are going to create a vector with 10 numbers, all which are 0 except for the fourth one, which we will set to 1.
+```{r}
+# converts outcome to 0/1 coding
+yTrain <- to_categorical(yTrain)
+yTest <- to_categorical(yTest)
+```
+
+Now we will set up the neural network, describing our input data, the number of nodes in the hidden layer (512), setting the activation function (ReLU), and insist that the output predictions sum to one (softmax) so that we have a probability for each number of each image.
+```{r}
+#| message: false
+keras1 <- keras_model_sequential(input_shape = 28*28) |>
+  # 512 hidden nodes
+  layer_dense(units = 512, activation = "relu") |>
+  # randomly set 20% of nodes to 0, supposedly reduces overfitting
+  layer_dropout(0.2) |>
+  # softmax makes sure outputs sum to 1
+  layer_dense(units = 10, activation = "softmax") 
+```
+
+We can ask Keras to describe the model we are about to fit.
+```{r}
+summary(keras1)
+```
+
+Then we tell Keras about how we want it to optimize the model and evaluate its performance. rmsprop is Root Mean Square Propagation. It is a popular variant of backpropagation that regularly adjusts the learning rate parameter. Categorical cross-entropy is the multinomial generalization of the negative Bernoulli log likelihood. We can also have Keras track other metrics, like here I ask it to track accuracy.
+```{r}
+compile(keras1,
+        optimizer = "rmsprop",
+        loss = "categorical_crossentropy",
+        metrics = "accuracy")
+```
+
+Ready to go! It's now time to tell Keras to actually fit the model. The `batch_size` is the number of training observations used in one forward and backward pass through the neural network. This is called "mini-batch gradient descent." `epochs` is the number of full passes through the dataset. Since there are 60,000 images, and we are using 80\% of them for training and 20\% for validation, and we have a batch size of 128, you will see each epoch require 375 (= 60000*0.8/128) updates within each epoch.
+```{r fitkeras1}
+#| cache: true
+#| label: codefitKeras1
+fitHx <- fit(keras1,
+  xTrain,
+  yTrain,
+  epochs = 20,
+  batch_size = 128,
+  validation_split = 0.2
+)
+```
+
+We can plot the "learning curves," tracing out how much better the neural network became after each epoch.
+```{r}
+#| label: fig-keraslearningcurve
+#| fig-cap: Loss function and accuracy on training and validation MNIST data
+library(ggplot2)
+fitHx |>
+  plot() + 
+  geom_point(size = 3) + 
+  geom_line(linetype = "dashed")
+```
+
+We can predict on `xTest`, the held out test dataset and create a confusion matrix to see how our neural network performed.
+```{r}
+yPredVal <- predict(keras1, xTest) |> k_argmax() |> as.numeric()
+yTestVal <- apply(yTest, 1, which.max)-1
+table(yPredVal, yTestVal)
+```
+For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for `r sum(yPredVal==4 & yTestVal==9)` images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.
+
+Let's examine 12 randomly selected digits that we have misclassified.
+```{r}
+#| label: fig-MNISTexampleErrors
+#| fig-cap: Examples of errors from our neural network. Heading of each image shows the predicted value
+set.seed(20240408)
+iError <- which(yPredVal != yTestVal) |> sample(size=12)
+
+par(mfrow=c(3,4), mai=0.02+c(0,0,0.5,0))
+for(i in iError)
+{
+  img <- matrix((xTest[i,]), nrow=28)[,28:1]
+  image(1:28, 1:28, img, 
+        col = gray((255:0) / 255), 
+        xaxt = 'n', yaxt = 'n',
+        xlab="",ylab="",
+        mar=c(0,0,4,0)+0.1,
+        main=paste("Prediction:",yPredVal[i]))
+}
+```
+
+`evaluate()` extracts measures of performance on the test dataset.
+```{r}
+evaluate(keras1, xTest, yTest)
+```
+
+## Convolution layers
+Convolutional layers are the main building block for Convolution Neural Networks (CNNs), primarily used in processing data with a grid-like shapes, like images. The utility of convolutional layers comes from their ability to efficiently handle and process spatial information. Unlike layers that treat input data as a flat array, as we did previously, convolutional layers preserve the spatial relationships between pixels or data points by applying filters (or kernels) that scan over the input. This approach enables the network to capture local patterns such as edges, textures, or shapes within the input data. Convolutional layers can significantly reduce the size of networks needed to get good predictive performance, making the training process faster and less prone to overfitting. Convolutional layers learn feature representations, making them especially powerful for tasks involving images, video, and time-series data.
+
+Let $\mathbf{X}$ be an $r\times c$ greyscale image where the element $\mathbf{X}_{ij}$ is between 0 and 1, denoting the greyscale range from black to white. The convolution layer involves a $m\times m$ matrix of parameters, $\mathbf{K}$, that the network will need to estimate from data. Typically, in practice $m$ is small, like 2, 3, or 4.
+
+Assume $m=2$ so that $\mathbf{X}$ is a $2\times 2$ matrix of the form $\begin{bmatrix} a & b \\ c & d\end{bmatrix}$. The convolution layer will transform every $2\times 2$ section of $\mathbf{X}$ to create a new matrix that will feed into the next layer.
+
+Consider a small greyscale image in the shape of an ``X'' that we will conveniently call our $\mathbf{X}$
+$$
+\mathbf{X} =
+\begin{bmatrix} 
+0.9 & 0.0 &  0.8\\
+0.0 & 0.7 &  0.0\\
+0.8 & 0.0 &  0.9
+\end{bmatrix}
+$$
+We run every $2\times 2$ adjacent submatrix of $\mathbf{X}$ this through the convolution layer by multiplying the elements of the submatrix $\mathbf{X}_{(i,j)}$ by $\mathbf{K}$ and adding up the elements. This is equivalent to computing $\mathrm{tr}(\mathbf{K}'\mathbf{X}_{(i,j)})$, where the trace of a matrix is the sum of the diagonal elements.
+$$
+\hspace{-0.5in}
+\begin{bmatrix}
+\mathrm{tr}\left(\begin{bmatrix} a & b \\ c & d\end{bmatrix}'
+\begin{bmatrix} 0.9 & 0 \\ 0 & 0.7 \end{bmatrix}\right)  &
+\mathrm{tr}\left(\begin{bmatrix} a & b \\ c & d\end{bmatrix}'
+\begin{bmatrix} 0 & 0.8 \\ 0.7 & 0 \end{bmatrix}\right)  \\
+\mathrm{tr}\left(\begin{bmatrix} a & b \\ c & d\end{bmatrix}'
+\begin{bmatrix} 0 & 0.7 \\ 0.8 & 0 \end{bmatrix} \right)  &
+\mathrm{tr}\left(\begin{bmatrix} a & b \\ c & d\end{bmatrix}'
+\begin{bmatrix} 0.7 & 0 \\ 0 & 0.9 \end{bmatrix}\right)  
+\end{bmatrix} \rightarrow
+\begin{bmatrix} 
+0.9a+0.7d & 0.8b+0.7c \\ 0.7b+0.8c & 0.7a+0.9d 
+\end{bmatrix}
+$$
+Then the components of the result are simply treated as a vector of the form
+
+$\begin{bmatrix} 0.9a+0.7d & 0.8b+0.7c & 0.7b+0.8c & 0.7a+0.9d \end{bmatrix}'$ 
+
+and sent into the next layer of the neural network, now accepting 4 new inputs rather than the original 9 inputs.
+
+The convolution kernel $K$ can vary by size and shape and "stride," the spacing between each application of the convolution. Also, the input may be a three-dimensional tensor input with the third dimension being a 3-level color channel, the mixture of red, green, and blue, for example. For such cases, we use a 3D kernel for the convolution layer. This transforms both the spatial image and the local color structure to an input vector.
+
+## A convolutional neural network with Keras
+
+Keras easily allows you to add a convolution layer to the neural network. First, we need to reorganize our dataset so that we do not flatten out the images into one long vector of grayscale values, but instead retain their two dimensional structure.
+
+```{r}
+xTrain <- numData$train$x
+xTest  <- numData$test$x
+
+# 60000 28x28 images with 1 scale color (greyscale)
+xTrain <- array_reshape(xTrain, c(60000,28,28,1)) 
+xTest  <- array_reshape(xTest,  c(10000,28,28,1))
+```
+
+Next, we need to describe through Keras how to structure the layers of the neural network. We need to indicate the `input_shape` (28x28). We need to indicate the `kernel_size` (3x3). We can have the model consider several kernels so that one might capture lines while another captures a curve of a particular type. Here I set `filters=32` so the neural network will consider 32 different kernels. `padding="same"` adds 0s around the edges of the image so that the image does not shrink due to the image boundary. It lets the kernel straddle the edges of an image. 
+
+Note that I have added a second convolution layer after the first convolution layer. In CNNs, stacking multiple convolutional layers is a useful strategy to increase the neural network's ability to identify complex features within the image. The first layer typically learns simple features, such as edges and lines, while subsequent layers combine these to detect more sophisticated patterns. The layered approach expands the "receptive field," allowing the network to perceive larger portions of the input data, but allows the model to capture non-linearity. The approach also uses parameters more efficiently, reducing the risk of overfitting by leveraging spatial hierarchies rather than relying on a vast number of parameters. Deeper convolutional layers improve the neural network's generalization capabilities, making it more adept at recognizing a wide range of features at different levels of complexity.
+
+The maximum 2D pooling layer carves up the inputs from the second convolution layer into a bunch of 2x2 grids and just passes the largest value on to the next layer. This reduces the number of features passed on to the next layer, highlights the most significant features by taking their maximum values, and contributes to the model's efficiency and reduces the risk of overfitting.
+
+`layer_flatten()` turns the 2D inputs into one long vector containing all the features from the previous layer. These go into a hidden layer wih 1000 nodes with the ReLU activation function. `layer_dropout(0.5)` randomly sets half of the inputs to 0 during training. This is believed to reduce the risk of overfitting and encourage the optimizer to explore other "versions" to find parameters that perform well. When predicting on future observations, all nodes are activated. The final layer, `layer_dense(10, activation = "softmax")`, is the output layer set to 10 nodes, one for each of the digits we are trying to predict. `softmax` forces the output values to sum to 1 so that they represent a probability distribution over the possible predictions.
+
+```{r}
+kerasCNN <- keras_model_sequential() |>
+  layer_conv_2d(filters = 32, 
+                kernel_size = c(3, 3), 
+                padding = "same",  
+                input_shape = c(28, 28, 1)) |>
+  layer_activation("relu") |>
+  layer_conv_2d(filters = 16, 
+                kernel_size = c(2, 2), 
+                dilation_rate = c(1,1), 
+                activation = "softplus", 
+                padding = "same") |>
+  layer_max_pooling_2d(pool_size=c(2, 2)) |>
+  layer_flatten() |>
+  layer_dense(1000, activation = "relu") |>
+  layer_dropout(0.5) |>
+  layer_dense(10, activation = "softmax")
+
+summary(kerasCNN)
+```
+
+As before, we then compile the model to optimize the cross-entropy.
+```{r}
+compile(kerasCNN,
+  loss = "categorical_crossentropy",
+  optimizer = "rmsprop",
+  metrics = "accuracy")
+```
+
+Then we train the model as before and observe its predictive performance over iterations.
+```{r}
+#| cache: true
+#| label: fig-keraslearningcurveConv
+#| fig-cap: Loss function and accuracy on training and validation MNIST data with a convolution layer
+fitHx <- fit(kerasCNN,
+             xTrain,
+             yTrain,
+             epochs = 20,
+             batch_size = 128,
+             validation_split = 0.2)
+
+plot(fitHx)
+```
+
+Lastly, we predict on the test dataset.
+```{r}
+# predict on test dataset
+yPredVal <- predict(kerasCNN, xTest) |> k_argmax() |> as.numeric()
+yTestVal <- yTest |> k_argmax() |> as.numeric()
+table(yPredVal, yTestVal)
+```
+
+Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.
+```{r}
+#| label: fig-MNISTexampleErrorsConv
+#| fig-cap: Examples of errors from our neural network with a convolution layer. Heading of each image shows the predicted 
+iError <- which(yPredVal != yTestVal) |> sample(size=12)
+
+par(mfrow=c(3,4), mai=0.02+c(0,0,0.5,0))
+for(i in iError)
+{
+  img <- matrix(xTest[i,,,], ncol=28, byrow=TRUE)[,28:1]
+  image(1:28, 1:28, img, 
+        col = gray((255:0) / 255), 
+        xaxt = 'n', yaxt = 'n',
+        xlab="",ylab="",
+        mar=c(0,0,4,0)+0.1,
+        main=paste("Prediction:",yPredVal[i]))
+}
+```
+
+Let's check the overall performance.
+```{r}
+evaluate(kerasCNN, xTest, yTest)
+```
+We have squeezed out just a tiny bit more predictive performance with this model. However, this model had `r count_params(kerasCNN)` parameters while our simpler one without convolution layers had `r count_params(keras1)` parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today's large language models have 100,000,000,000 (100 billion) to 1,000,000,000,000 (1 trillion) parameters.
+
+Developing a neural network is more an art than a science. There are no general theories that tell us what the right way of combining layers are, how best to use convolutional layers, or how best to optimize parameters to minimize generalization error. In practice, we try a range of layers, parameters, and alterations to our dataset to see which one might get us some better performance. There are a variety of rules-of-thumb that have been adopted and I have used a lot of those here, but there is no reason to think that these are the best choices, and they certainly are not the best for all applications. With this I hope you have a start on how to use Keras to assemble a neural network for whatever problem you want to try to solve.
+
+
+
+# References
