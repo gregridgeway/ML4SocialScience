@@ -27,3 +27,9 @@ Table of contents
     - Propensity score weighting
        - using machine learning to estimate propensity scores
        - `fastDR` package
+10. [Neural networks](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L10-neural-nets.html)
+    - Backpropagation "by hand"
+    - `neuralnet` package
+    - `Tensorflow` and `Keras`
+    - Convolutional layers
+    - MNIST postal digits dataset
