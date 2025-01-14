@@ -24,6 +24,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- In terminal -->
 <!-- quarto render L1-probability-review.qmd -->
 
+<!-- git commit L1* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 # Sample space and events
 
 **Sample space** is the set of all possible outcomes from a random process.
