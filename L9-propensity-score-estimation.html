@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-12">
+<meta name="dcterms.date" content="2025-01-14">
 
 <title>L9 Boosted propensity score estimation</title>
 <style>
@@ -154,6 +154,7 @@ window.Quarto = {
   <li><a href="#propensity-score-estimation-with-boosting" id="toc-propensity-score-estimation-with-boosting" class="nav-link" data-scroll-target="#propensity-score-estimation-with-boosting"><span class="header-section-number">7.3</span> Propensity score estimation with boosting</a></li>
   <li><a href="#fastdr-to-estimate-propensity-score-estimates-and-doubly-robust-estimates" id="toc-fastdr-to-estimate-propensity-score-estimates-and-doubly-robust-estimates" class="nav-link" data-scroll-target="#fastdr-to-estimate-propensity-score-estimates-and-doubly-robust-estimates"><span class="header-section-number">7.4</span> <code>fastDR</code> to estimate propensity score estimates (and doubly robust estimates)</a></li>
   </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L9-propensity-score-estimation.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -185,7 +186,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 12, 2025</p>
+      <p class="date">January 14, 2025</p>
     </div>
   </div>
   
@@ -208,7 +209,7 @@ window.Quarto = {
 <li>Effect of race on a criminal justice outcome (e.g.&nbsp;arrest, sentence)</li>
 <li>Effect of an educational program on reading or math scores</li>
 </ol>
-<p>Ideally we would conduct a randomized controlled trial (RCT) in which we randomize a sample of individuals to either receive the treatment condition or to a control condition, which could be nothing, business as usual, or some placebo treatment. This is the gold standard approach in science. However, we have numerous questions that are difficult to assess with an RCT for reasons such as ethical considerations, cost, and rarity of outcomes. Particularly in the last several decades, we have access to large administrative datasets with numerous features on individuals and numerous outcomes. Even if we could technically conduct an RCT, it is worth exploring these datasets to assess which questions might have interesting findings.</p>
+<p>Ideally, we would conduct a randomized controlled trial (RCT) in which we randomize a sample of individuals to either receive the treatment condition or to a control condition, which could be nothing, business as usual, or some placebo treatment. This is the gold standard approach in science. However, we have numerous questions that are difficult to assess with an RCT for reasons such as ethical considerations, cost, and rarity of outcomes. Particularly in the last several decades, we have access to large administrative datasets with numerous features on individuals and numerous outcomes. Even if we could technically conduct an RCT, it is worth exploring these datasets to assess which questions might have interesting findings.</p>
 <p>“Observational studies” aim to draw causal conclusions from data in which the treatment or exposure was <em>not</em> under the control of the researcher. The most common form of “observational data” are data that were not collected for the purposes of analysis, but for some basic record keeping purpose, such as health insurance claims, arrest records, mortgage applications, or school attendance and grades.</p>
 <p>The section will focus on one particular method of causal estimation in which machine learning plays a starring role, propensity score estimation.</p>
 <section id="example-florida-murderers" class="level2" data-number="1.1">
@@ -853,7 +854,7 @@ Propensity score
 </section>
 <section id="average-treatment-effect-ate-and-the-average-treatment-effect-on-the-treated-att" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Average Treatment Effect (ATE) and the Average Treatment Effect on the Treated (ATT)</h1>
-<p>In the previous simulated example we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as <span class="math display">\[
+<p>In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as <span class="math display">\[
 w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
 \]</span> This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.</p>
 <p>Because these weights make the control cases “look like” the treatment cases, the overall distribution of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> match the distribution among the treatment cases. As a result, our treatment effect estimate describes what the treatment effect would be for the kinds of individuals that receive the treatment. If there is a particular value of <span class="math inline">\(\mathbf{x}\)</span> that made it impossible for someone to be in the treatment group, then <span class="math inline">\(P(t=1|\mathbf{x})=0\)</span> and any control case with that feature would receive weight 0 and be eliminated from the analysis.</p>
@@ -961,7 +962,7 @@ ATT &amp;= \mathbb{E}(Y(1)-Y(0)|t=1) \\
 ATE &amp;= \mathbb{E}(Y(1) - Y(0)) \\
 \end{split}
 \]</span></p>
-<p>Remember that for each observation we only observe one of the potential outcomes. So we can easily estimate two quantities.</p>
+<p>Remember that for each observation we only observe one of the potential outcomes. So, we can easily estimate two quantities.</p>
 <p><span class="math display">\[
 \begin{split}
 \mathbb{E}(Y(1)|t=1) &amp;\approx \frac{1}{n_1} \sum y_it_i \\
@@ -1408,7 +1409,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 Number of Fisher Scoring iterations: 2</code></pre>
 </div>
 </div>
-<p>Let’s pursue our propensity score strategy by fitting a standard logistic regression model predicting prior use heroin from the four demographic variables of interest. We use <code>quasibinomial</code> here just so that R does not complain about non-integer weights.</p>
+<p>Let’s pursue our propensity score strategy by fitting a standard logistic regression model predicting prior heroin use from the four demographic variables of interest. We use <code>quasibinomial</code> here just so that R does not complain about non-integer weights.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>ps1 <span class="ot">&lt;-</span> <span class="fu">svyglm</span>(heroin <span class="sc">~</span> NEWRACE2<span class="sc">+</span>IRSEX<span class="sc">+</span>IRMARIT<span class="sc">+</span>CATAG7,</span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">design=</span>sdesign,</span>
@@ -1500,7 +1501,7 @@ Number of Fisher Scoring iterations: 2</code></pre>
 </section>
 <section id="outcome-analysis" class="level2" data-number="7.2">
 <h2 data-number="7.2" class="anchored" data-anchor-id="outcome-analysis"><span class="header-section-number">7.2</span> Outcome analysis</h2>
-<p>The column <span class="math inline">\(w\)</span> contains out propensity score weights multiplied by the NSDUH sampling weights. We first set up a new survey design object with these new weights and proceed with a weighted regression model to compute the ATT.</p>
+<p>The column <span class="math inline">\(w\)</span> contains our propensity score weights multiplied by the NSDUH sampling weights. We first set up a new survey design object with these new weights and proceed with a weighted regression model to compute the ATT.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>sdesign <span class="ot">&lt;-</span> <span class="fu">svydesign</span>(<span class="at">ids=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">weights=</span><span class="sc">~</span>w, <span class="at">data=</span>nsduh)</span>
 <span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>lm1 <span class="ot">&lt;-</span> <span class="fu">svyglm</span>(arrest <span class="sc">~</span> heroin, <span class="at">design=</span>sdesign)</span>
@@ -2087,7 +2088,7 @@ Table&nbsp;2: Balance table for propensity score weighted observations
 </figure>
 </div>
 </div>
-<p>Note that after weighting, the treatment and control groups look very similar. The largest difference in the table above is 0.002. You can this largest KS statistic from the <code>ps2</code> object.</p>
+<p>Note that after weighting, the treatment and control groups look very similar. The largest difference in the table above is 0.002. You can access this largest KS statistic from the <code>ps2</code> object.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb132"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb132-1"><a href="#cb132-1" aria-hidden="true" tabindex="-1"></a>ps2<span class="sc">$</span>ks</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -2185,8 +2186,35 @@ Table&nbsp;3: Results table showing unweighted, propensity score weighted, and D
 </div>
 <p>The first row of <a href="#tbl-ATTestimate" class="quarto-xref">Table&nbsp;3</a> shows the unadjusted analysis. The second row shows a propensity score analysis. The third row shows a doubly robust analysis, one that includes the features in the outcome regression model. The first column is the arrest rate for the heroin group. This remains unchanged regardless of the estimator. The second column is the arrest rate for the comparison group that is either unadjusted, propensity score weighted, or a doubly robust estimate. The next two columns show their standard errors. <code>TE</code> and <code>se.TE</code> show the treatment effect (ATT) and the standard error of the treatment effect. The final column shows the p-value.</p>
 <p>These are powerful tools, but can only give results that are as good as the data. If the data have limited features, then you will be limited in how much confounding you can address. The most common failure of propensity score methods is the inability to measure important confounders in the first place. Propensity score methods only produce causal effects if strong ignorability holds. To get there often means very comprehensive data collection on the units of analysis and accounting for all of them in the propensity score model.</p>
-
 </section>
+</section>
+<section id="summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
+<p>We covered a few ways of estimating treatment effects in observational studies, noting the fundamental problem of causal inference, inferring what would have happened in the absence of treatment. We covered propensity score estimation, weighting techniques to adjust for confounders, and the use of machine learning for propensity score estimation.</p>
+<ol type="1">
+<li><strong>Causal Estimation</strong>:
+<ul>
+<li>Simpson’s Paradox: after incorporating a third variable in an analysis, the conclusions can reverse</li>
+<li>Observational studies aim to infer causal relationships where randomization is impractical</li>
+<li>Key challenges include addressing confounding variables</li>
+<li>Neyman-Rubin Causal Model: Framework underpinning causal inference methods, formalizing the challenge of unobserved counterfactuals</li>
+</ul></li>
+<li><strong>Propensity Score Methods</strong>:
+<ul>
+<li>Probability of treatment assignment given observed covariates</li>
+<li>Balances covariate distributions between treatment and control groups to estimate causal effects</li>
+<li>Use boosting to improve estimates compared to logistic regression</li>
+</ul></li>
+<li><strong>Practical Applications</strong>:
+<ul>
+<li>Florida murderers analysis showed the importance of addressing race of victims, an important confounding variable</li>
+<li>NSDUH to study the effect of prior heroin use on future arrest
+<ul>
+<li>demonstrating propensity score with sampling weights</li>
+</ul></li>
+</ul></li>
+</ol>
+
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">

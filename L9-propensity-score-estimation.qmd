@@ -42,7 +42,7 @@ A common aim in social science is to estimate the causal effect of a treatment o
 2.  Effect of race on a criminal justice outcome (e.g. arrest, sentence)
 3.  Effect of an educational program on reading or math scores
 
-Ideally we would conduct a randomized controlled trial (RCT) in which we randomize a sample of individuals to either receive the treatment condition or to a control condition, which could be nothing, business as usual, or some placebo treatment. This is the gold standard approach in science. However, we have numerous questions that are difficult to assess with an RCT for reasons such as ethical considerations, cost, and rarity of outcomes. Particularly in the last several decades, we have access to large administrative datasets with numerous features on individuals and numerous outcomes. Even if we could technically conduct an RCT, it is worth exploring these datasets to assess which questions might have interesting findings.
+Ideally, we would conduct a randomized controlled trial (RCT) in which we randomize a sample of individuals to either receive the treatment condition or to a control condition, which could be nothing, business as usual, or some placebo treatment. This is the gold standard approach in science. However, we have numerous questions that are difficult to assess with an RCT for reasons such as ethical considerations, cost, and rarity of outcomes. Particularly in the last several decades, we have access to large administrative datasets with numerous features on individuals and numerous outcomes. Even if we could technically conduct an RCT, it is worth exploring these datasets to assess which questions might have interesting findings.
 
 "Observational studies" aim to draw causal conclusions from data in which the treatment or exposure was *not* under the control of the researcher. The most common form of "observational data" are data that were not collected for the purposes of analysis, but for some basic record keeping purpose, such as health insurance claims, arrest records, mortgage applications, or school attendance and grades.
 
@@ -365,7 +365,7 @@ The propensity score is the probability of assignment to treatment conditional o
 
 # Average Treatment Effect (ATE) and the Average Treatment Effect on the Treated (ATT)
 
-In the previous simulated example we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as $$
+In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as $$
 w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
 $$ This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.
 
@@ -424,7 +424,7 @@ ATE &= \mathbb{E}(Y(1) - Y(0)) \\
 \end{split}
 $$
 
-Remember that for each observation we only observe one of the potential outcomes. So we can easily estimate two quantities.
+Remember that for each observation we only observe one of the potential outcomes. So, we can easily estimate two quantities.
 
 $$
 \begin{split}
@@ -780,7 +780,7 @@ svyglm(arrest~heroin, design=sdesign) |>
   summary()
 ```
 
-Let's pursue our propensity score strategy by fitting a standard logistic regression model predicting prior use heroin from the four demographic variables of interest. We use `quasibinomial` here just so that R does not complain about non-integer weights.
+Let's pursue our propensity score strategy by fitting a standard logistic regression model predicting prior heroin use from the four demographic variables of interest. We use `quasibinomial` here just so that R does not complain about non-integer weights.
 
 ```{r}
 #| label: fitPropScoreGLM
@@ -841,7 +841,7 @@ Everything appears to have worked out! The heroin and non-heroin groups now have
 
 ## Outcome analysis
 
-The column $w$ contains out propensity score weights multiplied by the NSDUH sampling weights. We first set up a new survey design object with these new weights and proceed with a weighted regression model to compute the ATT.
+The column $w$ contains our propensity score weights multiplied by the NSDUH sampling weights. We first set up a new survey design object with these new weights and proceed with a weighted regression model to compute the ATT.
 
 ```{r outcomeLogitweights}
 sdesign <- svydesign(ids=~1, weights=~w, data=nsduh)
@@ -1049,7 +1049,7 @@ ps2$balance.tab |>
   kable_material_opt(lightable_options="striped")
 ```
 
-Note that after weighting, the treatment and control groups look very similar. The largest difference in the table above is `{r} round(ps2$ks,3)`. You can this largest KS statistic from the `ps2` object.
+Note that after weighting, the treatment and control groups look very similar. The largest difference in the table above is `{r} round(ps2$ks,3)`. You can access this largest KS statistic from the `ps2` object.
 ```{r}
 ps2$ks
 ```
@@ -1086,3 +1086,23 @@ ps2$effects$arrest |>
 The first row of @tbl-ATTestimate shows the unadjusted analysis. The second row shows a propensity score analysis. The third row shows a doubly robust analysis, one that includes the features in the outcome regression model. The first column is the arrest rate for the heroin group. This remains unchanged regardless of the estimator. The second column is the arrest rate for the comparison group that is either unadjusted, propensity score weighted, or a doubly robust estimate. The next two columns show their standard errors. `TE` and `se.TE` show the treatment effect (ATT) and the standard error of the treatment effect. The final column shows the p-value.
 
 These are powerful tools, but can only give results that are as good as the data. If the data have limited features, then you will be limited in how much confounding you can address. The most common failure of propensity score methods is the inability to measure important confounders in the first place. Propensity score methods only produce causal effects if strong ignorability holds. To get there often means very comprehensive data collection on the units of analysis and accounting for all of them in the propensity score model.
+
+# Summary
+
+We covered a few ways of estimating treatment effects in observational studies, noting the fundamental problem of causal inference, inferring what would have happened in the absence of treatment. We covered propensity score estimation, weighting techniques to adjust for confounders, and the use of machine learning for propensity score estimation.
+
+1. **Causal Estimation**:
+   - Simpson's Paradox: after incorporating a third variable in an analysis, the conclusions can  reverse
+   - Observational studies aim to infer causal relationships where randomization is impractical
+   - Key challenges include addressing confounding variables
+   - Neyman-Rubin Causal Model: Framework underpinning causal inference methods, formalizing the challenge of unobserved counterfactuals
+
+2. **Propensity Score Methods**:
+   - Probability of treatment assignment given observed covariates
+   - Balances covariate distributions between treatment and control groups to estimate causal effects
+   - Use boosting to improve estimates compared to logistic regression
+
+3. **Practical Applications**:
+   - Florida murderers analysis showed the importance of addressing race of victims, an important confounding variable
+   - NSDUH to study the effect of prior heroin use on future arrest
+      - demonstrating propensity score with sampling weights
