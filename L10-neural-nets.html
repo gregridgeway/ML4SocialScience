@@ -148,7 +148,6 @@ window.Quarto = {
   <li><a href="#convolution-layers" id="toc-convolution-layers" class="nav-link" data-scroll-target="#convolution-layers"><span class="header-section-number">7.2</span> Convolution layers</a></li>
   <li><a href="#a-convolutional-neural-network-with-keras" id="toc-a-convolutional-neural-network-with-keras" class="nav-link" data-scroll-target="#a-convolutional-neural-network-with-keras"><span class="header-section-number">7.3</span> A convolutional neural network with Keras</a></li>
   </ul></li>
-  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references"><span class="header-section-number">8</span> References</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L10-neural-nets.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -1330,26 +1329,26 @@ Figure&nbsp;20: Loss function and accuracy on training and validation MNIST data
 <div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(keras1, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 2s - 2s/epoch - 5ms/step</code></pre>
+<pre><code>313/313 - 1s - 649ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> <span class="fu">apply</span>(yTest, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0   1  21   5  15  22  35   0  53  15  12
-       1   1   0   2   5   1   0   0   0   0   0
-       2  72   4  45   9  79  33  47  25  17  95
-       3 332  83 207  50 116  70 104 309 131  81
-       4  95 297 160  85 154 236 112  48 221 145
-       5  12  16 135  83 290  33  13 181  48 242
-       6 276 661 102 124 196 214 644 222 156 254
-       7   7   8  27  13   2  19   3   4   2  11
-       8   0  25   2   3   7   4   4   7   5   4
-       9 184  20 347 623 115 248  31 179 379 165</code></pre>
+       0  12  69  79   2  54  32  81   6  20  16
+       1   0  44  63  57  14   4   4  77   3  59
+       2   0   0   0   0   0   0   0   1   0   0
+       3   6   6  29  31 113   6   5  22   9 165
+       4 108 414 148 138 451 122 100 325 199 382
+       5 235 451 271 539 111 342  81 483 497 221
+       6   0   1   3   3   6   1   0   0   0   1
+       7 593 144 433 224 216 255 686  94 212 135
+       8  25   0   3  14  13 123   1  18  31  27
+       9   1   6   3   2   4   7   0   2   3   3</code></pre>
 </div>
 </div>
-<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 145 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
+<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 382 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
 <p>Let’s examine 12 randomly selected digits that we have misclassified.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240408</span>)</span>
@@ -1383,11 +1382,11 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <div class="cell">
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(keras1, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 2s - loss: 2.3362 - accuracy: 0.1101 - 2s/epoch - 6ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 2.3485 - accuracy: 0.1008 - 791ms/epoch - 3ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
- 2.33624  0.11010 </code></pre>
+2.348482 0.100800 </code></pre>
 </div>
 </div>
 </section>
@@ -1553,22 +1552,23 @@ Figure&nbsp;22: Loss function and accuracy on training and validation MNIST data
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict on test dataset</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(kerasCNN, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 3s - 3s/epoch - 11ms/step</code></pre>
+<pre><code>313/313 - 2s - 2s/epoch - 5ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> yTest <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0   0   0   0   0   0   2   0   0   0   0
-       1 210   1  15 167  42  54  42 256 166 135
-       2   0  38   9  24  45   1  16  17  41  43
-       3  88  37 275  81 347 103 218 396 159 239
-       5 238 279  82 396 470 520 294 170 425 384
-       6  20   0   2  10   0  24   0   7   6   1
-       7 259   2  35  29  13  28  39  12   9  32
-       8   6  28  17  57  41   7 121  19  31  95
-       9 159 750 597 246  24 153 228 151 137  80</code></pre>
+       0 764 507 790 719 375 588 785 705 714 693
+       1   1   0   0   0   1   0   1   2   0   0
+       2  44   0   4   0  48  33   1  35   2  10
+       3  45  29  23  57 176 111  14  70  66  89
+       4   2   0   1   1   0   1   0   0   1   0
+       5  40 328 154  87 362 106  95 184 109 210
+       6  26  12  27  87   4  24   7  11   4   0
+       7  34 259  25  58  16  26  54  18  77   6
+       8  24   0   8   1   0   3   1   3   1   0
+       9   0   0   0   0   0   0   0   0   0   1</code></pre>
 </div>
 </div>
 <p>Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.</p>
@@ -1603,23 +1603,20 @@ Figure&nbsp;23: Examples of errors from our neural network with a convolution la
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(kerasCNN, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 3s - loss: 29.1387 - accuracy: 0.0734 - 3s/epoch - 11ms/step</code></pre>
+<pre><code>313/313 - 2s - loss: 28.6934 - accuracy: 0.0958 - 2s/epoch - 6ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-29.13869  0.07340 </code></pre>
+28.69342  0.09580 </code></pre>
 </div>
 </div>
 <p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have 100,000,000,000 (100 billion) to 1,000,000,000,000 (1 trillion) parameters.</p>
 <p>Developing a neural network is more an art than a science. There are no general theories that tell us what the right way of combining layers are, how best to use convolutional layers, or how best to optimize parameters to minimize generalization error. In practice, we try a range of layers, parameters, and alterations to our dataset to see which one might get us some better performance. There are a variety of rules-of-thumb that have been adopted and I have used a lot of those here, but there is no reason to think that these are the best choices, and they certainly are not the best for all applications. With this I hope you have a start on how to use Keras to assemble a neural network for whatever problem you want to try to solve.</p>
-</section>
-</section>
-<section id="references" class="level1 unnumbered" data-number="8">
-
 
 </section>
+</section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">8 References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-Hast:Tibs:2001" class="csl-entry" role="listitem">
 Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer-Verlag.
 </div>

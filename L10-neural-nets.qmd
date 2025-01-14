@@ -1133,7 +1133,3 @@ evaluate(kerasCNN, xTest, yTest)
 We have squeezed out just a tiny bit more predictive performance with this model. However, this model had `r count_params(kerasCNN)` parameters while our simpler one without convolution layers had `r count_params(keras1)` parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today's large language models have 100,000,000,000 (100 billion) to 1,000,000,000,000 (1 trillion) parameters.
 
 Developing a neural network is more an art than a science. There are no general theories that tell us what the right way of combining layers are, how best to use convolutional layers, or how best to optimize parameters to minimize generalization error. In practice, we try a range of layers, parameters, and alterations to our dataset to see which one might get us some better performance. There are a variety of rules-of-thumb that have been adopted and I have used a lot of those here, but there is no reason to think that these are the best choices, and they certainly are not the best for all applications. With this I hope you have a start on how to use Keras to assemble a neural network for whatever problem you want to try to solve.
-
-
-
-# References
