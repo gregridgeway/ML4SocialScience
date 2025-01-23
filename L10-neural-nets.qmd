@@ -39,7 +39,6 @@ col1and2transparent <-
   apply(col2rgb(col=col1and2), 2,
         function(x) rgb(x[1]/255, x[2]/255, x[3]/255)) |>
   paste0("10")
-# col1and2transparent <- c("#FF69B410","#00FF7F10")
 ```
 
 
@@ -55,13 +54,7 @@ Read Y. LeCun, Y. Bengio, and G. Hinton (2015). "Deep learning," *Nature* 521, 4
 
 Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter a linear transformation, which outputs a prediction. Let's further assume that we wish to minimize squared error, $J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2$. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is
 
-```{r}
-#| echo: false
-#| results: false
-2+2
-```
-
-```{tikz nnlinearmodel}
+```{tikz}
 #| label: fig-linearnn
 #| echo: false
 #| fig-cap: "A linear model as a network"
@@ -149,7 +142,7 @@ The neural network in the previous section has no better features or capacity th
 
 The network in @fig-nnhidenlayer1 two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
 
-```{tikz nnhiddenlayer1}
+```{tikz}
 #| label: fig-nnhidenlayer1
 #| echo: false
 #| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
@@ -664,7 +657,7 @@ lines(cos(seq(0,2*pi,length.out=100)),
       sin(seq(0,2*pi,length.out=100)))
 ```
 Clearly with two hidden nodes, the neural network does not have sufficient complexity or capacity to capture the elliptical boundary. So, let's try again with a network with four hidden nodes.
-```{r trainNNbyHand}
+```{r}
 #| cache: true
 #| label: fig-neuralnetIterationxLL4HiddenNodes
 #| fig-cap: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes
@@ -776,8 +769,9 @@ plot(d$x1, d$x2, col=col1and2[d$y+1],
 ```
 
 Now we will fit a neural net with a single hidden layer with four nodes using squared error loss and the sigmoid activation function.
-```{r neuralnetpac}
+```{r}
 #| cache: true
+#| label: neuralnetpackage
 nn1 <- neuralnet(y ~ x1+x2,
                  data=d,
                  hidden=4,    
@@ -845,7 +839,7 @@ library(keras)
 
 We are going to experiment with the NIST postal digits data ([MNIST database](https://en.wikipedia.org/wiki/MNIST_database)). Why? Because it seems to be a right of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.
 
-```{r loadMNIST}
+```{r}
 #| label: fig-MNIST4
 #| fig-cap: An example number 4 from the MNIST data
 numData <- dataset_mnist()
@@ -937,7 +931,7 @@ compile(keras1,
 ```
 
 Ready to go! It's now time to tell Keras to actually fit the model. The `batch_size` is the number of training observations used in one forward and backward pass through the neural network. This is called "mini-batch gradient descent." `epochs` is the number of full passes through the dataset. Since there are 60,000 images, and we are using 80\% of them for training and 20\% for validation, and we have a batch size of 128, you will see each epoch require 375 (= 60000*0.8/128) updates within each epoch.
-```{r fitkeras1}
+```{r}
 #| cache: true
 #| label: codefitKeras1
 fitHx <- fit(keras1,
