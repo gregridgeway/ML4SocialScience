@@ -82,17 +82,22 @@ P(A|B)=\frac{P(A \cap B)}{P(B)}
 $$ {#eq-condprob}
 :::
 
-The conditional probability $P(A|B)$ is the probability that the event $A$ occurs given that $B$ occurs. We frequently be interested in computing conditional probabilities like $$
+The conditional probability $P(A|B)$ is the probability that the event $A$ occurs given that $B$ occurs. Often we will be interested in computing conditional probabilities like 
+$$
 P(Y=1|x_1,x_2,\ldots,x_d)
-$$ the probability that $Y=1$ given a set of case features, $\mathbf{x}$.
+$$ 
+the probability that $Y=1$ given a set of case features, $\mathbf{x}$.
 
 Sometimes, for example when we study the naïve Bayes classifier, we will be interested in $P(x_j|Y=1)$. Pay attention to which events are on which side of the vertical bar.
 
 It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The "prosecutor's fallacy" is to give $P(\mathrm{evidence}|\mathrm{innocence})$ but interpret it as $P(\mathrm{innocence}|\mathrm{evidence})$. In Philadelphia the District Attorney correctly claimed that of those arrested for illegal gun possession, very few of them go on to shoot someone ($P(\mathrm{shoot}|\mathrm{VUFA\,arrest})$ is small), but the police department argued that almost all the shooters have been previously arrested for illegal gun possession ($P(\mathrm{VUFA\,arrest}|\mathrm{shooter})$ is large). Both are correct statements, but essentially they are arguing about which probability is more important for public safety.
 
-Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know $$
+Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know 
+$$
 P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})
-$$ but Dershowitz gave $$
+$$ 
+but Dershowitz gave 
+$$
 P(\mathrm{murdered\,by\,batterer}|\mathrm{battered})=\frac{1}{2500}
 $$
 The useful probability, $P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})$, turns out to be 0.29.
