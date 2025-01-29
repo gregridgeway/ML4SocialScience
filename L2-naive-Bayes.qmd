@@ -24,6 +24,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- In terminal -->
 <!-- quarto render L2-naive-Bayes.qmd -->
 
+<!-- git commit L2* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 ```{r}
 #| echo: false
 library(kableExtra)
