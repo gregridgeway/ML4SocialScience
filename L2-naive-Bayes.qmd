@@ -149,7 +149,7 @@ wGender
 wGender <- log(wGender[2,]/wGender[1,])
 wGender
 ```
-Knowing that parolee is female parolee decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.
+Knowing that parolee is female decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.
 
 The same calculations we did for `Gender` we can apply to `Age_at_Release`.
 ```{r}
@@ -162,7 +162,7 @@ wAge
 ```
 Generally, we see decreasing risk of reoffending with increasing age at release from prison.
 
-Let's take a step toward simplifying our code by making a weight of evidence function.
+Let's take a step toward simplifying our code by making a weight of evidence function,
 ```{r}
 WoE <- function(x,y)
 {

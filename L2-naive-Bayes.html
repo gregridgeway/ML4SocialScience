@@ -346,7 +346,7 @@ Recidivism_Within_3years          F          M
 -0.48922286  0.06998861 </code></pre>
 </div>
 </div>
-<p>Knowing that parolee is female parolee decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.</p>
+<p>Knowing that parolee is female decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.</p>
 <p>The same calculations we did for <code>Gender</code> we can apply to <code>Age_at_Release</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> <span class="fu">with</span>(datRecid, <span class="fu">table</span>(Recidivism_Within_3years, Age_at_Release))</span>
@@ -379,7 +379,7 @@ Recidivism_Within_3years      43-47 48 or older
 </div>
 </div>
 <p>Generally, we see decreasing risk of reoffending with increasing age at release from prison.</p>
-<p>Let’s take a step toward simplifying our code by making a weight of evidence function.</p>
+<p>Let’s take a step toward simplifying our code by making a weight of evidence function,</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>WoE <span class="ot">&lt;-</span> <span class="cf">function</span>(x,y)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>{</span>
