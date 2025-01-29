@@ -268,7 +268,7 @@ predNBwoe <- datRecid |>
   left_join(modNB, join_by(var, value))
 predNBwoe
 ```
-Note that after the `left_join()` we have the correct weights of evidence the associate feature and its value. To make a prediction we just need to add all of the weights of evidence for each `ID` plus the prior weight of evidence.
+Note that after the `left_join()` we have the correct weights of evidence for the associated feature and its value. To make a prediction we just need to add all of the weights of evidence for each `ID` plus the prior weight of evidence.
 
 ```{r}
 # get predictions

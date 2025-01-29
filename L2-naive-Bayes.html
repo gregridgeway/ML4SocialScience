@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-28">
+<meta name="dcterms.date" content="2025-01-29">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -185,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 28, 2025</p>
+      <p class="date">January 29, 2025</p>
     </div>
   </div>
   
@@ -199,6 +199,9 @@ window.Quarto = {
 
 <!-- In terminal -->
 <!-- quarto render L2-naive-Bayes.qmd -->
+<!-- git commit L2* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
 <p>Consider the aim of wanting to compute the probability that an individual is likely to reoffend (perhaps violently) during some period (e.g., while awaiting trial, in consideration for parole, or when setting probation terms). In statistical notation, this is <span class="math inline">\(P(Y = 1|\mathbf{x})\)</span>, where <span class="math inline">\(Y\)</span> is the indicator for recidivism, and <span class="math inline">\(\mathbf{x}\)</span> is the vector of features associated with the subject. Bayes’ theorem states that:</p>
@@ -796,7 +799,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 # ℹ 155,000 more rows</code></pre>
 </div>
 </div>
-<p>Note that after the <code>left_join()</code> we have the correct weights of evidence the associate feature and its value. To make a prediction we just need to add all of the weights of evidence for each <code>ID</code> plus the prior weight of evidence.</p>
+<p>Note that after the <code>left_join()</code> we have the correct weights of evidence for the associated feature and its value. To make a prediction we just need to add all of the weights of evidence for each <code>ID</code> plus the prior weight of evidence.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get predictions</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>predNB <span class="ot">&lt;-</span> predNBwoe <span class="sc">|&gt;</span></span>
