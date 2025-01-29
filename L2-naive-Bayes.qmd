@@ -132,7 +132,7 @@ w0
 ```
 Since $w_0$ is positive, this suggests that without any other information, the evidence indicates that Georgia parolees are more likely to recidivate than not.
 
-Let's now compute the weights of evidence for `Gender`. Since this feature takes on two values, we will need to compute two weights of evidence, $w_{Gender}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}$ and $w_{Gender}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}$.
+Let's now compute the weights of evidence for `Gender`. Since this feature takes on two values, we will need to compute two weights of evidence, $w_{\mathrm{Gender}}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}$ and $w_{\mathrm{Gender}}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}$.
 
 ```{r}
 # 1. create a 2x2 table Y and Gender
@@ -141,7 +141,7 @@ wGender
 # 2. make the rows sum to 1
 wGender <- wGender/rowSums(wGender)
 wGender
-# 3. convert to log odds, log of 2nd row/1st row
+# 3. convert to log relative risk, log of 2nd row/1st row
 wGender <- log(wGender[2,]/wGender[1,])
 wGender
 ```

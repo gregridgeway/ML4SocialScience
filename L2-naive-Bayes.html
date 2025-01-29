@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-12">
+<meta name="dcterms.date" content="2025-01-28">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -185,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 12, 2025</p>
+      <p class="date">January 28, 2025</p>
     </div>
   </div>
   
@@ -315,7 +315,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </div>
 </div>
 <p>Since <span class="math inline">\(w_0\)</span> is positive, this suggests that without any other information, the evidence indicates that Georgia parolees are more likely to recidivate than not.</p>
-<p>Let’s now compute the weights of evidence for <code>Gender</code>. Since this feature takes on two values, we will need to compute two weights of evidence, <span class="math inline">\(w_{Gender}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}\)</span> and <span class="math inline">\(w_{Gender}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}\)</span>.</p>
+<p>Let’s now compute the weights of evidence for <code>Gender</code>. Since this feature takes on two values, we will need to compute two weights of evidence, <span class="math inline">\(w_{\mathrm{Gender}}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}\)</span> and <span class="math inline">\(w_{\mathrm{Gender}}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}\)</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. create a 2x2 table Y and Gender</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>wGender <span class="ot">&lt;-</span> <span class="fu">with</span>(datRecid, <span class="fu">table</span>(Recidivism_Within_3years, Gender))</span>
@@ -335,7 +335,7 @@ Recidivism_Within_3years          F          M
                    false 0.15780807 0.84219193
                    true  0.09675255 0.90324745</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. convert to log odds, log of 2nd row/1st row</span></span>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. convert to log relative risk, log of 2nd row/1st row</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>wGender <span class="ot">&lt;-</span> <span class="fu">log</span>(wGender[<span class="dv">2</span>,]<span class="sc">/</span>wGender[<span class="dv">1</span>,])</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
