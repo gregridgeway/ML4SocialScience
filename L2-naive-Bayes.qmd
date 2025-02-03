@@ -225,7 +225,7 @@ A positive $w_j(x_j)$ implies that the state of $x_j$ is evidence in favor of $Y
 
 The conversion from total weight of evidence to probability is
 $$
-p=\frac{1}{1+\exp(-\mbox{WoE})}
+p=\frac{1}{1+\exp(-\mbox{WoE}/100)}
 $$
 or by the conversion table shown in @tbl-P2WoE.
 
