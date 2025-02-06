@@ -114,7 +114,7 @@ The naïve Bayes classifier is particularly easy to estimate and update. It is c
  
 # Example: NIJ Recidivism Challenge
 
-We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice's [recidivism prediction challenge](https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk). The recidivism outcome, `Recidivism_Within_3years` takes the value `true` if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.
+We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice's [recidivism prediction challenge](https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk). The recidivism outcome, `Recidivism_Within_3years` takes the value `true` if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date. Everyone in the dataset has been released on parole, but Georgia parole officers need to decide how much supervision each parolee needs. The parole officers have a number of features about the parolees that may be informative about who is at risk of reoffending.
 
 We will start by loading some necessary R packages and the dataset.
 
@@ -642,6 +642,8 @@ datRecid |>
               mean(9000*(pNBpack<0.1 & Recidivism_Within_3years=="true") +
                    1000*(pNBpack>0.1 & Recidivism_Within_3years=="false")))
 ```
+
+## `naive_bayes()` with continuous features
 
 The naïve Bayes classifier is really designed with categorical features in mind. Note that features like `Prison_Years` and `Age_at_Release` have been discretized into categorical features. The `naive_bayes()` function will happily accept continuous features, but then either assumes that the conditional distribution `P(x_j|y)` is a normal distribution or, if `usekernel=TRUE` will fit a density estimate to the data. It is equivalent to assuming that the associated weight of evidence is a quadratic function, $\log\frac{P(x_j|y=1)}{P(x_j|y=0)}=ax_j^2 + bx_j + c$, but the approach to estimating $a$, $b$, and $c$ is not particularly efficient.
 

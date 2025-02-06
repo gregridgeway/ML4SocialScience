@@ -152,7 +152,10 @@ window.Quarto = {
   <li><a href="#receiver-operating-characteristic-roc" id="toc-receiver-operating-characteristic-roc" class="nav-link" data-scroll-target="#receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</a></li>
   <li><a href="#calibration" id="toc-calibration" class="nav-link" data-scroll-target="#calibration"><span class="header-section-number">6.3</span> Calibration</a></li>
   </ul></li>
-  <li><a href="#the-naivebayes-package" id="toc-the-naivebayes-package" class="nav-link" data-scroll-target="#the-naivebayes-package"><span class="header-section-number">7</span> The <code>naivebayes</code> package</a></li>
+  <li><a href="#the-naivebayes-package" id="toc-the-naivebayes-package" class="nav-link" data-scroll-target="#the-naivebayes-package"><span class="header-section-number">7</span> The <code>naivebayes</code> package</a>
+  <ul class="collapse">
+  <li><a href="#naive_bayes-with-continuous-features" id="toc-naive_bayes-with-continuous-features" class="nav-link" data-scroll-target="#naive_bayes-with-continuous-features"><span class="header-section-number">7.1</span> <code>naive_bayes()</code> with continuous features</a></li>
+  </ul></li>
   <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L2-naive-Bayes.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -294,7 +297,7 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 </section>
 <section id="example-nij-recidivism-challenge" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Example: NIJ Recidivism Challenge</h1>
-<p>We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice’s <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">recidivism prediction challenge</a>. The recidivism outcome, <code>Recidivism_Within_3years</code> takes the value <code>true</code> if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date.</p>
+<p>We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice’s <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">recidivism prediction challenge</a>. The recidivism outcome, <code>Recidivism_Within_3years</code> takes the value <code>true</code> if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date. Everyone in the dataset has been released on parole, but Georgia parole officers need to decide how much supervision each parolee needs. The parole officers have a number of features about the parolees that may be informative about who is at risk of reoffending.</p>
 <p>We will start by loading some necessary R packages and the dataset.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
@@ -1410,6 +1413,8 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 1     427.1807</code></pre>
 </div>
 </div>
+<section id="naive_bayes-with-continuous-features" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="naive_bayes-with-continuous-features"><span class="header-section-number">7.1</span> <code>naive_bayes()</code> with continuous features</h2>
 <p>The naïve Bayes classifier is really designed with categorical features in mind. Note that features like <code>Prison_Years</code> and <code>Age_at_Release</code> have been discretized into categorical features. The <code>naive_bayes()</code> function will happily accept continuous features, but then either assumes that the conditional distribution <code>P(x_j|y)</code> is a normal distribution or, if <code>usekernel=TRUE</code> will fit a density estimate to the data. It is equivalent to assuming that the associated weight of evidence is a quadratic function, <span class="math inline">\(\log\frac{P(x_j|y=1)}{P(x_j|y=0)}=ax_j^2 + bx_j + c\)</span>, but the approach to estimating <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(c\)</span> is not particularly efficient.</p>
 <p>For example, we can add <code>Percent_Days_Employed</code> to our naïve Bayes model.</p>
 <div class="cell">
@@ -1517,18 +1522,18 @@ Figure&nbsp;7: Weight of evidence function using a non-parametric kernel density
 <span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>style: fisher
-         [0,0.03242496) [0.03242496,0.09472465)  [0.09472465,0.1627867) 
-                   8449                     641                     683 
-  [0.1627867,0.2405553)   [0.2405553,0.3138861)   [0.3138861,0.3987183) 
-                    768                     661                     795 
-  [0.3987183,0.4773484)   [0.4773484,0.5610585)   [0.5610585,0.6300177) 
-                    705                     756                     610 
-  [0.6300177,0.7014667)   [0.7014667,0.7644876)   [0.7644876,0.8221655) 
-                    768                     766                     757 
-  [0.8221655,0.8790205)   [0.8790205,0.9301886)   [0.9301886,0.9750233) 
-                    846                     951                    1032 
-          [0.9750233,1] 
-                   6185 </code></pre>
+        [0,0.03982528) [0.03982528,0.1139924)  [0.1139924,0.1741398) 
+                  8513                    748                    618 
+ [0.1741398,0.2330546)  [0.2330546,0.2916861)  [0.2916861,0.3573972) 
+                   574                    551                    602 
+ [0.3573972,0.4226019)  [0.4226019,0.4838134)  [0.4838134,0.5510238) 
+                   576                    566                    623 
+ [0.5510238,0.6196124)  [0.6196124,0.6947315)  [0.6947315,0.7679891) 
+                   611                    781                    872 
+ [0.7679891,0.8399517)  [0.8399517,0.9064537)  [0.9064537,0.9663842) 
+                   968                   1097                   1260 
+         [0.9663842,1] 
+                  6413 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create discretized version of Percent_Days_Employed</span></span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
@@ -1581,6 +1586,7 @@ Figure&nbsp;8: Weight of evidence function for a discretized version of <span cl
 </div>
 </div>
 <p>You can see that each approach does result in a different relationship between <code>Percent_Days_Employed</code> and the associated weight of evidence. Realistically, the naive Bayes classifier’s design makes it particularly useful for categorical features. I generally discretize any continuous measures into categorical ones.</p>
+</section>
 </section>
 <section id="summary" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
