@@ -444,7 +444,7 @@ datRecid |>
 datRecid |> 
   filter(Recidivism_Within_3years=="true") |> 
   group_by(Training_Sample) |>
-  summarize(falsePos=mean(p < 0.5))
+  summarize(falseNeg=mean(p < 0.5))
 ```
 
 
@@ -642,6 +642,125 @@ datRecid |>
               mean(9000*(pNBpack<0.1 & Recidivism_Within_3years=="true") +
                    1000*(pNBpack>0.1 & Recidivism_Within_3years=="false")))
 ```
+
+The naïve Bayes classifier is really designed with categorical features in mind. Note that features like `Prison_Years` and `Age_at_Release` have been discretized into categorical features. The `naive_bayes()` function will happily accept continuous features, but then either assumes that the conditional distribution `P(x_j|y)` is a normal distribution or, if `usekernel=TRUE` will fit a density estimate to the data. It is equivalent to assuming that the associated weight of evidence is a quadratic function, $\log\frac{P(x_j|y=1)}{P(x_j|y=0)}=ax_j^2 + bx_j + c$, but the approach to estimating $a$, $b$, and $c$ is not particularly efficient.
+
+For example, we can add `Percent_Days_Employed` to our naïve Bayes model.
+```{r}
+nb2 <- naive_bayes((Recidivism_Within_3years=="true")~Gender+
+                     Age_at_Release+Education_Level+
+                     Prior_Conviction_Episodes_Viol+
+                     Prison_Offense+
+                     Prison_Years +
+                     Percent_Days_Employed,
+                   data=subset(datRecid,Training_Sample==1),
+                   laplace=1)
+summary(nb2)
+```
+Note that the summary of the model indicates "Gaussian: 1," meaning that the model has assumed that one of the parolee features is normally distributed.
+
+Let's see the effect of this. I'll make 99 copies of the first parolee in the dataset. Then I'll vary this parolee's value for `Percent_Days_Employed` from 0.01 to 0.99. Lastly, we can plot the relationship.
+
+```{r}
+#| warning: false
+#| label: fig-nbGaussian
+#| fig-cap: "Weight of evidence function using a Gaussian distribution for $P(x_j|y)$"
+
+# 99 copies of row #1, fill Percent_Days_Employed with 0.01, 0.02, ... 
+a <- datRecid |>
+  slice(rep(1,99)) |>
+  mutate(Percent_Days_Employed = row_number()/100)
+a$pNorm <- predict(nb2, newdata=a, type="prob")[,2]
+# plot predictions on the log odds scale
+plot(I(log(pNorm/(1-pNorm))) ~ Percent_Days_Employed, data=a, 
+     type="l", lwd=3, ylim=c(-2,0.1), 
+     ylab="Weight of evidence")
+```
+The result is nearly a line, but with a little curvature. 
+
+With `usekernel=TRUE`, `naive_bayes()` allows for more complex (but smooth) relationships between continuous features and weights of evidence.
+```{r}
+#| warning: false
+#| label: fig-nbKernel
+#| fig-cap: "Weight of evidence function using a non-parametric kernel density estimate for $P(x_j|y)$"
+
+nb2 <- naive_bayes((Recidivism_Within_3years=="true")~Gender+
+                     Age_at_Release+Education_Level+
+                     Prior_Conviction_Episodes_Viol+
+                     Prison_Offense+
+                     Prison_Years +
+                     Percent_Days_Employed,
+                   data=subset(datRecid,Training_Sample==1),
+                   laplace = 1,
+                   usekernel = TRUE)
+
+plot(I(log(pNorm/(1-pNorm))) ~ Percent_Days_Employed, data=a, 
+     type="l", lwd=3, ylim=c(-2,0.1),
+     ylab="Weight of evidence")
+a$pKern <- predict(nb2, newdata=a, type="prob")[,2]
+lines(I(log(pKern/(1-pKern))) ~ Percent_Days_Employed, data=a, 
+     lwd=3, col = "orange")
+# add tick marks on x-axis marking deciles of Percent_Days_Employed
+quantile(datRecid$Percent_Days_Employed, 
+         prob = (0:10)/10,
+         na.rm = TRUE) |>
+  jitter() |> 
+  rug()
+legend(0.7, 0, legend = c("Normal", "Kernel"),
+       col= c("black", "orange"),
+       lwd=7)
+```
+
+Lastly, we can discretize (chop up) continuous features, transforming them into categorical features like `Age` and `Prison_Years` are in the dataset. The function `classIntervals()` is a handy tool for choosing where to set the breaks between categories.
+```{r}
+#| warning: false
+#| label: fig-nbCat
+#| fig-cap: "Weight of evidence function for a discretized version of $x_j$"
+# find good cut points to discretize Percent_Days_Employed
+library(classInt)
+Percent_Days_EmployedBreaks <- 
+  classIntervals(datRecid$Percent_Days_Employed, style="fisher")
+Percent_Days_EmployedBreaks
+
+# create discretized version of Percent_Days_Employed
+datRecid <- datRecid |>
+  mutate(Percent_Days_Employed_cat = 
+           cut(Percent_Days_Employed,
+               breaks = Percent_Days_EmployedBreaks$brks))
+
+nb2 <- naive_bayes((Recidivism_Within_3years=="true")~Gender+
+                     Age_at_Release+Education_Level+
+                     Prior_Conviction_Episodes_Viol+
+                     Prison_Offense+
+                     Prison_Years +
+                     Percent_Days_Employed_cat,
+                   data=subset(datRecid,Training_Sample==1),
+                   laplace = 1)
+
+a <- a |>
+  mutate(Percent_Days_Employed_cat = 
+           cut(Percent_Days_Employed,
+               breaks = Percent_Days_EmployedBreaks$brks))
+a$pCat <- predict(nb2, newdata=a, type="prob")[,2]
+
+# plot predictions on the log odds scale
+plot(I(log(pNorm/(1-pNorm))) ~ Percent_Days_Employed, data=a, 
+     type="l", lwd=3, ylim=c(-2,0.1),
+     ylab="Weight of evidence")
+lines(I(log(pKern/(1-pKern))) ~ Percent_Days_Employed, data=a, 
+     lwd=3, col = "orange")
+lines(I(log(pCat/(1-pCat))) ~ Percent_Days_Employed, data=a, 
+     lwd=3, col="#CC79A7")
+quantile(datRecid$Percent_Days_Employed, 
+         prob = (0:10)/10,
+         na.rm = TRUE) |>
+  jitter() |> 
+  rug()
+legend(0.7, 0, legend = c("Normal", "Kernel", "Discretized"),
+       col= c("black", "orange", "#CC79A7"),
+       lwd=7)
+```
+You can see that each approach does result in a different relationship between `Percent_Days_Employed` and the associated weight of evidence. Realistically, the naive Bayes classifier's design makes it particularly useful for categorical features. I generally discretize any continuous measures into categorical ones.
 
 
 # Summary

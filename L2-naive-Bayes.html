@@ -1071,10 +1071,10 @@ False negative rate
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falseNeg=</span><span class="fu">mean</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
-  Training_Sample falsePos
+  Training_Sample falseNeg
             &lt;int&gt;    &lt;dbl&gt;
 1               0    0.195
 2               1    0.198</code></pre>
@@ -1410,6 +1410,177 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 1     427.1807</code></pre>
 </div>
 </div>
+<p>The naïve Bayes classifier is really designed with categorical features in mind. Note that features like <code>Prison_Years</code> and <code>Age_at_Release</code> have been discretized into categorical features. The <code>naive_bayes()</code> function will happily accept continuous features, but then either assumes that the conditional distribution <code>P(x_j|y)</code> is a normal distribution or, if <code>usekernel=TRUE</code> will fit a density estimate to the data. It is equivalent to assuming that the associated weight of evidence is a quadratic function, <span class="math inline">\(\log\frac{P(x_j|y=1)}{P(x_j|y=0)}=ax_j^2 + bx_j + c\)</span>, but the approach to estimating <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(c\)</span> is not particularly efficient.</p>
+<p>For example, we can add <code>Percent_Days_Employed</code> to our naïve Bayes model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
+<span id="cb69-5"><a href="#cb69-5" aria-hidden="true" tabindex="-1"></a>                     Prison_Years <span class="sc">+</span></span>
+<span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>                     Percent_Days_Employed,</span>
+<span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
+<span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+================================= Naive Bayes ================================== 
+ 
+- Call: naive_bayes.formula(formula = (Recidivism_Within_3years == "true") ~      Gender + Age_at_Release + Education_Level + Prior_Conviction_Episodes_Viol +          Prison_Offense + Prison_Years + Percent_Days_Employed,      data = subset(datRecid, Training_Sample == 1), laplace = 1) 
+- Laplace: 1 
+- Classes: 2 
+- Samples: 18028 
+- Features: 7 
+- Conditional distributions: 
+    - Bernoulli: 2
+    - Categorical: 4
+    - Gaussian: 1
+- Prior probabilities: 
+    - FALSE: 0.422
+    - TRUE: 0.578
+
+-------------------------------------------------------------------------------- </code></pre>
+</div>
+</div>
+<p>Note that the summary of the model indicates “Gaussian: 1,” meaning that the model has assumed that one of the parolee features is normally distributed.</p>
+<p>Let’s see the effect of this. I’ll make 99 copies of the first parolee in the dataset. Then I’ll vary this parolee’s value for <code>Percent_Days_Employed</code> from 0.01 to 0.99. Lastly, we can plot the relationship.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 99 copies of row #1, fill Percent_Days_Employed with 0.01, 0.02, ... </span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">99</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Percent_Days_Employed =</span> <span class="fu">row_number</span>()<span class="sc">/</span><span class="dv">100</span>)</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span>pNorm <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb2, <span class="at">newdata=</span>a, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a><span class="co"># plot predictions on the log odds scale</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">I</span>(<span class="fu">log</span>(pNorm<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pNorm))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="fl">0.1</span>), </span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Weight of evidence"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-nbGaussian" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nbGaussian-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L2-naive-Bayes_files/figure-html/fig-nbGaussian-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nbGaussian-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Weight of evidence function using a Gaussian distribution for <span class="math inline">\(P(x_j|y)\)</span>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The result is nearly a line, but with a little curvature.</p>
+<p>With <code>usekernel=TRUE</code>, <code>naive_bayes()</code> allows for more complex (but smooth) relationships between continuous features and weights of evidence.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>                     Prison_Years <span class="sc">+</span></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>                     Percent_Days_Employed,</span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace =</span> <span class="dv">1</span>,</span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>                   <span class="at">usekernel =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">I</span>(<span class="fu">log</span>(pNorm<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pNorm))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="fl">0.1</span>),</span>
+<span id="cb72-13"><a href="#cb72-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Weight of evidence"</span>)</span>
+<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span>pKern <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb2, <span class="at">newdata=</span>a, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">I</span>(<span class="fu">log</span>(pKern<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pKern))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">col =</span> <span class="st">"orange"</span>)</span>
+<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a><span class="co"># add tick marks on x-axis marking deciles of Percent_Days_Employed</span></span>
+<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(datRecid<span class="sc">$</span>Percent_Days_Employed, </span>
+<span id="cb72-19"><a href="#cb72-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>,</span>
+<span id="cb72-20"><a href="#cb72-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb72-21"><a href="#cb72-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">jitter</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb72-22"><a href="#cb72-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rug</span>()</span>
+<span id="cb72-23"><a href="#cb72-23" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>, <span class="dv">0</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Normal"</span>, <span class="st">"Kernel"</span>),</span>
+<span id="cb72-24"><a href="#cb72-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"orange"</span>),</span>
+<span id="cb72-25"><a href="#cb72-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-nbKernel" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nbKernel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L2-naive-Bayes_files/figure-html/fig-nbKernel-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nbKernel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Weight of evidence function using a non-parametric kernel density estimate for <span class="math inline">\(P(x_j|y)\)</span>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Lastly, we can discretize (chop up) continuous features, transforming them into categorical features like <code>Age</code> and <code>Prison_Years</code> are in the dataset. The function <code>classIntervals()</code> is a handy tool for choosing where to set the breaks between categories.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># find good cut points to discretize Percent_Days_Employed</span></span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(classInt)</span>
+<span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks <span class="ot">&lt;-</span> </span>
+<span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">classIntervals</span>(datRecid<span class="sc">$</span>Percent_Days_Employed, <span class="at">style=</span><span class="st">"fisher"</span>)</span>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>style: fisher
+         [0,0.03242496) [0.03242496,0.09472465)  [0.09472465,0.1627867) 
+                   8449                     641                     683 
+  [0.1627867,0.2405553)   [0.2405553,0.3138861)   [0.3138861,0.3987183) 
+                    768                     661                     795 
+  [0.3987183,0.4773484)   [0.4773484,0.5610585)   [0.5610585,0.6300177) 
+                    705                     756                     610 
+  [0.6300177,0.7014667)   [0.7014667,0.7644876)   [0.7644876,0.8221655) 
+                    768                     766                     757 
+  [0.8221655,0.8790205)   [0.8790205,0.9301886)   [0.9301886,0.9750233) 
+                    846                     951                    1032 
+          [0.9750233,1] 
+                   6185 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create discretized version of Percent_Days_Employed</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Percent_Days_Employed_cat =</span> </span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">cut</span>(Percent_Days_Employed,</span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">breaks =</span> Percent_Days_EmployedBreaks<span class="sc">$</span>brks))</span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a>                     Prison_Years <span class="sc">+</span></span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a>                     Percent_Days_Employed_cat,</span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace =</span> <span class="dv">1</span>)</span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> a <span class="sc">|&gt;</span></span>
+<span id="cb75-17"><a href="#cb75-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Percent_Days_Employed_cat =</span> </span>
+<span id="cb75-18"><a href="#cb75-18" aria-hidden="true" tabindex="-1"></a>           <span class="fu">cut</span>(Percent_Days_Employed,</span>
+<span id="cb75-19"><a href="#cb75-19" aria-hidden="true" tabindex="-1"></a>               <span class="at">breaks =</span> Percent_Days_EmployedBreaks<span class="sc">$</span>brks))</span>
+<span id="cb75-20"><a href="#cb75-20" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span>pCat <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb2, <span class="at">newdata=</span>a, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span>
+<span id="cb75-21"><a href="#cb75-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-22"><a href="#cb75-22" aria-hidden="true" tabindex="-1"></a><span class="co"># plot predictions on the log odds scale</span></span>
+<span id="cb75-23"><a href="#cb75-23" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">I</span>(<span class="fu">log</span>(pNorm<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pNorm))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb75-24"><a href="#cb75-24" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="fl">0.1</span>),</span>
+<span id="cb75-25"><a href="#cb75-25" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Weight of evidence"</span>)</span>
+<span id="cb75-26"><a href="#cb75-26" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">I</span>(<span class="fu">log</span>(pKern<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pKern))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb75-27"><a href="#cb75-27" aria-hidden="true" tabindex="-1"></a>     <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">col =</span> <span class="st">"orange"</span>)</span>
+<span id="cb75-28"><a href="#cb75-28" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">I</span>(<span class="fu">log</span>(pCat<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pCat))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
+<span id="cb75-29"><a href="#cb75-29" aria-hidden="true" tabindex="-1"></a>     <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">col=</span><span class="st">"#CC79A7"</span>)</span>
+<span id="cb75-30"><a href="#cb75-30" aria-hidden="true" tabindex="-1"></a><span class="fu">quantile</span>(datRecid<span class="sc">$</span>Percent_Days_Employed, </span>
+<span id="cb75-31"><a href="#cb75-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">prob =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>,</span>
+<span id="cb75-32"><a href="#cb75-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb75-33"><a href="#cb75-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">jitter</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb75-34"><a href="#cb75-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rug</span>()</span>
+<span id="cb75-35"><a href="#cb75-35" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>, <span class="dv">0</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Normal"</span>, <span class="st">"Kernel"</span>, <span class="st">"Discretized"</span>),</span>
+<span id="cb75-36"><a href="#cb75-36" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"orange"</span>, <span class="st">"#CC79A7"</span>),</span>
+<span id="cb75-37"><a href="#cb75-37" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-nbCat" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nbCat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L2-naive-Bayes_files/figure-html/fig-nbCat-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nbCat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Weight of evidence function for a discretized version of <span class="math inline">\(x_j\)</span>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>You can see that each approach does result in a different relationship between <code>Percent_Days_Employed</code> and the associated weight of evidence. Realistically, the naive Bayes classifier’s design makes it particularly useful for categorical features. I generally discretize any continuous measures into categorical ones.</p>
 </section>
 <section id="summary" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
