@@ -321,7 +321,7 @@ kbl(tab,
 
 # Missing data
 
-Missing data is common. Even though we may be interested in 20 different pieces of evidence, for a particular subject we may have information on only three of the features. The naïve Bayes classifier can still handle such a scenario without modification. For features that are frequently missing, we may allow that categorical feature to have a missing level and compute $w_j(NA)=\frac{P(x_j=NA|Y=1)}{P(x_j=NA|Y=0)}$. Otherwise, the naïve Bayes assumption allows us to trivially skip unobserved features. Let's say we have $x_1, x_2, x_3$, but for a particular case $x_3$ is missing. We can simply predict using
+Missing data is common. Even though we may be interested in 20 different pieces of evidence, for a particular subject we may have information on only three of the features. The naïve Bayes classifier can still handle such a scenario without modification. For features that are frequently missing, we may allow that categorical feature to have a missing level and compute $w_j(NA)=\log\frac{P(x_j=NA|Y=1)}{P(x_j=NA|Y=0)}$. Otherwise, the naïve Bayes assumption allows us to trivially skip unobserved features. Let's say we have $x_1, x_2, x_3$, but for a particular case $x_3$ is missing. We can simply predict using
 $$
     \frac{P(Y=1|x_1,x_2)}{P(Y=0|x_1,x_2)} = \frac{P(Y=1)}{P(Y=0)}\frac{P(x_1|Y=1)}{P(x_1|Y=0)}\frac{P(x_2|Y=1)}{P(x_2|Y=0)}
 $$
@@ -436,15 +436,15 @@ This is also known as a "Type II error"
 ```{r}
 # false positive
 datRecid |> 
-  filter(p > 0.5) |> 
+  filter(Recidivism_Within_3years=="false") |> 
   group_by(Training_Sample) |>
-  summarize(falsePos=mean(Recidivism_Within_3years=="false"))
+  summarize(falsePos=mean(p > 0.5))
 
 # false negative
 datRecid |> 
-  filter(p < 0.5) |> 
+  filter(Recidivism_Within_3years=="true") |> 
   group_by(Training_Sample) |>
-  summarize(falsePos=mean(Recidivism_Within_3years=="true"))
+  summarize(falsePos=mean(p < 0.5))
 ```
 
 
@@ -606,7 +606,7 @@ nb1 <- naive_bayes((Recidivism_Within_3years=="true")~Gender+
                    data=subset(datRecid,Training_Sample==1),
                    laplace=1)
 ```
-Let's explore the model object
+Inside the `nb1`, R stores all the required prior probabilities and conditional probabilities. Let's explore the model object
 ```{r}
 summary(nb1)
 nb1$prior
@@ -615,12 +615,11 @@ nb1$tables$Gender
 tables(nb1, "Gender")
 ```
 
-Let's make some predictions now.
+Let's make some predictions now. You can safely ignore the warning message saying "predict.naive_bayes(): more features in the newdata are provided as there are probability tables in the object. Calculation is performed based on features to be found in the tables." It is just letting you know that the `nb1` model did not use all of the parolee features that are available in `datRecid`. We just used six of those features for now.
 ```{r}
-a <- datRecid |> 
-  select(names(get_cond_dist(nb1)))
-datRecid$pNBpack <- predict(nb1, newdata=a, type="prob")[,2]
+datRecid$pNBpack <- predict(nb1, newdata=datRecid, type="prob")[,2]
 ```
+Although we trained `nb1` on only the parolees where `Training_Sample==1`, we are making predictions for everyone in the dataset, training and test set parolees.
 
 Let's check that the predicted probabilities are nearly the same
 ```{r}
@@ -631,6 +630,17 @@ Let's check that the predicted probabilities are nearly the same
 plot(p~pNBpack, data=datRecid,
      xlab="Predictions from naivebayes package",
      ylab="Predictions from homemade naïve Bayes")
+```
+
+We can check the predictive performance of `nb1` using all the previous metrics we discussed like misclassification rate, classification cost, false positive rate, false negative rate, calibration, and AUC. Let's say a false negative costs \$9,000 and a false positive costs \$1,000 (so a classification threshold at $p=0.1$). We can compute the classification cost on the test set cases as
+
+```{r}
+# compute the average misclassification cost
+datRecid |>
+  filter(Training_Sample == 0) |>  # evaluate only on the test set
+  summarize(misclassCost = 
+              mean(9000*(pNBpack<0.1 & Recidivism_Within_3years=="true") +
+                   1000*(pNBpack>0.1 & Recidivism_Within_3years=="false")))
 ```
 
 

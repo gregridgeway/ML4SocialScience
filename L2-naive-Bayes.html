@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-02-03">
+<meta name="dcterms.date" content="2025-02-06">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -185,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 3, 2025</p>
+      <p class="date">February 6, 2025</p>
     </div>
   </div>
   
@@ -925,7 +925,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </section>
 <section id="missing-data" class="level1" data-number="5">
 <h1 data-number="5"><span class="header-section-number">5</span> Missing data</h1>
-<p>Missing data is common. Even though we may be interested in 20 different pieces of evidence, for a particular subject we may have information on only three of the features. The naïve Bayes classifier can still handle such a scenario without modification. For features that are frequently missing, we may allow that categorical feature to have a missing level and compute <span class="math inline">\(w_j(NA)=\frac{P(x_j=NA|Y=1)}{P(x_j=NA|Y=0)}\)</span>. Otherwise, the naïve Bayes assumption allows us to trivially skip unobserved features. Let’s say we have <span class="math inline">\(x_1, x_2, x_3\)</span>, but for a particular case <span class="math inline">\(x_3\)</span> is missing. We can simply predict using <span class="math display">\[
+<p>Missing data is common. Even though we may be interested in 20 different pieces of evidence, for a particular subject we may have information on only three of the features. The naïve Bayes classifier can still handle such a scenario without modification. For features that are frequently missing, we may allow that categorical feature to have a missing level and compute <span class="math inline">\(w_j(NA)=\log\frac{P(x_j=NA|Y=1)}{P(x_j=NA|Y=0)}\)</span>. Otherwise, the naïve Bayes assumption allows us to trivially skip unobserved features. Let’s say we have <span class="math inline">\(x_1, x_2, x_3\)</span>, but for a particular case <span class="math inline">\(x_3\)</span> is missing. We can simply predict using <span class="math display">\[
     \frac{P(Y=1|x_1,x_2)}{P(Y=0|x_1,x_2)} = \frac{P(Y=1)}{P(Y=0)}\frac{P(x_1|Y=1)}{P(x_1|Y=0)}\frac{P(x_2|Y=1)}{P(x_2|Y=0)}
 \]</span> The naïve Bayes classifier is unconcerned that <span class="math inline">\(x_3\)</span> is unavailable.</p>
 </section>
@@ -1057,27 +1057,27 @@ False negative rate
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false positive</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p <span class="sc">&gt;</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(p <span class="sc">&gt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   Training_Sample falsePos
             &lt;int&gt;    &lt;dbl&gt;
-1               0    0.358
-2               1    0.350</code></pre>
+1               0    0.604
+2               1    0.591</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false negative</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   Training_Sample falsePos
             &lt;int&gt;    &lt;dbl&gt;
-1               0    0.399
-2               1    0.399</code></pre>
+1               0    0.195
+2               1    0.198</code></pre>
 </div>
 </div>
 </section>
@@ -1259,7 +1259,7 @@ Figure&nbsp;4: Calibration plot, smoothed calibration curve
 <span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
 <span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Let’s explore the model object</p>
+<p>Inside the <code>nb1</code>, R stores all the required prior probabilities and conditional probabilities. Let’s explore the model object</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -1369,17 +1369,21 @@ Gender      FALSE       TRUE
 --------------------------------------------------------------------------------</code></pre>
 </div>
 </div>
-<p>Let’s make some predictions now.</p>
+<p>Let’s make some predictions now. You can safely ignore the warning message saying “predict.naive_bayes(): more features in the newdata are provided as there are probability tables in the object. Calculation is performed based on features to be found in the tables.” It is just letting you know that the <code>nb1</code> model did not use all of the parolee features that are available in <code>datRecid</code>. We just used six of those features for now.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span> </span>
-<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">names</span>(<span class="fu">get_cond_dist</span>(nb1)))</span>
-<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>datRecid<span class="sc">$</span>pNBpack <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb1, <span class="at">newdata=</span>a, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>datRecid<span class="sc">$</span>pNBpack <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb1, <span class="at">newdata=</span>datRecid, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: predict.naive_bayes(): more features in the newdata are provided as
+there are probability tables in the object. Calculation is performed based on
+features to be found in the tables.</code></pre>
 </div>
+</div>
+<p>Although we trained <code>nb1</code> on only the parolees where <code>Training_Sample==1</code>, we are making predictions for everyone in the dataset, training and test set parolees.</p>
 <p>Let’s check that the predicted probabilities are nearly the same</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p<span class="sc">~</span>pNBpack, <span class="at">data=</span>datRecid,</span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Predictions from naivebayes package"</span>,</span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p<span class="sc">~</span>pNBpack, <span class="at">data=</span>datRecid,</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Predictions from naivebayes package"</span>,</span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div id="fig-predprobsSame" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1391,6 +1395,19 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 </figcaption>
 </figure>
 </div>
+</div>
+</div>
+<p>We can check the predictive performance of <code>nb1</code> using all the previous metrics we discussed like misclassification rate, classification cost, false positive rate, false negative rate, calibration, and AUC. Let’s say a false negative costs $9,000 and a false positive costs $1,000 (so a classification threshold at <span class="math inline">\(p=0.1\)</span>). We can compute the classification cost on the test set cases as</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the average misclassification cost</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span>  <span class="co"># evaluate only on the test set</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> </span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mean</span>(<span class="dv">9000</span><span class="sc">*</span>(pNBpack<span class="sc">&lt;</span><span class="fl">0.1</span> <span class="sc">&amp;</span> Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>) <span class="sc">+</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>                   <span class="dv">1000</span><span class="sc">*</span>(pNBpack<span class="sc">&gt;</span><span class="fl">0.1</span> <span class="sc">&amp;</span> Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  misclassCost
+1     427.1807</code></pre>
 </div>
 </div>
 </section>
