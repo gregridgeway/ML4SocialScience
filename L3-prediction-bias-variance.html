@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-12">
+<meta name="dcterms.date" content="2025-02-06">
 
 <title>L3 Prediction, Bias, Variance, and Noise</title>
 <style>
@@ -138,6 +138,7 @@ window.Quarto = {
   <li><a href="#noise" id="toc-noise" class="nav-link" data-scroll-target="#noise"><span class="header-section-number">2.1</span> Noise</a></li>
   <li><a href="#variance" id="toc-variance" class="nav-link" data-scroll-target="#variance"><span class="header-section-number">2.2</span> Variance</a></li>
   <li><a href="#bias" id="toc-bias" class="nav-link" data-scroll-target="#bias"><span class="header-section-number">2.3</span> Bias</a></li>
+  <li><a href="#prediction-error-is-noise-variance-squared-bias" id="toc-prediction-error-is-noise-variance-squared-bias" class="nav-link" data-scroll-target="#prediction-error-is-noise-variance-squared-bias"><span class="header-section-number">2.4</span> Prediction error is noise + variance + squared bias</a></li>
   </ul></li>
   <li><a href="#k-nearest-neighbor-regression" id="toc-k-nearest-neighbor-regression" class="nav-link" data-scroll-target="#k-nearest-neighbor-regression"><span class="header-section-number">3</span> <span class="math inline">\(k\)</span>-nearest neighbor regression</a></li>
   <li><a href="#sec-biasVarDecomp" id="toc-sec-biasVarDecomp" class="nav-link" data-scroll-target="#sec-biasVarDecomp"><span class="header-section-number">4</span> Bias/variance decomposition</a></li>
@@ -180,7 +181,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 12, 2025</p>
+      <p class="date">February 6, 2025</p>
     </div>
   </div>
   
@@ -201,13 +202,18 @@ window.Quarto = {
 <p>Refer to <span class="citation" data-cites="Hast:Tibs:2001">Hastie, Tibshirani, and Friedman (<a href="#ref-Hast:Tibs:2001" role="doc-biblioref">2001</a>)</span> Chapters 2.4 and 3.2.</p>
 <ol type="1">
 <li><p>We observe <span class="math inline">\((y_i,\mathbf{x}_i), i=1,\ldots,N\)</span> drawn independently from some unknown distribution, <span class="math inline">\(P(y,\mathbf{x})\)</span>.</p></li>
-<li><p>Examples</p>
+<li><p>Examples <!-- Two spaces after first line, align second line to render correctly --></p>
 <ol type="a">
-<li><p><span class="math inline">\(\mathbf{x}\)</span>=characteristics of an adolescent entering drug treatment <span class="math inline">\(y\)</span>=passes a drug test 12 months after admission (a 0/1 outcome)</p></li>
-<li><p><span class="math inline">\(\mathbf{x}\)</span>=characteristics of a firearm sale (purchaser, dealer, gun features) <span class="math inline">\(y\)</span>=time when the firearm is recovered in connection to a crime (a positive, possibly censored, continuous outcome)</p></li>
-<li><p><span class="math inline">\(\mathbf{x}\)</span>=customer history of book purchases <span class="math inline">\(y\)</span>=title of the next book they will purchase (a very large multiclass outcome)</p></li>
-<li><p><span class="math inline">\(\mathbf{x}\)</span>=demographics, ZIP code <span class="math inline">\(y\)</span>=will vote in next election</p></li>
-<li><p><span class="math inline">\(\mathbf{x}\)</span>=all previous words in a conversation <span class="math inline">\(y\)</span>=next word produced in the conversation</p></li>
+<li><p><span class="math inline">\(\mathbf{x}\)</span>=characteristics of an adolescent entering drug treatment<br>
+<span class="math inline">\(y\)</span>=passes a drug test 12 months after admission (a 0/1 outcome)</p></li>
+<li><p><span class="math inline">\(\mathbf{x}\)</span>=characteristics of a firearm sale (purchaser, dealer, gun features)<br>
+<span class="math inline">\(y\)</span>=time when the firearm is recovered in connection to a crime (a positive, possibly censored, continuous outcome)</p></li>
+<li><p><span class="math inline">\(\mathbf{x}\)</span>=customer history of book purchases<br>
+<span class="math inline">\(y\)</span>=title of the next book they will purchase (a very large multiclass outcome)</p></li>
+<li><p><span class="math inline">\(\mathbf{x}\)</span>=demographics, ZIP code<br>
+<span class="math inline">\(y\)</span>=will vote in next election</p></li>
+<li><p><span class="math inline">\(\mathbf{x}\)</span>=all previous words in a conversation<br>
+<span class="math inline">\(y\)</span>=next word produced in the conversation</p></li>
 </ol></li>
 <li><p>There is an unknown, noisy relationship between <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(y\)</span> that we want to learn. That is, we want to find a function, <span class="math inline">\(\hat f(\mathbf{x})\)</span>, that minimizes a loss function of the form <span class="math display">\[
 J(\hat f) = \mathbb{E} \ell(y,\hat f(\mathbf{x})) = \int\hspace{-5pt}\int \ell(y,\hat f(\mathbf{x})) P(y,\mathbf{x})\,d\mathbf{x}\, dy
@@ -364,7 +370,7 @@ du &amp;= dy
 \mathrm{noise}  
 &amp;= \frac{1}{3}\int_0^3 \color{orange}{\int_{-\infty}^\infty (u-0)^2\,
    \frac{1}{\sqrt{2\pi \cdot \frac{1}{4}}} e^{-\frac{1}{2}\left(\frac{u-0}{\frac{1}{2}}\right)^2}
-   \,du}\,dx \\
+   \,du} \, dx \\
 \end{split}
 \]</span> The term in orange is the definition of the variance of a <span class="math inline">\(N(0, \frac{1}{4})\)</span> random variable. <span class="math display">\[
 \begin{split}
@@ -520,7 +526,11 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <p>The vertical line at <span class="math inline">\(x_0=\frac{1}{2}\)</span> marks the difference between the true model and the prediction that we would get if we averaged over a lot of datasets. This is the bias caused by our insistence in using a linear model when a quadratic is the true model. This is another quantity that we will never know in reality. Here we see that limiting the flexibility of our model will create uncureable bias in our predictions.</p>
 <p>Formally, the squared bias is <span class="math display">\[
 \mathbb{E}_{D|\mathbf{X}=\mathbf{x}_0} \left(f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D)\right)^2
-\]</span> ## Prediction error is noise + variance + squared bias We are going to put this all together now. In the end we are interested in the expected prediction error, the difference between the actual value, <span class="math inline">\(y\)</span>, and our predicted value, <span class="math inline">\(\hat f\left(\frac{1}{2}\right)\)</span>. Formally, <span class="math display">\[
+\]</span></p>
+</section>
+<section id="prediction-error-is-noise-variance-squared-bias" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="prediction-error-is-noise-variance-squared-bias"><span class="header-section-number">2.4</span> Prediction error is noise + variance + squared bias</h2>
+<p>We are going to put this all together now. In the end we are interested in the expected prediction error, the difference between the actual value, <span class="math inline">\(y\)</span>, and our predicted value, <span class="math inline">\(\hat f\left(\frac{1}{2}\right)\)</span>. Formally, <span class="math display">\[
 \mathbb{E}_{D,y|\mathbf{X}=\mathbf{x}_0} \left(y-\hat f(\mathbf{x}_0|D)\right)^2
 \]</span> This averages over all the distribution of datasets we might see and the values of <span class="math inline">\(y\)</span> that we might see. Let’s compute this quantity for our simulation.</p>
 <div class="cell">

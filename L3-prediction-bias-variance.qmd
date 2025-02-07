@@ -39,16 +39,22 @@ Refer to @Hast:Tibs:2001 Chapters 2.4 and 3.2.
 1.  We observe $(y_i,\mathbf{x}_i), i=1,\ldots,N$ drawn independently from some unknown distribution, $P(y,\mathbf{x})$.
 
 2.  Examples
+<!-- Two spaces after first line, align second line to render correctly -->
 
-    a.  $\mathbf{x}$=characteristics of an adolescent entering drug treatment $y$=passes a drug test 12 months after admission (a 0/1 outcome)
+    a.  $\mathbf{x}$=characteristics of an adolescent entering drug treatment  
+        $y$=passes a drug test 12 months after admission (a 0/1 outcome)
 
-    b.  $\mathbf{x}$=characteristics of a firearm sale (purchaser, dealer, gun features) $y$=time when the firearm is recovered in connection to a crime (a positive, possibly censored, continuous outcome)
+    b.  $\mathbf{x}$=characteristics of a firearm sale (purchaser, dealer, gun features)  
+        $y$=time when the firearm is recovered in connection to a crime (a positive, possibly censored, continuous outcome)
 
-    c.  $\mathbf{x}$=customer history of book purchases $y$=title of the next book they will purchase (a very large multiclass outcome)
+    c.  $\mathbf{x}$=customer history of book purchases  
+        $y$=title of the next book they will purchase (a very large multiclass outcome)
 
-    d.  $\mathbf{x}$=demographics, ZIP code $y$=will vote in next election
+    d.  $\mathbf{x}$=demographics, ZIP code  
+        $y$=will vote in next election
 
-    e.  $\mathbf{x}$=all previous words in a conversation $y$=next word produced in the conversation
+    e.  $\mathbf{x}$=all previous words in a conversation  
+        $y$=next word produced in the conversation
 
 3.  There is an unknown, noisy relationship between $\mathbf{x}$ and $y$ that we want to learn. That is, we want to find a function, $\hat f(\mathbf{x})$, that minimizes a loss function of the form $$
     J(\hat f) = \mathbb{E} \ell(y,\hat f(\mathbf{x})) = \int\hspace{-5pt}\int \ell(y,\hat f(\mathbf{x})) P(y,\mathbf{x})\,d\mathbf{x}\, dy
@@ -195,7 +201,7 @@ $$
 \mathrm{noise}  
  &= \frac{1}{3}\int_0^3 \color{orange}{\int_{-\infty}^\infty (u-0)^2\,
    \frac{1}{\sqrt{2\pi \cdot \frac{1}{4}}} e^{-\frac{1}{2}\left(\frac{u-0}{\frac{1}{2}}\right)^2}
-   \,du}\,dx \\
+   \,du} \, dx \\
 \end{split}
 $$
 The term in orange is the definition of the variance of a $N(0, \frac{1}{4})$ random variable.
@@ -325,7 +331,9 @@ Formally, the squared bias is
 $$
 \mathbb{E}_{D|\mathbf{X}=\mathbf{x}_0} \left(f(\mathbf{x}_0)-\mathbb{E}_D \hat f(\mathbf{x}_0|D)\right)^2
 $$
+
 ## Prediction error is noise + variance + squared bias
+
 We are going to put this all together now. In the end we are interested in the expected prediction error, the difference between the actual value, $y$, and our predicted value, $\hat f\left(\frac{1}{2}\right)$. Formally,
 $$
 \mathbb{E}_{D,y|\mathbf{X}=\mathbf{x}_0} \left(y-\hat f(\mathbf{x}_0|D)\right)^2
