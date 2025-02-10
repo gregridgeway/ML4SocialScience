@@ -465,7 +465,7 @@ threshold <- seq(min(datRecid$p), max(datRecid$p),
 a <- sapply(threshold, function(p0)
 {
   datRecid |> 
-    filter(Training_Sample==1) |>
+    filter(Training_Sample==0) |>
     group_by(Recidivism_Within_3years) |>
     summarize(rate=mean(p>p0)) |>
     pull(rate)
@@ -503,7 +503,8 @@ In R, the `pROC` package calculates AUC and displays ROC curves. You do not need
 #| fig-height: 6
 #| message: false
 library(pROC)
-nbROC <- roc((Recidivism_Within_3years=="true")~p, data=datRecid)
+nbROC <- roc((Recidivism_Within_3years=="true")~p, 
+             data=subset(datRecid, Training_Sample==0))
 nbROC$auc
 # note x-axis is specificity, 1-FPR, and labeled from 1 down to 0
 plot(nbROC)    
@@ -521,7 +522,7 @@ I first create bins for the predicted probabilities, $(0.1,0.2], \ldots, (0.8,0.
 #| fig-width: 6
 #| fig-height: 6
 datRecid |>
-  filter(Training_Sample==1) |>
+  filter(Training_Sample==0) |>
   mutate(pCat = cut(p, breaks=(1:9)/10)) |>
   filter(!is.na(pCat)) |> # for the few with p<0.1
   group_by(pCat) |>
@@ -541,7 +542,7 @@ Binning the predictions into deciles is rather rough, so in @fig-calibration2 I 
 #| fig-width: 6
 #| fig-height: 6
 datRecid |>
-  filter(Training_Sample==1) |>
+  filter(Training_Sample==0) |>
   mutate(pCat = cut(p, breaks=(1:9)/10)) |>
   filter(!is.na(pCat)) |> # for the few with p<0.1
   group_by(pCat) |>
@@ -555,7 +556,7 @@ datRecid |>
 # a smoothed version
 library(splines)
 calib <- lm((Recidivism_Within_3years=="true")~ns(p,10), 
-            data=subset(datRecid, Training_Sample==1))
+            data=subset(datRecid, Training_Sample==0))
 p <- seq(min(datRecid$p), max(datRecid$p), length=100)
 lines(p,
       predict(calib, newdata=data.frame(p=p)),

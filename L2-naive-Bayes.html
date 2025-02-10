@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-02-06">
+<meta name="dcterms.date" content="2025-02-10">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -188,7 +188,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 6, 2025</p>
+      <p class="date">February 10, 2025</p>
     </div>
   </div>
   
@@ -1095,7 +1095,7 @@ False negative rate
 <span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">sapply</span>(threshold, <span class="cf">function</span>(p0)</span>
 <span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>{</span>
 <span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  datRecid <span class="sc">|&gt;</span> </span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Recidivism_Within_3years) <span class="sc">|&gt;</span></span>
 <span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">rate=</span><span class="fu">mean</span>(p<span class="sc">&gt;</span>p0)) <span class="sc">|&gt;</span></span>
 <span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(rate)</span>
@@ -1133,16 +1133,17 @@ Figure&nbsp;1: Receiver Operating Characteristic (ROC) curve for the Naïve Baye
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>AUC <span class="ot">&lt;-</span> <span class="fu">sum</span>( <span class="fl">0.5</span><span class="sc">*</span>(y[<span class="sc">-</span><span class="dv">1</span>]<span class="sc">+</span>y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">*</span> <span class="fu">diff</span>(x) )</span>
 <span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>AUC</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.6545735</code></pre>
+<pre><code>[1] 0.6488289</code></pre>
 </div>
 </div>
 <p>In R, the <code>pROC</code> package calculates AUC and displays ROC curves. You do not need to compute it “by hand” as we have done here.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>p, <span class="at">data=</span>datRecid)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>p, </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data=</span><span class="fu">subset</span>(datRecid, Training_Sample<span class="sc">==</span><span class="dv">0</span>))</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Area under the curve: 0.6562</code></pre>
+<pre><code>Area under the curve: 0.6512</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># note x-axis is specificity, 1-FPR, and labeled from 1 down to 0</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1166,7 +1167,7 @@ Figure&nbsp;2: Receiver Operating Characteristic (ROC) produced from the <code>p
 <p>I first create bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. As you can see in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a>, in reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a> show the actual rate of reoffending within each bin.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pCat =</span> <span class="fu">cut</span>(p, <span class="at">breaks=</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pCat)) <span class="sc">|&gt;</span> <span class="co"># for the few with p&lt;0.1</span></span>
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(pCat) <span class="sc">|&gt;</span></span>
@@ -1192,7 +1193,7 @@ Figure&nbsp;3: Calibration plot, binned to deciles
 <p>Binning the predictions into deciles is rather rough, so in <a href="#fig-calibration2" class="quarto-xref">Figure&nbsp;4</a> I created a blue curve that is a smooth version of the red dots using natural splines. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pCat =</span> <span class="fu">cut</span>(p, <span class="at">breaks=</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pCat)) <span class="sc">|&gt;</span> <span class="co"># for the few with p&lt;0.1</span></span>
 <span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(pCat) <span class="sc">|&gt;</span></span>
@@ -1206,7 +1207,7 @@ Figure&nbsp;3: Calibration plot, binned to deciles
 <span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a><span class="co"># a smoothed version</span></span>
 <span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(splines)</span>
 <span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>calib <span class="ot">&lt;-</span> <span class="fu">lm</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span><span class="fu">ns</span>(p,<span class="dv">10</span>), </span>
-<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">data=</span><span class="fu">subset</span>(datRecid, Training_Sample<span class="sc">==</span><span class="dv">1</span>))</span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">data=</span><span class="fu">subset</span>(datRecid, Training_Sample<span class="sc">==</span><span class="dv">0</span>))</span>
 <span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(datRecid<span class="sc">$</span>p), <span class="fu">max</span>(datRecid<span class="sc">$</span>p), <span class="at">length=</span><span class="dv">100</span>)</span>
 <span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(p,</span>
 <span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">predict</span>(calib, <span class="at">newdata=</span><span class="fu">data.frame</span>(<span class="at">p=</span>p)),</span>
@@ -1522,18 +1523,18 @@ Figure&nbsp;7: Weight of evidence function using a non-parametric kernel density
 <span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>style: fisher
-       [0,0.03809524) [0.03809524,0.113158)  [0.113158,0.1725964) 
-                 8497                   754                   610 
-[0.1725964,0.2349394) [0.2349394,0.3020506) [0.3020506,0.3635483) 
-                  615                   616                   586 
-[0.3635483,0.4272897) [0.4272897,0.4943235) [0.4943235,0.5728862) 
-                  540                   636                   704 
-[0.5728862,0.6427731) [0.6427731,0.7203707) [0.7203707,0.7904591) 
-                  621                   876                   861 
- [0.7904591,0.855169)  [0.855169,0.9196341) [0.9196341,0.9727778) 
-                  899                  1128                  1179 
-        [0.9727778,1] 
-                 6251 </code></pre>
+         [0,0.03068135) [0.03068135,0.09540329)  [0.09540329,0.1628922) 
+                   8434                     666                     674 
+  [0.1628922,0.2255666)   [0.2255666,0.2854565)    [0.2854565,0.368301) 
+                    606                     575                     767 
+   [0.368301,0.4483326)     [0.4483326,0.52572)      [0.52572,0.610039) 
+                    692                     723                     742 
+   [0.610039,0.6977211)   [0.6977211,0.7683704)   [0.7683704,0.8239698) 
+                    918                     845                     741 
+  [0.8239698,0.8739693)   [0.8739693,0.9299686)   [0.9299686,0.9800452) 
+                    740                    1029                    1180 
+          [0.9800452,1] 
+                   6041 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create discretized version of Percent_Days_Employed</span></span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
