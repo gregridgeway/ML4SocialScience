@@ -24,6 +24,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- In terminal -->
 <!-- quarto render L4-calculus-review.qmd -->
 
+<!-- git commit L4* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 
 # Properties of derivatives
 
