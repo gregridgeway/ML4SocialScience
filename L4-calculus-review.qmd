@@ -360,3 +360,5 @@ We have complete a quick review of differential calculus concepts essential for 
 4. **Multivariate Gradient Descent**:
    - Extended calculus principles to multivariate functions, introducing partial derivatives and gradients
    - Introduced gradient descent for multivariate functions
+
+One important innovation in recent decades is efficient "auto-differentiation" algorithms, "autodiff" for short. The methods can take computer code that evaluates a model's performance and automatically write additional code to compute the gradients. These autodiff methods have become essential in scientific computing (such as Hamiltonian Markov Chain integration) and in learning neural networks. Common neural network software, like TensorFlow and PyTorch, rely on autodiff methods to efficiently compute gradients necessary for optimizing neural networks. Advances have been particularly large on using GPUs (graphical processing units) to run autodiff methods.
