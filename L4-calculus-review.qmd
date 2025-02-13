@@ -215,7 +215,7 @@ curve(dJ(6,x,y)*(b-6) + J(6,x,y), add = TRUE, col = 'blue', xname="b",
       from=2,to=10)
 ```
 
-Consider @fig-curveWithSlopes. Here we have a loss function that has its minimum around $\hat\beta=3$ (as it should since we simulated it to be so). If we evaluate the derivative at $\hat\beta=6$, then we get a positive slope, telling us that the optimal $\beta$ is smaller than 6. If we evaluate the derivative at $\hat\beta=2$, then we get a negative slope, telling us that the optimal $\hat\beta$ is larger.
+Consider @fig-curveWithSlopes. Here we have a loss function that has its minimum around $\hat\beta=3$ (as it should since we simulated it to be so). If we evaluate the derivative at $\hat\beta=6$, then we get a positive slope, telling us that the optimal $\beta$ is smaller than 6. If we evaluate the derivative at $\hat\beta=1$, then we get a negative slope, telling us that the optimal $\hat\beta$ is larger.
 
 This suggests an optimization process that iteratively adjusts our guess for the optimal $\hat\beta$ as
 $$

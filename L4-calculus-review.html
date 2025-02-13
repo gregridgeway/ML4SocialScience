@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-02-10">
+<meta name="dcterms.date" content="2025-02-13">
 
 <title>Differential calculus review</title>
 <style>
@@ -162,7 +162,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 10, 2025</p>
+      <p class="date">February 13, 2025</p>
     </div>
   </div>
   
@@ -176,6 +176,9 @@ window.Quarto = {
 
 <!-- In terminal -->
 <!-- quarto render L4-calculus-review.qmd -->
+<!-- git commit L4* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
 <section id="properties-of-derivatives" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Properties of derivatives</h1>
 <p>The derivative measures the slope of the line tangent to the curve <span class="math inline">\(f(x)\)</span> at <span class="math inline">\(x\)</span>. There are a lot of online derivative calculators that will grind out the derivatives should you need to compute one. Nevertheless, it will be valuable to have some of their basic properties on hand. We will use derivatives a lot when optimizing machine learning methods.</p>
@@ -354,7 +357,7 @@ Figure&nbsp;1: An example <span class="math inline">\(J(\beta)\)</span> showing 
 </div>
 </div>
 </div>
-<p>Consider <a href="#fig-curveWithSlopes" class="quarto-xref">Figure&nbsp;1</a>. Here we have a loss function that has its minimum around <span class="math inline">\(\hat\beta=3\)</span> (as it should since we simulated it to be so). If we evaluate the derivative at <span class="math inline">\(\hat\beta=6\)</span>, then we get a positive slope, telling us that the optimal <span class="math inline">\(\beta\)</span> is smaller than 6. If we evaluate the derivative at <span class="math inline">\(\hat\beta=2\)</span>, then we get a negative slope, telling us that the optimal <span class="math inline">\(\hat\beta\)</span> is larger.</p>
+<p>Consider <a href="#fig-curveWithSlopes" class="quarto-xref">Figure&nbsp;1</a>. Here we have a loss function that has its minimum around <span class="math inline">\(\hat\beta=3\)</span> (as it should since we simulated it to be so). If we evaluate the derivative at <span class="math inline">\(\hat\beta=6\)</span>, then we get a positive slope, telling us that the optimal <span class="math inline">\(\beta\)</span> is smaller than 6. If we evaluate the derivative at <span class="math inline">\(\hat\beta=1\)</span>, then we get a negative slope, telling us that the optimal <span class="math inline">\(\hat\beta\)</span> is larger.</p>
 <p>This suggests an optimization process that iteratively adjusts our guess for the optimal <span class="math inline">\(\hat\beta\)</span> as <span class="math display">\[
     \hat\beta \leftarrow \hat\beta - \lambda J'(\hat\beta)
 \]</span> where <span class="math inline">\(\lambda\)</span> is a small value representing a “step size” or a “learning rate”.</p>
