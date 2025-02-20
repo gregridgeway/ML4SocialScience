@@ -315,8 +315,12 @@ $$
 \begin{split}
 \frac{\partial J}{\partial\hat y_i} &= -2(y_i-\hat y_i) \\
 \frac{\partial\hat y_i}{\partial z_i} &= 
-  \frac{e^{-z_i}}{(1+e^{-z_i})^2} = 
-  \frac{1}{1+e^{-z_i}}\frac{e^{-z_i}}{1+e^{-z_i}} = \hat y_i(1-\hat y_i) \\
+  \frac{e^{-z_i}}{(1+e^{-z_i})^2} \\
+  &= \frac{1}{1+e^{-z_i}}\frac{e^{-z_i}}{1+e^{-z_i}} \\
+  &= \frac{1}{1+e^{-z_i}}\frac{1+e^{-z_i}-1}{1+e^{-z_i}} \\
+  &= \frac{1}{1+e^{-z_i}}\left(\frac{1+e^{-z_i}}{1+e^{-z_i}}-\frac{1}{1+e^{-z_i}}\right) \\
+  &= \frac{1}{1+e^{-z_i}}\left(1-\frac{1}{1+e^{-z_i}}\right) \\
+  &= \hat y_i(1-\hat y_i) \\
 \frac{\partial z_i}{\partial \beta_j} &= x_{ji}
 \end{split}
 $$

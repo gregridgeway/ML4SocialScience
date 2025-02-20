@@ -456,8 +456,12 @@ $iterations
 \begin{split}
 \frac{\partial J}{\partial\hat y_i} &amp;= -2(y_i-\hat y_i) \\
 \frac{\partial\hat y_i}{\partial z_i} &amp;=
-  \frac{e^{-z_i}}{(1+e^{-z_i})^2} =
-  \frac{1}{1+e^{-z_i}}\frac{e^{-z_i}}{1+e^{-z_i}} = \hat y_i(1-\hat y_i) \\
+  \frac{e^{-z_i}}{(1+e^{-z_i})^2} \\
+  &amp;= \frac{1}{1+e^{-z_i}}\frac{e^{-z_i}}{1+e^{-z_i}} \\
+  &amp;= \frac{1}{1+e^{-z_i}}\frac{1+e^{-z_i}-1}{1+e^{-z_i}} \\
+  &amp;= \frac{1}{1+e^{-z_i}}\left(\frac{1+e^{-z_i}}{1+e^{-z_i}}-\frac{1}{1+e^{-z_i}}\right) \\
+  &amp;= \frac{1}{1+e^{-z_i}}\left(1-\frac{1}{1+e^{-z_i}}\right) \\
+  &amp;= \hat y_i(1-\hat y_i) \\
 \frac{\partial z_i}{\partial \beta_j} &amp;= x_{ji}
 \end{split}
 \]</span> If we want to know how changes in a particular <span class="math inline">\(\beta_j\)</span> change the value of <span class="math inline">\(J\)</span> then we chain all the derivatives together. <span class="math display">\[
