@@ -730,13 +730,20 @@ If we initiate $b$ as a guess for the $\beta$ that maximizes $J(\beta)$, then ([
 The multivariate Taylor expansion gives a generalization of this approach. 
 $$
 \begin{split}
-J(\beta) &\approx J(b) + (\beta-b)'
-\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix}  + \frac{1}{2}(\beta-b)'
+J(\boldsymbol\beta) &\approx J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'
+\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix}  + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'
 \begin{bmatrix} \frac{\partial^2 J}{\partial\beta_0^2} & \cdots & \frac{\partial^2 J}{\partial\beta_0\partial\beta_d} \\ 
 \vdots & \vdots & \vdots \\ 
-\frac{\partial^2 J}{\partial\beta_0\partial\beta_d} & \cdots & \frac{\partial^2 J}{\partial\beta_d^2} \end{bmatrix}(\beta-b) \\
-&= f(b) + (\beta-b)'\mathbf{G} + \frac{1}{2}(\beta-b)'\mathbf{H}(\beta-b) \\
-\hat\beta &\leftarrow \hat\beta - \mathbf{H}^{-1}\mathbf{G}
+\frac{\partial^2 J}{\partial\beta_0\partial\beta_d} & \cdots & \frac{\partial^2 J}{\partial\beta_d^2} \end{bmatrix}(\boldsymbol\beta-\mathbf{b}) \\
+&= J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&= J(\mathbf{b}) + \boldsymbol\beta'\mathbf{G}-\mathbf{b}'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+\frac{\partial}{\partial\beta} J(\boldsymbol\beta) &= 0 + \mathbf{G} - 0 + \frac{1}{2}\cdot 2\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&= G+\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+0 &= G+\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) \\
+ -\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) &= G \\
+\boldsymbol{\hat\beta}-\mathbf{b} &= -\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &= \mathbf{b}-\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &\leftarrow \boldsymbol{\hat\beta} - \mathbf{H}^{-1}\mathbf{G}\\
 \end{split}
 $$
 
@@ -759,8 +766,8 @@ $$
 The matrix of second derivatives, or Hessian matrix, is 
 $$
 \begin{split}
-\frac{\partial^2}{\partial\beta\partial\beta'} \ell(\beta)&= \frac{\partial}{\partial\beta} \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
-&= \sum_{i=1}^n -\mathbf{x}_i \frac{\partial}{\partial\beta} \frac{1}{1+e^{-\beta'\mathbf{x}_i}} \\
+\frac{\partial^2}{\partial\beta\,\partial\beta'} \ell(\beta)&= \frac{\partial}{\partial\beta} \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&= \sum_{i=1}^n -\mathbf{x}_i \frac{\partial}{\partial\beta} (1+e^{-\beta'\mathbf{x}_i})^{-1} \\
 &= \sum_{i=1}^n \mathbf{x}_i\frac{1}{(1+e^{-\beta'\mathbf{x}_i})^2}e^{-\beta'\mathbf{x}_i}(-\mathbf{x}_i') \\
 &= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\frac{e^{-\beta'\mathbf{x}_i}}{1+e^{-\beta'\mathbf{x}_i}} \\
 &= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\left(1-\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\

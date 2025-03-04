@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-12">
+<meta name="dcterms.date" content="2025-03-04">
 
 <title>Introduction to Linear Algebra</title>
 <style>
@@ -171,7 +171,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 12, 2025</p>
+      <p class="date">March 4, 2025</p>
     </div>
   </div>
   
@@ -891,13 +891,20 @@ J'(b)+J''(b)(\hat\beta-b)  &amp;= 0 \\
 \tag{4}\]</span></span> If we initiate <span class="math inline">\(b\)</span> as a guess for the <span class="math inline">\(\beta\)</span> that maximizes <span class="math inline">\(J(\beta)\)</span>, then (<a href="#eq-newton1" class="quarto-xref">4</a>) will produce a better guess for <span class="math inline">\(\hat\beta\)</span>… typically. We can iterate (<a href="#eq-newton1" class="quarto-xref">4</a>) several times until convergence to give us the maximizer of <span class="math inline">\(J(\beta)\)</span>.</p>
 <p>The multivariate Taylor expansion gives a generalization of this approach. <span class="math display">\[
 \begin{split}
-J(\beta) &amp;\approx J(b) + (\beta-b)'
-\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix}  + \frac{1}{2}(\beta-b)'
+J(\boldsymbol\beta) &amp;\approx J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'
+\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix}  + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'
 \begin{bmatrix} \frac{\partial^2 J}{\partial\beta_0^2} &amp; \cdots &amp; \frac{\partial^2 J}{\partial\beta_0\partial\beta_d} \\
 \vdots &amp; \vdots &amp; \vdots \\
-\frac{\partial^2 J}{\partial\beta_0\partial\beta_d} &amp; \cdots &amp; \frac{\partial^2 J}{\partial\beta_d^2} \end{bmatrix}(\beta-b) \\
-&amp;= f(b) + (\beta-b)'\mathbf{G} + \frac{1}{2}(\beta-b)'\mathbf{H}(\beta-b) \\
-\hat\beta &amp;\leftarrow \hat\beta - \mathbf{H}^{-1}\mathbf{G}
+\frac{\partial^2 J}{\partial\beta_0\partial\beta_d} &amp; \cdots &amp; \frac{\partial^2 J}{\partial\beta_d^2} \end{bmatrix}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= J(\mathbf{b}) + \boldsymbol\beta'\mathbf{G}-\mathbf{b}'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+\frac{\partial}{\partial\beta} J(\boldsymbol\beta) &amp;= 0 + \mathbf{G} - 0 + \frac{1}{2}\cdot 2\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= G+\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+0 &amp;= G+\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) \\
+-\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) &amp;= G \\
+\boldsymbol{\hat\beta}-\mathbf{b} &amp;= -\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &amp;= \mathbf{b}-\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &amp;\leftarrow \boldsymbol{\hat\beta} - \mathbf{H}^{-1}\mathbf{G}\\
 \end{split}
 \]</span></p>
 <p>Where <span class="math inline">\(\mathbf{G}\)</span> is a vector of first derivatives (that could be written as <span class="math inline">\(\nabla J\)</span>), the score function, and <span class="math inline">\(\mathbf{H}\)</span> is the matrix of second derivatives (could be written as <span class="math inline">\(\nabla^2 J\)</span>), the Hessian or the negative Fisher information.</p>
@@ -916,8 +923,8 @@ J(\beta) &amp;\approx J(b) + (\beta-b)'
 \]</span></p>
 <p>The matrix of second derivatives, or Hessian matrix, is <span class="math display">\[
 \begin{split}
-\frac{\partial^2}{\partial\beta\partial\beta'} \ell(\beta)&amp;= \frac{\partial}{\partial\beta} \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
-&amp;= \sum_{i=1}^n -\mathbf{x}_i \frac{\partial}{\partial\beta} \frac{1}{1+e^{-\beta'\mathbf{x}_i}} \\
+\frac{\partial^2}{\partial\beta\,\partial\beta'} \ell(\beta)&amp;= \frac{\partial}{\partial\beta} \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n -\mathbf{x}_i \frac{\partial}{\partial\beta} (1+e^{-\beta'\mathbf{x}_i})^{-1} \\
 &amp;= \sum_{i=1}^n \mathbf{x}_i\frac{1}{(1+e^{-\beta'\mathbf{x}_i})^2}e^{-\beta'\mathbf{x}_i}(-\mathbf{x}_i') \\
 &amp;= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\frac{e^{-\beta'\mathbf{x}_i}}{1+e^{-\beta'\mathbf{x}_i}} \\
 &amp;= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\left(1-\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
