@@ -1,0 +1,393 @@
+---
+title: "Machine learning with text"
+author:
+- affiliation: University of Pennsylvania
+  email: gridge@upenn.edu
+  name: Greg Ridgeway
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+format:
+  html:
+    theme: 
+      dark: darkly
+      light: default
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    toc: true
+prefer-html: true
+number-sections: true
+editor_options: 
+  chunk_output_type: console
+bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
+---
+
+<!-- In terminal -->
+
+<!-- quarto render L11-text.qmd -->
+
+<!-- quarto render L11-text.qmd --cache-refresh  -->
+
+# Introduction
+
+In this section we will use `text2vec` to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.
+
+To start, we are going to need a couple of R packages to facilitate our work. `text2vec` will do most of the work converting the documents into a form of data that we can analyze.
+
+```{r}
+#| warning: false
+#| message: false
+library(text2vec)
+library(dplyr)
+library(stringr)
+library(Matrix)
+```
+
+As for the source of our documents, the Philadelphia Police Department posts (reports)\[https://www.phillypolice.com/accountability/ois/\] on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame `ois`. Details on how to pull the data off of the PPD website are part of my (R4crim collection)\[https://github.com/gregridgeway/R4crim?tab=readme-ov-file\] of scripts.
+
+```{r}
+load("data/PPD OIS.RData")
+ois |> select(-text) |> head()
+```
+
+The data include an incident ID, the date of the shooting, the address and coordinates where the shooting occurred, and a URL to the incident report. There is also a column called `text` containing the full text of the officer-involved shooting report. Some can be long, but here's the first one as an example.
+
+```{r}
+#| results: hide
+ois |> filter(id=="16-30") |> select(text) |> unlist() |> cat()
+```
+
+::: {.callout-note title="Narrative from OIS Report 16-30"}
+```{r, results = 'asis', echo = FALSE}
+ois |>
+  filter(id == "16-30") |>
+  pull(text) |>
+  cat()
+```
+:::
+
+With this set of `r nrow(ois)` reports, we will use a variety of data cleaning methods and machine learning methods to try to make sense of these documents.
+
+# Turning text into data with `text2vec`
+
+To transform the text into a form that is better suited for analysis, we need to go through a number of steps. Part of the reason `text2vec` is popular is that it can handle large collections of documents. To make the tasks computational efficient there are a number of steps to work through in order to get a usable dataset.
+
+We start by create a "tokenizer," a process that breaks raw text into individual units like words, phrases, or symbols—called (the "tokens"), the basic building blocks for text analysis. The `itoken()` function in the `text2vec` package creates an iterator over a collection of text documents, preparing them for efficient text processing. Instead of transforming all text at once, `itoken()` streams the documents one at a time, making it well-suited for handling large sets of documents. It "tokenizes" each document using =either a built-in default or a custom tokenizer (which we will do) and produces a structure that can be passed on to other functions that will tidy up the collection of tokens and convert them into a dataset. Because it does not store all tokenized text in memory, `itoken()` enables fast and memory-efficient text analysis workflows.
+
+```{r}
+# Create an iterator over tokens
+#   tokens does not actually store data
+#   just an efficient means for looping over documents
+tokens <- itoken(ois$text,
+                 progressbar = FALSE,
+                 ids = ois$id)
+# this gets the next batch of documents... for me around 14 documents
+a <- tokens$nextElem()
+a$ids
+a$tokens |> sapply(head)
+```
+
+You can see that so far `itoken()` has pulled in `r length(a$tokens)` documents and chopped them up into individual words. Notice that the collection of words have some undesirable quirks. For example, there are
+
+-   numbers that we probably do not really care about
+-   unimportant words like "of" (known as "stop words")
+-   Line feeds `\n` in between two words
+
+`create_vocabulary()` and `prune_vocabulary()` help us to trim down the words to the ones that we actually care about. `create_vocabulary()` allows us to provide a list of stop words to remove. `stopwords("en")` is just such a list. Here are just a few of the 175 English stop words 
+```{r}
+stopwords::stopwords("en") |> head(20)
+```
+There are lists for several other languages as well, Italian, for example.
+```{r}
+stopwords::stopwords("it") |> head(20)
+```
+We can also ask consider pairs of words in addition to single words (`ngram=1:2`). This allows word phrases like "police officer" and "pit bull" to be considered as words.
+
+`prune_vocabulary()` trims down words from our vocabulary that are probably not particularly useful 
+
+-  words that few documents use (too rare)
+-  words that too many documents use (too common) 
+
+We can add in some other filters too, like only using words that are at least three letters and dropping any words that have numbers in them (like 3pm or 9mm).
+
+```{r}
+# reset to beginning
+tokens <- itoken(ois$text,
+                 progressbar = FALSE,
+                 ids = ois$id)
+
+# Build vocabulary
+#   these are the collection of words that I care about
+#   skip stopwords (the, of, in, ...)
+#   include two word phrases (2-gram or bigram), 
+#      "police officer", "full uniform", "black male", "drop weapon", "pit bull"
+#   skip words that only show up in fewer than 10 documents
+#   skip words that are in the majority of documents (police?, discharged?)
+vocab <- tokens |>
+  create_vocabulary(stopwords = stopwords::stopwords("en"),
+                    ngram = 1:2) |>
+  prune_vocabulary(term_count_min = 10,
+                   doc_proportion_max = 0.5) |>
+  filter(nchar(term) >= 3) |>
+  filter(!grepl("[0-9]", term))
+
+# space_tokenizer(), default, keeps a lot of punctuation
+vocab
+```
+
+Let's make our own tokenizer instead of using the default. As we see, the default (`space_tokenizer()`) often retains punctuation, symbols, or other strange features that dilute or fragment our vocabulary. Customizing the tokenizer allows us to tailor the cleaning process to the structure and quirks of the officer-involved shooting reports. The function that we will create, `oisTokenizer()`, is a custom tokenizer designed to clean and standardize the raw text from officer-involved shooting reports before further text analysis. It converts the text to lowercase, removes common punctuation patterns (like those in abbreviations such as “3 p.m.”), strips out unusual or inconsistent symbols (such as smart quotes, parentheses, and hash symbols), and splits the text into individual tokens using whitespace as the delimiter. 
+
+After tokenization, it will also apply "stemming". Stemming is a text preprocessing technique that reduces words to their root or base form by removing common suffixes. For example, "running", "runner", and "runs" might all be reduced to "run", allowing the model to treat these variations as the same underlying concept. The `SnowballC` package has a handy `wordStem()` function in it. Let's test it out on a few words.
+```{r}
+c("dog","dogs","office","officer","officers","police","policy","policies") |>
+  SnowballC::wordStem(language = "en")
+```
+Conveniently, it makes both "dog" and "dogs" simply "dog". However, note that it also makes "office", "officer", and "officers" all simplified to "office"... maybe not ideal. Since our text will have a lot of "officer" and "officers" and probably very few of any "office", we will need to remember that this stemming has reduced our "police officers" to "police office".
+
+```{r}
+# our own custom tokenizer
+oisTokenizer <- function(text)
+{
+  text |>
+    tolower() |>
+    # remove abbreviation punctuation (like 3 p.m.)
+    gsub("([A-z])[,.]+", "\\1", x=_) |>
+    # remove some weird symbols
+    gsub("[“”()#]", "", x=_) |>
+    # no smart quotes
+    gsub("’", "'", x=_) |>
+    # split any words with \n, \t, \r between them
+    strsplit("\\s+") |>
+    # stemming
+    lapply(SnowballC::wordStem, language = "en")
+}
+```
+
+Now we can rerun our documents through our new tokenizer.
+```{r}
+# reset to beginning
+#    now using our oisTokenizer()
+tokens <- itoken(ois$text,
+                 tokenizer = oisTokenizer,
+                 progressbar = TRUE,
+                 ids = ois$id)
+
+vocab <- tokens |>
+  create_vocabulary(stopwords = stopwords::stopwords("en"),
+                    ngram = 1:2) |>
+  prune_vocabulary(term_count_min = 10,
+                   doc_proportion_max = 0.5) |>
+  filter(nchar(term) >=3) |>
+  filter(!grepl("[0-9]", term))
+
+vocab
+```
+Now we have a collection of words and word phrases gathered from our documents. Note that it includes so two word phrases (bigrams) with the two stemmed words combined with an underscore between them.
+
+## Creating a document-term matrix (DTM)
+
+Our next destination is to create a "document-term matrix" (DTM). A DTM is a matrix representation of a collection of text documents, where each row corresponds to a document and each column corresponds to a unique term (a word or phrase) from the collection of documents. The values in the matrix typically reflect the number of times each term appears in each document. A DTM transforms the unstructured text into a format that machine learning models can work with.
+
+The first step to getting to a DTM with `text2vec` is to create a "vectorizer". A vectorizer translates tokenized text into a numeric matrix format, such as a DTM. `vocab_vectorizer()` creates a function that will take batches of documents, compare them to the vocabulary we built, and produce the associated components of the DTM.
+
+```{r}
+# Create a vectorizer
+#   helper function to convert streams of text into DTM
+vectorizer <- vocab_vectorizer(vocab)
+# Let's see what this function looks like!
+vectorizer
+```
+It is a little difficult to interpret, but we can see that it is going to take in a iterator over our tokenized documents and produce something that will (hopefully!) be useful. Let's give it a try.
+```{r}
+# Create the document-term matrix (DTM)
+#   row represents a document
+#   column represents a unique term (word or phrase)
+#   cell contains the count (or weight) of that term in the document
+oisDTM <- create_dtm(tokens, vectorizer)
+oisDTM[65:74, 445:454] |> as.matrix() |> t()
+```
+We have a DTM! I have picked a few interesting rows and columns. I also transposed the DTM so it is more readable, but typically the rows are documents and columns are terms. You can see a few non-zero counts in this matrix. These indicate which documents include these terms and how many times that term appears in the document.
+
+Let's explore further.
+```{r}
+# number of documents and words
+dim(oisDTM)
+# rows represent individual OIS shooting reports
+rownames(oisDTM)[1:5]
+# columns are the words/phrases
+colnames(oisDTM)[1:10]     # feature names
+# how many vocab words in document?
+rowSums(oisDTM)
+# how many documents have these words?
+colSums(oisDTM)[1:20]
+
+# Most common words?
+colSums(oisDTM) |>
+  sort(decreasing = TRUE) |>
+  head(10)
+```
+
+## Term Frequency–Inverse Document Frequency
+
+While raw term counts in a document-term matrix tell us how often each word appears, they do not account for how informative or distinctive those words are across the entire collection of documents. Common words like "officer" or "incident" may appear frequently in every report, but they are not useful for distinguishing one document from another. Term frequency-inverse document frequency (TF-IDF) improves on this by weighting terms based on how frequently they appear in a specific document and how rare they are across all documents. This highlights terms that are both common within a document and uncommon elsewhere, making them more meaningful for identifying the unique content of each report.
+
+Term Frequency-Inverse Document Frequency (TF-IDF) gives weights to words in a document in a way that balances:
+
+1.  *Term Frequency* (TF): This word must be important in this document
+
+-   The more a word appears in a document, the more likely it is to be relevant to the document's content
+-   If the word "shooting" appears 12 times in a police report, it is probably central to that document
+
+2.  *Inverse Document Frequency* (IDF): But if it appears in every document, it is not very informative
+
+-   Common words like "officer", "incident", or "said" might appear everywhere
+-   IDF *downweights* those high-frequency but low-discrimination terms
+-   It prefers terms that help *distinguish* one document from others
+
+The formula for TF-IDF for document $i$ and term $j$:
+
+$$
+\mathrm{tfidf}_{ij} = \mathrm{TF}_{ij}\log\frac{N}{\mathrm{DF}_j}
+$$ 
+where 
+
+-  $\mathrm{TF}$ is the number of times term $j$ appears in document $i$. It measures the importance of the term within a document 
+-  $N$ = total number of documents 
+-  $\mathrm{DF}_j$ = number of documents containing term $j$
+
+$\mathrm{IDF}_{ij}=\log\frac{N}{\mathrm{DF}_j}$ captures the rarity across documents. Note that if a word appears in all documents then $\mathrm{tfidf}_{ij} = 0$. The combination of $\mathrm{TF}$ and $\mathrm{IDF}$ gives a measure of relevance and distinctiveness. A high $\mathrm{tfidf}_{ij}$ means a term appears often in document $i$, but rarely in other documents. It gives you terms that define a document. These are the terms that are useful for classification, clustering, or topic modeling.
+
+### Example
+
+Assume there are $N=100$ documents.
+
+| Term      | TF in Doc A | DF across corpus | IDF | TF-IDF |
+|-----------|-------------|------------------|-----|--------|
+| "weapon"  | 5           | 10               | 2.3 | 11.5   |
+| "officer" | 6           | 95               | 0.1 | 0.3    |
+| "said"    | 20          | 100              | 0   | 0      |
+
+-   "weapon" gets a high score, specific and relevant
+-   "officer" is common, downweighted
+-   "said" is everywhere, zeroed out
+
+```{r}
+# TF-IDF: term frequency–inverse document frequency weights
+#    downweights common words that appear in many documents
+#    upweights rare words that are more informative or distinctive
+# TF: How often a word appears in a document
+# IDF: How rare that word is across all documents
+#    TF-IDF = TF × log(N / DF)
+#       N = total number of documents
+#       DF = number of documents containing the term
+tfidf_transformer <- TfIdf$new()
+oisTFIDF <- tfidf_transformer$fit_transform(oisDTM)
+```
+
+Let's take a look at those same rows and columns that we did before for the DTM. The matrix looks largely the same, just everything scaled down.
+```{r}
+oisTFIDF[65:74, 445:454] |> as.matrix() |> round(2) |> t()
+```
+
+Let's compare the top features.
+```{r}
+# View top features by TF
+colSums(oisDTM) %>%
+  sort(decreasing = TRUE) %>%
+  head(10)
+
+# View top features by TF-IDF
+colSums(oisTFIDF) %>%
+  sort(decreasing = TRUE) %>%
+  head(10)
+```
+The TF-IDF does change which terms make the top-10 list. We see "knife" and "driver" show up and "door" and "point" drop off.
+
+Why does "inform_post" show up in this list? "Information posted" was very common in reports before 2020.
+```{r}
+oisDTM[,"inform_post"]
+
+# highlight the word "post" in the report
+library(crayon)
+ois |> 
+  filter(id=="20-20") |> 
+  pull(text) |> 
+  gsub("post", bgYellow$black("post"), x=_) |> 
+  cat()
+```
+
+# Term co-occurrence matrix (TCM)
+
+A term co-occurrence matrix (TCM) captures how often pairs of words appear near each other within a given window of text, such as a sentence or a few neighboring words. Unlike a document-term matrix, which represents the relationship between documents and individual terms, a TCM focuses on the relationships between terms themselves. This is useful for uncovering word associations, identifying common phrases, and building more advanced representations like word embeddings. In our case, we will use the TCM to explore how certain words, such as "officer," "suspect," or "weapon," tend to co-occur across police shooting reports, revealing patterns that might not be visible from frequency counts alone.
+
+When scanning through each document, setting `skip_grams_window = 5` will treat any two terms that appear within a window of 5 tokens as co-occurring. For example, if the document has the phrase "the officer shot the suspect with a weapon" and we set `skip_grams_window = 5`, then for the word "shot" it will consider "the", "officer", "the", "suspect", "with" as co-occurring terms.
+
+We will use `create_tcm()` to create a TCM. The $(i,j)$ element of the TCm will be the number of times term $i$ occurs within 5 terms of term $j$.
+```{r}
+# Create a co-occurrence matrix (Feature Co-occurrence Matrix)
+oisTCM <- itoken(ois$text,
+                 tokenizer = oisTokenizer,
+                 progressbar = FALSE,
+                 ids = ois$id) |>
+  create_tcm(vocab_vectorizer(vocab), 
+             skip_grams_window = 5)
+```
+
+This will be a little easier to visualize if we convert to a long (rather than wide) format.
+```{r}
+# Convert to triplet format and extract top co-occurring pairs
+oisPairs <- Matrix::summary(oisTCM) |>
+  filter(i != j) |>
+  rename(feature1 = i, feature2 = j, weight = x) |>
+  left_join(data.frame(feature1 = 1:nrow(oisTCM),
+                       term1 = colnames(oisTCM)))  |>
+  left_join(data.frame(feature2 = 1:nrow(oisTCM),
+                       term2 = colnames(oisTCM))) |>
+  select(-feature1, -feature2) |>
+  filter(term1 != term2) |>
+  filter(!str_detect(term1, fixed(term2)) & 
+           !str_detect(term2, fixed(term1)))
+
+oisPairs |>
+  arrange(desc(weight)) |>
+  slice_head(n = 50)
+```
+Much of this co-occurrence is due to the template language describing where the department is in the investigation, referrals to the district attorney, and the report offers preliminary summary.
+
+::: {.callout-note title="Template language on the report"}
+*** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The District Attorney’s Office is provided all the information from the PPD’s investigation prior to their charging decision.
+:::
+
+Further on down the list some term pairs a more interesting.
+```{r}
+oisPairs |>
+  filter(weight >= 8 & weight <=9) |>
+  arrange(desc(weight))
+```
+  
+  
+# Singular value decomposition for text
+
+We already explored how SVD can be used to (compress images and classify emojis)[https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html]. Now we will explore what SVD does for text.
+
+Since TFIDF matrices can get large, we will use the SVD implementation in the IRLBA package (Implicitly Restarted Lanczos Bidiagonalization Algorithm). The IRLBA implementation of SVD allows you to limit the number of singular vectors to compute, ignoring and never computing the rest. 
+
+```{r}
+library(irlba)
+oisSVD <- irlba(oisTFIDF, nv = 50)
+```
+
+Let's see how many singular vectors seem important. In @fig-SVDsingularvalues we see the first two or three singular values seem large, but then they decrease quite slowly from there.
+```{r}
+#| label: fig-SVDsingularvalues
+#| fig-cap: "Singular values from SVD of oisTFIDF"
+#| fig-width: 4
+#| fig-height: 5
+plot(oisSVD$d, 
+     xlab="Index of the singular value", ylab="Singular value",
+     ylim=c(0, max(oisSVD$d)),
+     pch=16)
+```
+
+```{r}
+
+```

@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-03-24">
+
+<title>Machine learning with text</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="L11-text_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L11-text_files/libs/quarto-html/quarto.js"></script>
+<script src="L11-text_files/libs/quarto-html/popper.min.js"></script>
+<script src="L11-text_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L11-text_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L11-text_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L11-text_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L11-text_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L11-text_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L11-text_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L11-text_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L11-text_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#turning-text-into-data-with-text2vec" id="toc-turning-text-into-data-with-text2vec" class="nav-link" data-scroll-target="#turning-text-into-data-with-text2vec"><span class="header-section-number">2</span> Turning text into data with <code>text2vec</code></a>
+  <ul class="collapse">
+  <li><a href="#creating-a-document-term-matrix-dtm" id="toc-creating-a-document-term-matrix-dtm" class="nav-link" data-scroll-target="#creating-a-document-term-matrix-dtm"><span class="header-section-number">2.1</span> Creating a document-term matrix (DTM)</a></li>
+  <li><a href="#term-frequencyinverse-document-frequency" id="toc-term-frequencyinverse-document-frequency" class="nav-link" data-scroll-target="#term-frequencyinverse-document-frequency"><span class="header-section-number">2.2</span> Term Frequency–Inverse Document Frequency</a>
+  <ul class="collapse">
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">2.2.1</span> Example</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#term-co-occurrence-matrix-tcm" id="toc-term-co-occurrence-matrix-tcm" class="nav-link" data-scroll-target="#term-co-occurrence-matrix-tcm"><span class="header-section-number">3</span> Term co-occurrence matrix (TCM)</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L11-text.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Machine learning with text</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 24, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- In terminal -->
+<!-- quarto render L11-text.qmd -->
+<!-- quarto render L11-text.qmd --cache-refresh  -->
+<section id="introduction" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
+<p>In this section we will use <code>text2vec</code> to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.</p>
+<p>To start, we are going to need a couple of R packages to facilitate our work. <code>text2vec</code> will do most of the work converting the documents into a form of data that we can analyze.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text2vec)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matrix)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(crayon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>As for the source of our documents, the Philadelphia Police Department posts (reports)[https://www.phillypolice.com/accountability/ois/] on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame <code>ois</code>. Details on how to pull the data off of the PPD website are part of my (R4crim collection)[https://github.com/gregridgeway/R4crim?tab=readme-ov-file] of scripts.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"data/PPD OIS.RData"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>text) <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     id                                 location
+1 24-37      3450 Vista Street, Philadelphia, PA
+2 24-36          3250 A Street, Philadelphia, PA
+3 24-35 5450 Chancellor Street, Philadelphia, PA
+4 24-32         2950 E. Street, Philadelphia, PA
+5 24-31      3350 Willits Road, Philadelphia, PA
+6 24-30    6150 Lebanon Avenue, Philadelphia, PA
+                                        url       date       lon      lat
+1   https://www.phillypolice.com/ois/24-37/ 2024-12-10 -75.03885 40.04022
+2   https://www.phillypolice.com/ois/24-36/ 2024-11-12 -75.12714 39.99956
+3   https://www.phillypolice.com/ois/24-35/ 2024-11-10 -75.23050 39.95692
+4   https://www.phillypolice.com/ois/24-32/ 2024-10-11 -75.12024 39.99345
+5   https://www.phillypolice.com/ois/24-31/ 2024-10-03 -75.00908 40.05383
+6 https://www.phillypolice.com/ois/ps24-30/ 2024-10-02 -75.24450 39.98175
+                                              addrmatch score      addrtype
+1      3450 Vista St, Philadelphia, Pennsylvania, 19136   100 StreetAddress
+2          3250 A St, Philadelphia, Pennsylvania, 19134   100 StreetAddress
+3 5450 Chancellor St, Philadelphia, Pennsylvania, 19139   100 StreetAddress
+4          2950 E St, Philadelphia, Pennsylvania, 19134   100 StreetAddress
+5    3350 Willits Rd, Philadelphia, Pennsylvania, 19136   100 StreetAddress
+6   6150 Lebanon Ave, Philadelphia, Pennsylvania, 19151   100  PointAddress</code></pre>
+</div>
+</div>
+<p>The data include an incident ID, the date of the shooting, the address and coordinates where the shooting occurred, and a URL to the incident report. There is also a column called <code>text</code> containing the full text of the officer-involved shooting report. Some can be long, but here’s the first one as an example.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span> <span class="fu">filter</span>(id<span class="sc">==</span><span class="st">"16-30"</span>) <span class="sc">|&gt;</span> <span class="fu">select</span>(text) <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">cat</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Narrative from OIS Report 16-30">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Narrative from OIS Report 16-30
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>PS#16-30 9/16/16 On Friday, September 16, 2016, at approximately 11:18 P.M., a uniformed sergeant in a marked police vehicle was seated in her parked vehicle in the 5100 block of Sansom Street, when a male approached and without warning, began to discharge a firearm, striking the sergeant, as she remained seated in her vehicle. The offender then began walking east on Sansom Street, stopping at a lounge/bar in the 5100 block of Sansom Street, where he discharged his firearm into the lounge/bar, striking a female employee and a male security guard. The offender continued walking east on Sansom Street to the 4900 block, where he discharged his firearm into an occupied parked vehicle, striking one female and one male occupant. Responding uniformed officers, in marked police vehicles, along with an officer from the University of Pennsylvania police force, located the offender in an alleyway in the rear of the 4800 blocks of Sansom and Walnut Streets. While in the 4800 block of Sansom Street the offender discharged his firearm, striking the University of Pennsylvania Officer as well as a marked police vehicle. Four Officers (one of whom was the University of Pennsylvania Officer) discharged their firearms, striking the offender. The offender fell to the ground and dropped his firearm. Fire Rescue responded and pronounced the offender deceased. The offender’s firearm, a 9MM, semi-automatic pistol, with an obliterated serial number, loaded with 14 live rounds, was recovered at the scene. There were three empty magazines from the offender’s firearm recovered throughout the scene. The sergeant, the University of Pennsylvania Officer, along with the four civilians who were all struck by gunfire, were transported to Penn-Presbyterian Hospital for treatment. The female from the parked vehicle was later pronounced deceased at Penn-Presbyterian Hospital. *** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The DA’s Office is provided all the information from the PPD’s investigation prior to their charging decision.</p>
+</div>
+</div>
+<p>With this set of 133 reports, we will use a variety of data cleaning methods and machine learning methods to try to make sense of these documents.</p>
+</section>
+<section id="turning-text-into-data-with-text2vec" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Turning text into data with <code>text2vec</code></h1>
+<p>To transform the text into a form that is better suited for analysis, we need to go through a number of steps. Part of the reason <code>text2vec</code> is popular is that it can handle large collections of documents. To make the tasks computational efficient there are a number of steps to work through in order to get a usable dataset.</p>
+<p>We start by create a “tokenizer,” a process that breaks raw text into individual units like words, phrases, or symbols—called (the “tokens”), the basic building blocks for text analysis. The <code>itoken()</code> function in the <code>text2vec</code> package creates an iterator over a collection of text documents, preparing them for efficient text processing. Instead of transforming all text at once, <code>itoken()</code> streams the documents one at a time, making it well-suited for handling large sets of documents. It “tokenizes” each document using =either a built-in default or a custom tokenizer (which we will do) and produces a structure that can be passed on to other functions that will tidy up the collection of tokens and convert them into a dataset. Because it does not store all tokenized text in memory, <code>itoken()</code> enables fast and memory-efficient text analysis workflows.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create an iterator over tokens</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   tokens does not actually store data</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   just an efficient means for looping over documents</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>tokens <span class="ot">&lt;-</span> <span class="fu">itoken</span>(ois<span class="sc">$</span>text,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">progressbar =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ids =</span> ois<span class="sc">$</span>id)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># this gets the next batch of documents... for me around 14 documents</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> tokens<span class="sc">$</span><span class="fu">nextElem</span>()</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span>ids</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "24-37" "24-36" "24-35" "24-32" "24-31" "24-30" "24-29" "24-28" "24-27"
+[10] "24-23" "24-22" "24-21" "24-20" "24-18"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>a<span class="sc">$</span>tokens <span class="sc">|&gt;</span> <span class="fu">sapply</span>(head)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]         [,2]         [,3]         [,4]         [,5]       
+[1,] "3400"       "3200"       "5400"       "29oo"       "3300"     
+[2,] "block"      "block"      "block"      "block"      "Willits"  
+[3,] "of"         "of"         "of"         "of"         "Road\nOn" 
+[4,] "Vista"      "A"          "Chancellor" "E."         "Thursday,"
+[5,] "Street\nOn" "Street\nOn" "Street\nOn" "Street\nOn" "October"  
+[6,] "Tuesday,"   "Tuesday,"   "Sunday,"    "Friday,"    "3,"       
+     [,6]         [,7]           [,8]           [,9]          [,10]         
+[1,] "6100"       "2600"         "3900"         "2200"        "3000"        
+[2,] "block"      "block"        "block"        "block"       "block"       
+[3,] "of"         "of"           "of"           "of"          "of"          
+[4,] "Lebanon"    "Glenwood"     "Whittaker"    "S."          "Ruth"        
+[5,] "Avenue\nOn" "Avenue\nThe"  "Avenue\nThe"  "65th"        "Street\nThe" 
+[6,] "Wednesday," "Philadelphia" "Philadelphia" "Street\nThe" "Philadelphia"
+     [,11]       [,12]          [,13]       [,14]      
+[1,] "6100"      "3500"         "2700"      "1500"     
+[2,] "block"     "block"        "block"     "block"    
+[3,] "of"        "of"           "of"        "of"       
+[4,] "West"      "F"            "North"     "North"    
+[5,] "Columbia"  "Street\nA"    "6th"       "57th"     
+[6,] "Avenue\nA" "Philadelphia" "Street\nA" "Street\nA"</code></pre>
+</div>
+</div>
+<p>You can see that so far <code>itoken()</code> has pulled in 14 documents and chopped them up into individual words. Notice that the collection of words have some undesirable quirks. For example, there are</p>
+<ul>
+<li>numbers that we probably do not really care about</li>
+<li>unimportant words like “of” (known as “stop words”)</li>
+<li>Line feeds <code>\n</code> in between two words</li>
+</ul>
+<p><code>create_vocabulary()</code> and <code>prune_vocabulary()</code> help us to trim down the words to the ones that we actually care about. <code>create_vocabulary()</code> allows us to provide a list of stop words to remove. <code>stopwords("en")</code> is just such a list. Here are just a few of the 175 English stop words</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">"en"</span>) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "i"          "me"         "my"         "myself"     "we"        
+ [6] "our"        "ours"       "ourselves"  "you"        "your"      
+[11] "yours"      "yourself"   "yourselves" "he"         "him"       
+[16] "his"        "himself"    "she"        "her"        "hers"      </code></pre>
+</div>
+</div>
+<p>There are lists for several other languages as well, Italian, for example.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">"it"</span>) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "ad"    "al"    "allo"  "ai"    "agli"  "all"   "agl"   "alla"  "alle" 
+[10] "con"   "col"   "coi"   "da"    "dal"   "dallo" "dai"   "dagli" "dall" 
+[19] "dagl"  "dalla"</code></pre>
+</div>
+</div>
+<p>We can also ask consider pairs of words in addition to single words (<code>ngram=1:2</code>). This allows word phrases like “police officer” and “pit bull” to be considered as words.</p>
+<p><code>prune_vocabulary()</code> trims down words from our vocabulary that are probably not particularly useful</p>
+<ul>
+<li>words that few documents use (too rare)</li>
+<li>words that too many documents use (too common)</li>
+</ul>
+<p>We can add in some other filters too, like only using words that are at least three letters and dropping any words that have numbers in them (like 3pm or 9mm).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reset to beginning</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>tokens <span class="ot">&lt;-</span> <span class="fu">itoken</span>(ois<span class="sc">$</span>text,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">progressbar =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ids =</span> ois<span class="sc">$</span>id)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Build vocabulary</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   these are the collection of words that I care about</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#   skip stopwords (the, of, in, ...)</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#   include two word phrases (2-gram or bigram), </span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#      "police officer", "full uniform", "black male", "drop weapon", "pit bull"</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#   skip words that only show up in fewer than 10 documents</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co">#   skip words that are in the majority of documents (police?, discharged?)</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>vocab <span class="ot">&lt;-</span> tokens <span class="sc">|&gt;</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_vocabulary</span>(<span class="at">stopwords =</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">"en"</span>),</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ngram =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prune_vocabulary</span>(<span class="at">term_count_min =</span> <span class="dv">10</span>,</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>                   <span class="at">doc_proportion_max =</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">nchar</span>(term) <span class="sc">&gt;=</span> <span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"[0-9]"</span>, term))</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co"># space_tokenizer(), default, keeps a lot of punctuation</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>vocab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of docs: 133 
+175 stopwords: i, me, my, myself, we, our ... 
+ngram_min = 1; ngram_max = 2 
+Vocabulary: 
+                  term term_count doc_count
+                &lt;char&gt;      &lt;int&gt;     &lt;int&gt;
+  1:               AM,         10        10
+  2:        Avenue\nOn         10        10
+  3:   District_Police         10        10
+  4:         Hospital,         10         9
+  5: Penn-Presbyterian         10         8
+ ---                                       
+552:           firearm        112        63
+553:               one        116        65
+554:            posted        120        60
+555:           vehicle        180        65
+556:          offender        182        49</code></pre>
+</div>
+</div>
+<p>Let’s make our own tokenizer instead of using the default. As we see, the default (<code>space_tokenizer()</code>) often retains punctuation, symbols, or other strange features that dilute or fragment our vocabulary. Customizing the tokenizer allows us to tailor the cleaning process to the structure and quirks of the officer-involved shooting reports. The function that we will create, <code>oisTokenizer()</code>, is a custom tokenizer designed to clean and standardize the raw text from officer-involved shooting reports before further text analysis. It converts the text to lowercase, removes common punctuation patterns (like those in abbreviations such as “3 p.m.”), strips out unusual or inconsistent symbols (such as smart quotes, parentheses, and hash symbols), and splits the text into individual tokens using whitespace as the delimiter.</p>
+<p>After tokenization, it will also apply “stemming”. Stemming is a text preprocessing technique that reduces words to their root or base form by removing common suffixes. For example, “running”, “runner”, and “runs” might all be reduced to “run”, allowing the model to treat these variations as the same underlying concept. The <code>SnowballC</code> package has a handy <code>wordStem()</code> function in it. Let’s test it out on a few words.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(<span class="st">"dog"</span>,<span class="st">"dogs"</span>,<span class="st">"office"</span>,<span class="st">"officer"</span>,<span class="st">"officers"</span>,<span class="st">"police"</span>,<span class="st">"policy"</span>,<span class="st">"policies"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  SnowballC<span class="sc">::</span><span class="fu">wordStem</span>(<span class="at">language =</span> <span class="st">"en"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "dog"    "dog"    "offic"  "offic"  "offic"  "polic"  "polici" "polici"</code></pre>
+</div>
+</div>
+<p>Conveniently, it makes both “dog” and “dogs” simply “dog”. However, note that it also makes “office”, “officer”, and “officers” all simplified to “office”… maybe not ideal. Since our text will have a lot of “officer” and “officers” and probably very few of any “office”, we will need to remember that this stemming has reduced our “police officers” to “police office”.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># our own custom tokenizer</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>oisTokenizer <span class="ot">&lt;-</span> <span class="cf">function</span>(text)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  text <span class="sc">|&gt;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tolower</span>() <span class="sc">|&gt;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># remove abbreviation punctuation (like 3 p.m.)</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="st">"([A-z])[,.]+"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, <span class="at">x=</span>_) <span class="sc">|&gt;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># remove some weird symbols</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="st">"[“”()#]"</span>, <span class="st">""</span>, <span class="at">x=</span>_) <span class="sc">|&gt;</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># no smart quotes</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">gsub</span>(<span class="st">"’"</span>, <span class="st">"'"</span>, <span class="at">x=</span>_) <span class="sc">|&gt;</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># split any words with \n, \t, \r between them</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">strsplit</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">s+"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># stemming</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">lapply</span>(SnowballC<span class="sc">::</span>wordStem, <span class="at">language =</span> <span class="st">"en"</span>)</span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can rerun our documents through our new tokenizer.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reset to beginning</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#    now using our oisTokenizer()</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>tokens <span class="ot">&lt;-</span> <span class="fu">itoken</span>(ois<span class="sc">$</span>text,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tokenizer =</span> oisTokenizer,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">progressbar =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ids =</span> ois<span class="sc">$</span>id)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>vocab <span class="ot">&lt;-</span> tokens <span class="sc">|&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_vocabulary</span>(<span class="at">stopwords =</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">"en"</span>),</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ngram =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prune_vocabulary</span>(<span class="at">term_count_min =</span> <span class="dv">10</span>,</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">doc_proportion_max =</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">nchar</span>(term) <span class="sc">&gt;=</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"[0-9]"</span>, term))</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>vocab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of docs: 133 
+175 stopwords: i, me, my, myself, we, our ... 
+ngram_min = 1; ngram_max = 2 
+Vocabulary: 
+                term term_count doc_count
+              &lt;char&gt;      &lt;int&gt;     &lt;int&gt;
+  1:   advanc_toward         10         7
+  2:         announc         10         8
+  3: approach_driver         10         9
+  4:        cartridg         10         9
+  5:         chelten         10         3
+ ---                                     
+551:           point        105        54
+552:         suspect        110        21
+553:     inform_post        120        60
+554:            post        120        60
+555:          offend        308        56</code></pre>
+</div>
+</div>
+<p>Now we have a collection of words and word phrases gathered from our documents. Note that it includes so two word phrases (bigrams) with the two stemmed words combined with an underscore between them.</p>
+<section id="creating-a-document-term-matrix-dtm" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="creating-a-document-term-matrix-dtm"><span class="header-section-number">2.1</span> Creating a document-term matrix (DTM)</h2>
+<p>Our next destination is to create a “document-term matrix” (DTM). A DTM is a matrix representation of a collection of text documents, where each row corresponds to a document and each column corresponds to a unique term (a word or phrase) from the collection of documents. The values in the matrix typically reflect the number of times each term appears in each document. A DTM transforms the unstructured text into a format that machine learning models can work with.</p>
+<p>The first step to getting to a DTM with <code>text2vec</code> is to create a “vectorizer”. A vectorizer translates tokenized text into a numeric matrix format, such as a DTM. <code>vocab_vectorizer()</code> creates a function that will take batches of documents, compare them to the vocabulary we built, and produce the associated components of the DTM.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a vectorizer</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   helper function to convert streams of text into DTM</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>vectorizer <span class="ot">&lt;-</span> <span class="fu">vocab_vectorizer</span>(vocab)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's see what this function looks like!</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>vectorizer</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>function (iterator, grow_dtm, skip_grams_window_context, window_size, 
+    weights, binary_cooccurence = FALSE) 
+{
+    vocab_corpus_ptr = cpp_vocabulary_corpus_create(vocabulary$term, 
+        attr(vocabulary, "ngram")[[1]], attr(vocabulary, "ngram")[[2]], 
+        attr(vocabulary, "stopwords"), attr(vocabulary, "sep_ngram"))
+    setattr(vocab_corpus_ptr, "ids", character(0))
+    setattr(vocab_corpus_ptr, "class", "VocabCorpus")
+    corpus_insert(vocab_corpus_ptr, iterator, grow_dtm, skip_grams_window_context, 
+        window_size, weights, binary_cooccurence)
+}
+&lt;bytecode: 0x000001ae4d1b4f20&gt;
+&lt;environment: 0x000001ae4d9c3b60&gt;</code></pre>
+</div>
+</div>
+<p>It is a little difficult to interpret, but we can see that it is going to take in a iterator over our tokenized documents and produce something that will (hopefully!) be useful. Let’s give it a try.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the document-term matrix (DTM)</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   row represents a document</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   column represents a unique term (word or phrase)</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   cell contains the count (or weight) of that term in the document</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>oisDTM <span class="ot">&lt;-</span> <span class="fu">create_dtm</span>(tokens, vectorizer)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>oisDTM[<span class="dv">65</span><span class="sc">:</span><span class="dv">74</span>, <span class="dv">445</span><span class="sc">:</span><span class="dv">454</span>] <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
+administr         0     0     0     0     0     0     0     0     0     0
+affair            0     0     0     0     0     0     0     0     0     0
+intern            0     0     0     0     0     0     0     0     0     0
+intern_affair     0     0     0     0     0     0     0     0     0     0
+offic_offic       0     3     0     0     0     0     0     0     0     1
+sever             0     1     0     0     0     0     3     1     0     5
+wound             0     0     1     1     0     1     2     0     0     0
+complain          0     0     4     0     0     0    23     0     0     0
+dure              0     0     1     0     0     1     0     0     0     0
+duti              0     0     0     0     0     0     0     0     0     0</code></pre>
+</div>
+</div>
+<p>We have a DTM! I have picked a few interesting rows and columns. I also transposed the DTM so it is more readable, but typically the rows are documents and columns are terms. You can see a few non-zero counts in this matrix. These indicate which documents include these terms and how many times that term appears in the document.</p>
+<p>Let’s explore further.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># number of documents and words</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(oisDTM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 133 555</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rows represent individual OIS shooting reports</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "24-37" "24-36" "24-35" "24-32" "24-31"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># columns are the words/phrases</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]     <span class="co"># feature names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "advanc_toward"   "announc"         "approach_driver" "cartridg"       
+ [5] "chelten"         "district_place"  "district_polic"  "drop_gun"       
+ [9] "due"             "fled_scene"     </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many vocab words in document?</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rowSums</span>(oisDTM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>24-37 24-36 24-35 24-32 24-31 24-30 24-29 24-28 24-27 24-23 24-22 24-21 24-20 
+   63    75   123    56    65    67    70    68    49    96    90    91   104 
+24-18 24-17 24-15 24-14 24-13 24-12 24-10 24-09 24-08 24-07 24-06 24-05 24-04 
+  129    85   107    88   107   155   102   171   127   104   108   189   249 
+24-03 24-02 24-01 23-33 23-31 23-29 23-27 23-26 23-25 23-24 23-23 23-21 23-14 
+  107    98   108    80   151    81   149   119   100    98   114   113   101 
+23-13 23-10 23-04 22-27 22-26 22-24 22-22 22-15 22-14 22-10 22-09 22-08 22-07 
+   79   101   162   121   176   119    97   195   133   256   102   111   117 
+22-06 22-05 22-04 22-03 22-01 21-15 21-14 21-12 21-10 21-09 21-06 21-04 20-34 
+  195   142    89    99   100    93    92   212   163    70   109   188    66 
+20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20 20-15 20-12 20-08 20-07 
+  175   145   106   126   115   313   138   105   212   124   133   149   112 
+19-23 19-21 19-20 19-14 19-13 19-11 19-09 19-06 19-04 18-28 18-27 18-26 18-25 
+  139   116   172    98   159   124   173   149   137   149   142   144   126 
+18-22 18-19 18-17 18-16 18-12 18-08 18-02 18-01 17-37 17-36 17-30 17-28 17-25 
+  104   122   141   154    95   100   110   161   153   109    87    86   113 
+17-23 17-22 17-20 17-19 17-17 17-13 17-03 16-43 16-40 16-38 16-37 16-35 16-34 
+  147   112   103   115   132   123   146   148   158   120   169   150    95 
+16-33 16-32 16-30 16-29 16-28 16-19 16-18 16-16 16-13 16-12 16-11 16-10 16-07 
+  182   149   151   136   106   101   128   117   117   143   143   137   127 
+16-03 16-02 16-01 
+  196   139   121 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many documents have these words?</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  advanc_toward         announc approach_driver        cartridg         chelten 
+             10              10              10              10              10 
+ district_place  district_polic        drop_gun             due      fled_scene 
+             10              10              10              10              10 
+           gave            gray     ground_drop      hand_offic   hospit_critic 
+             10              10              10              10              10 
+   hospit_polic            june           knock            lane            lost 
+             10              10              10              10              10 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Most common words?</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(oisDTM) <span class="sc">|&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sort</span>(<span class="at">decreasing =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     offend inform_post        post     suspect       point        door 
+        308         120         120         110         105         103 
+      shoot         two       avenu         dog 
+        102         101          99          93 </code></pre>
+</div>
+</div>
+</section>
+<section id="term-frequencyinverse-document-frequency" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="term-frequencyinverse-document-frequency"><span class="header-section-number">2.2</span> Term Frequency–Inverse Document Frequency</h2>
+<p>While raw term counts in a document-term matrix tell us how often each word appears, they do not account for how informative or distinctive those words are across the entire collection of documents. Common words like “officer” or “incident” may appear frequently in every report, but they are not useful for distinguishing one document from another. Term frequency-inverse document frequency (TF-IDF) improves on this by weighting terms based on how frequently they appear in a specific document and how rare they are across all documents. This highlights terms that are both common within a document and uncommon elsewhere, making them more meaningful for identifying the unique content of each report.</p>
+<p>Term Frequency-Inverse Document Frequency (TF-IDF) gives weights to words in a document in a way that balances:</p>
+<ol type="1">
+<li><em>Term Frequency</em> (TF): This word must be important in this document</li>
+</ol>
+<ul>
+<li>The more a word appears in a document, the more likely it is to be relevant to the document’s content</li>
+<li>If the word “shooting” appears 12 times in a police report, it is probably central to that document</li>
+</ul>
+<ol start="2" type="1">
+<li><em>Inverse Document Frequency</em> (IDF): But if it appears in every document, it is not very informative</li>
+</ol>
+<ul>
+<li>Common words like “officer”, “incident”, or “said” might appear everywhere</li>
+<li>IDF <em>downweights</em> those high-frequency but low-discrimination terms</li>
+<li>It prefers terms that help <em>distinguish</em> one document from others</li>
+</ul>
+<p>The formula for TF-IDF for document <span class="math inline">\(i\)</span> and term <span class="math inline">\(j\)</span>:</p>
+<p><span class="math display">\[
+\mathrm{tfidf}_{ij} = \mathrm{TF}_{ij}\log\frac{N}{\mathrm{DF}_j}
+\]</span> where</p>
+<ul>
+<li><span class="math inline">\(\mathrm{TF}\)</span> is the number of times term <span class="math inline">\(j\)</span> appears in document <span class="math inline">\(i\)</span>. It measures the importance of the term within a document</li>
+<li><span class="math inline">\(N\)</span> = total number of documents</li>
+<li><span class="math inline">\(\mathrm{DF}_j\)</span> = number of documents containing term <span class="math inline">\(j\)</span></li>
+</ul>
+<p><span class="math inline">\(\mathrm{IDF}_{ij}=\log\frac{N}{\mathrm{DF}_j}\)</span> captures the rarity across documents. Note that if a word appears in all documents then <span class="math inline">\(\mathrm{tfidf}_{ij} = 0\)</span>. The combination of <span class="math inline">\(\mathrm{TF}\)</span> and <span class="math inline">\(\mathrm{IDF}\)</span> gives a measure of relevance and distinctiveness. A high <span class="math inline">\(\mathrm{tfidf}_{ij}\)</span> means a term appears often in document <span class="math inline">\(i\)</span>, but rarely in other documents. It gives you terms that define a document. These are the terms that are useful for classification, clustering, or topic modeling.</p>
+<section id="example" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="example"><span class="header-section-number">2.2.1</span> Example</h3>
+<p>Assume there are <span class="math inline">\(N=100\)</span> documents.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th>Term</th>
+<th>TF in Doc A</th>
+<th>DF across corpus</th>
+<th>IDF</th>
+<th>TF-IDF</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>“weapon”</td>
+<td>5</td>
+<td>10</td>
+<td>2.3</td>
+<td>11.5</td>
+</tr>
+<tr class="even">
+<td>“officer”</td>
+<td>6</td>
+<td>95</td>
+<td>0.1</td>
+<td>0.3</td>
+</tr>
+<tr class="odd">
+<td>“said”</td>
+<td>20</td>
+<td>100</td>
+<td>0</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>“weapon” gets a high score, specific and relevant</li>
+<li>“officer” is common, downweighted</li>
+<li>“said” is everywhere, zeroed out</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TF-IDF: term frequency–inverse document frequency weights</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co">#    downweights common words that appear in many documents</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="co">#    upweights rare words that are more informative or distinctive</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># TF: How often a word appears in a document</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="co"># IDF: How rare that word is across all documents</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="co">#    TF-IDF = TF × log(N / DF)</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="co">#       N = total number of documents</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="co">#       DF = number of documents containing the term</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>tfidf_transformer <span class="ot">&lt;-</span> TfIdf<span class="sc">$</span><span class="fu">new</span>()</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>oisTFIDF <span class="ot">&lt;-</span> tfidf_transformer<span class="sc">$</span><span class="fu">fit_transform</span>(oisDTM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s take a look at those same rows and columns that we did before for the DTM. The matrix looks largely the same, just everything scaled down.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>oisTFIDF[<span class="dv">65</span><span class="sc">:</span><span class="dv">74</span>, <span class="dv">445</span><span class="sc">:</span><span class="dv">454</span>] <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
+administr         0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
+affair            0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
+intern            0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
+intern_affair     0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
+offic_offic       0  0.03  0.00  0.00     0  0.00  0.00  0.00     0  0.01
+sever             0  0.01  0.00  0.00     0  0.00  0.02  0.01     0  0.04
+wound             0  0.00  0.01  0.01     0  0.01  0.01  0.00     0  0.00
+complain          0  0.00  0.07  0.00     0  0.00  0.18  0.00     0  0.00
+dure              0  0.00  0.01  0.00     0  0.01  0.00  0.00     0  0.00
+duti              0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00</code></pre>
+</div>
+</div>
+<p>Let’s compare the top features.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View top features by TF</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(oisDTM) <span class="sc">%&gt;%</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sort</span>(<span class="at">decreasing =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     offend inform_post        post     suspect       point        door 
+        308         120         120         110         105         103 
+      shoot         two       avenu         dog 
+        102         101          99          93 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># View top features by TF-IDF</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(oisTFIDF) <span class="sc">%&gt;%</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sort</span>(<span class="at">decreasing =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      offend          dog      suspect philadelphia  inform_post         post 
+   2.9529790    2.0350301    1.7283867    1.0976406    1.0908235    1.0908235 
+       shoot        knife        avenu       driver 
+   1.0562196    1.0383902    1.0139401    0.9471882 </code></pre>
+</div>
+</div>
+<p>The TF-IDF does change which terms make the top-10 list. We see “knife” and “driver” show up and “door” and “point” drop off.</p>
+<p>Why does “inform_post” show up in this list? “Information posted” was very common in reports before 2020.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>oisDTM[,<span class="st">"inform_post"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>24-37 24-36 24-35 24-32 24-31 24-30 24-29 24-28 24-27 24-23 24-22 24-21 24-20 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+24-18 24-17 24-15 24-14 24-13 24-12 24-10 24-09 24-08 24-07 24-06 24-05 24-04 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+24-03 24-02 24-01 23-33 23-31 23-29 23-27 23-26 23-25 23-24 23-23 23-21 23-14 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+23-13 23-10 23-04 22-27 22-26 22-24 22-22 22-15 22-14 22-10 22-09 22-08 22-07 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+22-06 22-05 22-04 22-03 22-01 21-15 21-14 21-12 21-10 21-09 21-06 21-04 20-34 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20 20-15 20-12 20-08 20-07 
+    0     0     0     0     0     0     0     0     2     2     2     2     2 
+19-23 19-21 19-20 19-14 19-13 19-11 19-09 19-06 19-04 18-28 18-27 18-26 18-25 
+    2     2     2     2     2     2     2     2     2     2     2     2     2 
+18-22 18-19 18-17 18-16 18-12 18-08 18-02 18-01 17-37 17-36 17-30 17-28 17-25 
+    2     2     2     2     2     2     2     2     2     2     2     2     2 
+17-23 17-22 17-20 17-19 17-17 17-13 17-03 16-43 16-40 16-38 16-37 16-35 16-34 
+    2     2     2     2     2     2     2     2     2     2     2     2     2 
+16-33 16-32 16-30 16-29 16-28 16-19 16-18 16-16 16-13 16-12 16-11 16-10 16-07 
+    2     2     2     2     2     2     2     2     2     2     2     2     2 
+16-03 16-02 16-01 
+    2     2     2 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id<span class="sc">==</span><span class="st">"20-20"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(text) <span class="sc">|&gt;</span> </span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="st">"post"</span>, bgYellow<span class="sc">$</span><span class="fu">black</span>(<span class="st">"post"</span>), <span class="at">x=</span>_) <span class="sc">|&gt;</span> </span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>6th Street and McKean
+On Tuesday June 23, 2020 at approximately 4:49 p.m., officer assigned to Criminal Intelligence in plainclothes and unmarked vehicle. While on patrol, information was received from police radio of a large crowd gathering and gunshots in the area of 6th street and McKean. The officers began to monitor the Real Time Crime camera at 500 McClellan Street. While watching the camera, a black male wearing a blue ball cap, white t-shirt, and gray shorts, later identified as G.T. 32/ B/M, reached inside the driver’s side door of a gold Buick and removed a black handgun and placed it inside of his waistband. The officers requested marked patrol units to proceed to the area.
+The Officers were traveling northbound on 5th street approaching Sigel. One plainclothes officer exited the unmarked vehicle and heard G.T. shout “Cops! Cops! Cops!” then pulled the gun from his waistband and run east bound on Sigel Street. While Topping was running, his right arm was pointed back towards the officers, and fired (3) three shots in the officers direction (captured on audio/video). One of the plainclothes officers fired two times from inside the vehicle and exited giving chase. G.T. fired several more times towards the officers and the same officer returned fired (2) two more times. G.T. dropped his gun in the street while running and was arrested on 4th street near Mifflin. Deft Topping’s gun, a Glock 9MM was loaded with 4 live rounds in the magazine and 1in the chamber, and was recovered next to deft G.T.’s blue baseball cap.
+The discharging officer returned to the unmarked police vehicle and observed several males inside the vehicle, removing items. That officer engaged a male on the corner of 5th and McClellan, later identified as W.C., who punched the officer in the face. The officer placed W.C. under arrest.
+A Sergeant of Real Time Crime Center was inside his headquarters monitoring the police camera located at 500 McClellan Street. The sergeant observed several black males enter the unmarked police vehicle. One male was wearing a gray T-shirt with a “NASA” logo on the front, blue jeans and a black baseball cap enter the rear driver’s side door and the front door, removing several cell phones, later identified as Q.R., 23/B/M. The sergeant gave a description over police radio and the discharging officer placed Q.R.under arrest. The officer’s cell phones were returned by civilians in the area.
+Video from the Real Time Crime Camera and several private residents was recovered of the incident.
+There was no reported injuries to Police or Civilians.
+*** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The District Attorney’s Office is provided all the information from the PPD’s investigation prior to their charging decision.</code></pre>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="term-co-occurrence-matrix-tcm" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Term co-occurrence matrix (TCM)</h1>
+<p>A term co-occurrence matrix (TCM) captures how often pairs of words appear near each other within a given window of text, such as a sentence or a few neighboring words. Unlike a document-term matrix, which represents the relationship between documents and individual terms, a TCM focuses on the relationships between terms themselves. This is useful for uncovering word associations, identifying common phrases, and building more advanced representations like word embeddings. In our case, we will use the TCM to explore how certain words, such as “officer,” “suspect,” or “weapon,” tend to co-occur across police shooting reports, revealing patterns that might not be visible from frequency counts alone.</p>
+<p>When scanning through each document, setting <code>skip_grams_window = 5</code> will treat any two terms that appear within a window of 5 tokens as co-occurring. For example, if the document has the phrase “the officer shot the suspect with a weapon” and we set <code>skip_grams_window = 5</code>, then for the word “shot” it will consider “the”, “officer”, “the”, “suspect”, “with” as co-occurring terms.</p>
+<p>We will use <code>create_tcm()</code> to create a TCM. The <span class="math inline">\((i,j)\)</span> element of the TCm will be the number of times term <span class="math inline">\(i\)</span> occurs within 5 terms of term <span class="math inline">\(j\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a co-occurrence matrix (Feature Co-occurrence Matrix)</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>oisTCM <span class="ot">&lt;-</span> <span class="fu">itoken</span>(ois<span class="sc">$</span>text,</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">tokenizer =</span> oisTokenizer,</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">progressbar =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">ids =</span> ois<span class="sc">$</span>id) <span class="sc">|&gt;</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_tcm</span>(<span class="fu">vocab_vectorizer</span>(vocab), </span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">skip_grams_window =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This will be a little easier to visualize if we convert to a long (rather than wide) format.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert to triplet format and extract top co-occurring pairs</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>oisPairs <span class="ot">&lt;-</span> Matrix<span class="sc">::</span><span class="fu">summary</span>(oisTCM) <span class="sc">|&gt;</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(i <span class="sc">!=</span> j) <span class="sc">|&gt;</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">feature1 =</span> i, <span class="at">feature2 =</span> j, <span class="at">weight =</span> x) <span class="sc">|&gt;</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">data.frame</span>(<span class="at">feature1 =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(oisTCM),</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>                       <span class="at">term1 =</span> <span class="fu">colnames</span>(oisTCM)))  <span class="sc">|&gt;</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(<span class="fu">data.frame</span>(<span class="at">feature2 =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(oisTCM),</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>                       <span class="at">term2 =</span> <span class="fu">colnames</span>(oisTCM))) <span class="sc">|&gt;</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>feature1, <span class="sc">-</span>feature2) <span class="sc">|&gt;</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term1 <span class="sc">!=</span> term2) <span class="sc">|&gt;</span></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">str_detect</span>(term1, <span class="fu">fixed</span>(term2)) <span class="sc">&amp;</span> </span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>           <span class="sc">!</span><span class="fu">str_detect</span>(term2, <span class="fu">fixed</span>(term1)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Joining with `by = join_by(feature1)`
+Joining with `by = join_by(feature2)`</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>oisPairs <span class="sc">|&gt;</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(weight)) <span class="sc">|&gt;</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">50</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+   weight                  term1               term2
+1    30.0         investig_prior        ppd_investig
+2    30.0             inform_ppd        ppd_investig
+3    30.0             inform_ppd       provid_inform
+4    30.0               lead_new          new_inform
+5    30.0                   lead                 new
+6    30.0          investig_lead      updat_investig
+7    30.0              may_updat      updat_investig
+8    30.0              incid_may         short_incid
+9    30.0           incid_inform          time_incid
+10   30.0             occur_time    understand_occur
+11   30.0 preliminari_understand    understand_occur
+12   30.0             understand         preliminari
+13   30.0                summari              origin
+14   30.0         origin_summari         post_origin
+15   30.0            post_origin         inform_post
+16   30.0                reflect             summari
+17   30.0              incid_may           may_updat
+18   30.0             post_short         inform_post
+19   30.0                reflect         preliminari
+20   30.0          investig_lead            lead_new
+21   30.0             occur_time          time_incid
+22   30.0         origin_summari     summari_reflect
+23   30.0           incid_inform         inform_post
+24   30.0                 origin                post
+25   30.0             post_short         short_incid
+26   30.0    reflect_preliminari     summari_reflect
+27   30.0 preliminari_understand reflect_preliminari
+28   30.0           offic_provid       provid_inform
+29   29.5            prior_charg      investig_prior
+30   29.5             ***_inform         inform_post
+31   29.5            prior_charg         charg_decis
+32   25.0                 affair              intern
+33   24.0         officer-involv               shoot
+34   24.0                 outcom                pend
+35   24.0              administr                duti
+36   24.0              administr               place
+37   23.5                   duti                pend
+38   23.5              duti_pend      administr_duti
+39   23.0              duti_pend         pend_outcom
+40   23.0         administr_duti     place_administr
+41   22.5           polic_depart  philadelphia_polic
+42   21.5               da_offic        offic_provid
+43   21.5               da_offic           inform_da
+44   21.5              inform_da          new_inform
+45   20.0           ppd_investig               prior
+46   20.0             inform_ppd              provid
+47   20.0          investig_lead                 new
+48   20.0                   lead      updat_investig
+49   20.0          investig_lead               updat
+50   20.0              incid_may               updat</code></pre>
+</div>
+</div>
+<p>Much of this co-occurrence is due to the template language describing where the department is in the investigation, referrals to the district attorney, and the report offers preliminary summary.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Template language on the report">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Template language on the report
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>*** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The District Attorney’s Office is provided all the information from the PPD’s investigation prior to their charging decision.</p>
+</div>
+</div>
+<p>Further on down the list some term pairs a more interesting.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>oisPairs <span class="sc">|&gt;</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(weight <span class="sc">&gt;=</span> <span class="dv">8</span> <span class="sc">&amp;</span> weight <span class="sc">&lt;=</span><span class="dv">9</span>) <span class="sc">|&gt;</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(weight))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+     weight                 term1             term2
+1  9.000000                  open              door
+2  9.000000        firearm_strike  discharg_firearm
+3  9.000000        univers_hospit             templ
+4  9.000000                driver              door
+5  8.999996             duti_pend             place
+6  8.750000                attack               dog
+7  8.666667 affair_officer-involv             shoot
+8  8.666667 affair_officer-involv            intern
+9  8.666667         respond_radio              call
+10 8.599997              da_offic               new
+11 8.599997             inform_da              lead
+12 8.599997             inform_da            provid
+13 8.500000            offic_mark        mark_polic
+14 8.500000             incid_***       inform_post
+15 8.500000        attorney_offic      offic_provid
+16 8.500000          semi-automat            pistol
+17 8.500000       inform_district        new_inform
+18 8.500000                return              fire
+19 8.500000    philadelphia_polic       polic_offic
+20 8.500000                intern              pend
+21 8.500000                  drop            offend
+22 8.500000       inform_district district_attorney
+23 8.250000         outcom_intern         duti_pend
+24 8.250000                 knife              drop
+25 8.250000           pend_outcom     intern_affair
+26 8.250000                outcom            affair
+27 8.250000                  miss            offend
+28 8.000001                unmark      polic_vehicl
+29 8.000000                 arriv             locat</code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
