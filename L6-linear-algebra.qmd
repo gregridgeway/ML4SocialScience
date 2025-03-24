@@ -25,6 +25,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- quarto render L6-linear-algebra.qmd -->
 <!-- quarto render L6-linear-algebra.qmd --cache-refresh  -->
 
+<!-- git commit L6* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 # Linear models
 
 Many models involve linear combinations of terms. For example, we already saw that the naïve Bayes classifier is the sum of weights of evidence. More generally, a naïve Bayes classifier has the form of a linear combination like 
