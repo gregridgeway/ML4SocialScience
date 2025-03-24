@@ -33,3 +33,7 @@ Table of contents
     - `Tensorflow` and `Keras`
     - Convolutional layers
     - MNIST postal digits dataset
+11. [Text analysis](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L11-text.html)
+    - Working with `text2vec`
+    - DTM and TFIDF
+    - SVD for text
