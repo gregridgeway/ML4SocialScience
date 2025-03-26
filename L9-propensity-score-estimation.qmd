@@ -25,6 +25,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- quarto render L9-propensity-score-estimation.qmd -->
 <!-- quarto render L9-propensity-score-estimation.qmd --cache-refresh  -->
 
+<!-- git commit L9-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 ```{r}
 #| echo: false
 #| message: false
@@ -385,7 +389,7 @@ In some cases, we may be interested in the *average treatment effect on the popu
 w_i = t_i\frac{1}{P(t=1|\mathbf{x}_i)} + (1-t_i)\frac{1}{1-P(t=1|\mathbf{x}_i)}
 $$ Treated cases receive a weight of $\frac{1}{p}$ while control cases receive a weight of $\frac{1}{1-p}$. These weights reweight observations so that the distribution of $\mathbf{x}$ is the same for the treatment and control groups (just like with ATE) but that both of them also match the distribution of $\mathbf{x}$ for the population (rather than just the treatment group).
 
-# Neyman-Rubin-Holand causal model
+# Neyman-Rubin-Holland causal model
 
 Often simply called the "Rubin causal model," the foundational idea in its simplest form is that every unit of analysis has two values
 
@@ -494,7 +498,7 @@ Three items to recall from our probability discussion at the beginning of the co
 
 If $Y$ is a random variable with probability distribution $p(y)$, then expected value of $Y$ is 
 $$
-\mathbb{E}(Y) = \int_{-\infty}^\infty y p(y)\, dy
+\mathbb{E}(Y) = \int_{-\infty}^\infty y\; p(y)\, dy
 $$
 :::
 

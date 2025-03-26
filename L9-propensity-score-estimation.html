@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-01-14">
+<meta name="dcterms.date" content="2025-03-26">
 
 <title>L9 Boosted propensity score estimation</title>
 <style>
@@ -144,7 +144,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#weights-to-uncorrelate-t-and-mathbfx" id="toc-weights-to-uncorrelate-t-and-mathbfx" class="nav-link" data-scroll-target="#weights-to-uncorrelate-t-and-mathbfx"><span class="header-section-number">2</span> Weights to uncorrelate <span class="math inline">\(t\)</span> and <span class="math inline">\(\mathbf{x}\)</span></a></li>
   <li><a href="#average-treatment-effect-ate-and-the-average-treatment-effect-on-the-treated-att" id="toc-average-treatment-effect-ate-and-the-average-treatment-effect-on-the-treated-att" class="nav-link" data-scroll-target="#average-treatment-effect-ate-and-the-average-treatment-effect-on-the-treated-att"><span class="header-section-number">3</span> Average Treatment Effect (ATE) and the Average Treatment Effect on the Treated (ATT)</a></li>
-  <li><a href="#neyman-rubin-holand-causal-model" id="toc-neyman-rubin-holand-causal-model" class="nav-link" data-scroll-target="#neyman-rubin-holand-causal-model"><span class="header-section-number">4</span> Neyman-Rubin-Holand causal model</a></li>
+  <li><a href="#neyman-rubin-holland-causal-model" id="toc-neyman-rubin-holland-causal-model" class="nav-link" data-scroll-target="#neyman-rubin-holland-causal-model"><span class="header-section-number">4</span> Neyman-Rubin-Holland causal model</a></li>
   <li><a href="#estimation-of-att-with-propensity-scores" id="toc-estimation-of-att-with-propensity-scores" class="nav-link" data-scroll-target="#estimation-of-att-with-propensity-scores"><span class="header-section-number">5</span> Estimation of ATT with propensity scores</a></li>
   <li><a href="#example-florida-murderers-revisited" id="toc-example-florida-murderers-revisited" class="nav-link" data-scroll-target="#example-florida-murderers-revisited"><span class="header-section-number">6</span> Example: Florida murderers revisited</a></li>
   <li><a href="#boosted-propensity-score-estimation-with-nsduh" id="toc-boosted-propensity-score-estimation-with-nsduh" class="nav-link" data-scroll-target="#boosted-propensity-score-estimation-with-nsduh"><span class="header-section-number">7</span> Boosted propensity score estimation with NSDUH</a>
@@ -186,7 +186,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 14, 2025</p>
+      <p class="date">March 26, 2025</p>
     </div>
   </div>
   
@@ -869,8 +869,8 @@ w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
 w_i = t_i\frac{1}{P(t=1|\mathbf{x}_i)} + (1-t_i)\frac{1}{1-P(t=1|\mathbf{x}_i)}
 \]</span> Treated cases receive a weight of <span class="math inline">\(\frac{1}{p}\)</span> while control cases receive a weight of <span class="math inline">\(\frac{1}{1-p}\)</span>. These weights reweight observations so that the distribution of <span class="math inline">\(\mathbf{x}\)</span> is the same for the treatment and control groups (just like with ATE) but that both of them also match the distribution of <span class="math inline">\(\mathbf{x}\)</span> for the population (rather than just the treatment group).</p>
 </section>
-<section id="neyman-rubin-holand-causal-model" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Neyman-Rubin-Holand causal model</h1>
+<section id="neyman-rubin-holland-causal-model" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Neyman-Rubin-Holland causal model</h1>
 <p>Often simply called the “Rubin causal model,” the foundational idea in its simplest form is that every unit of analysis has two values</p>
 <ul>
 <li><p><span class="math inline">\(Y_i(1)\)</span>, outcome of a case if assigned to treatment</p></li>
@@ -1027,7 +1027,7 @@ Expected value of a random variable
 </div>
 <div class="callout-body-container callout-body">
 <p>If <span class="math inline">\(Y\)</span> is a random variable with probability distribution <span class="math inline">\(p(y)\)</span>, then expected value of <span class="math inline">\(Y\)</span> is <span class="math display">\[
-\mathbb{E}(Y) = \int_{-\infty}^\infty y p(y)\, dy
+\mathbb{E}(Y) = \int_{-\infty}^\infty y\; p(y)\, dy
 \]</span></p>
 </div>
 </div>
