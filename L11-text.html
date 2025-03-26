@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-03-24">
+<meta name="dcterms.date" content="2025-03-25">
 
 <title>Machine learning with text</title>
 <style>
@@ -71,6 +71,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="L11-text_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="L11-text_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
 <link href="L11-text_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="L11-text_files/libs/kePrint-0.0.1/kePrint.js"></script>
+
+<link href="L11-text_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+<link href="L11-text_files/libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+
+<script src="L11-text_files/libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<script src="L11-text_files/libs/plotly-binding-4.10.4/plotly.js"></script>
+
+<script src="L11-text_files/libs/typedarray-0.1/typedarray.min.js"></script>
+
+<script src="L11-text_files/libs/jquery-3.5.1/jquery.min.js"></script>
+
+<link href="L11-text_files/libs/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+
+<script src="L11-text_files/libs/crosstalk-1.2.1/js/crosstalk.min.js"></script>
+
+<link href="L11-text_files/libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet">
+
+<script src="L11-text_files/libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -122,6 +144,8 @@ window.Quarto = {
   </ul></li>
   </ul></li>
   <li><a href="#term-co-occurrence-matrix-tcm" id="toc-term-co-occurrence-matrix-tcm" class="nav-link" data-scroll-target="#term-co-occurrence-matrix-tcm"><span class="header-section-number">3</span> Term co-occurrence matrix (TCM)</a></li>
+  <li><a href="#singular-value-decomposition-for-text" id="toc-singular-value-decomposition-for-text" class="nav-link" data-scroll-target="#singular-value-decomposition-for-text"><span class="header-section-number">4</span> Singular value decomposition for text</a></li>
+  <li><a href="#clustering-documents-using-their-svd-representation" id="toc-clustering-documents-using-their-svd-representation" class="nav-link" data-scroll-target="#clustering-documents-using-their-svd-representation"><span class="header-section-number">5</span> Clustering documents using their SVD representation</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L11-text.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
 </div>
@@ -153,7 +177,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 24, 2025</p>
+      <p class="date">March 25, 2025</p>
     </div>
   </div>
   
@@ -166,18 +190,24 @@ window.Quarto = {
 
 
 <!-- In terminal -->
-<!-- quarto render L11-text.qmd -->
-<!-- quarto render L11-text.qmd --cache-refresh  -->
+<!-- quarto render L11-text.qmd --to html-->
+<!-- quarto render L11-text.qmd --cache-refresh --to html -->
+<!-- git commit L11-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
 <section id="introduction" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Introduction</h1>
 <p>In this section we will use <code>text2vec</code> to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.</p>
 <p>To start, we are going to need a couple of R packages to facilitate our work. <code>text2vec</code> will do most of the work converting the documents into a form of data that we can analyze.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text2vec)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matrix)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(crayon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(text2vec)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matrix)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>As for the source of our documents, the Philadelphia Police Department posts (reports)[https://www.phillypolice.com/accountability/ois/] on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame <code>ois</code>. Details on how to pull the data off of the PPD website are part of my (R4crim collection)[https://github.com/gregridgeway/R4crim?tab=readme-ov-file] of scripts.</p>
 <div class="cell">
@@ -385,11 +415,12 @@ Vocabulary:
 <span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">create_vocabulary</span>(<span class="at">stopwords =</span> stopwords<span class="sc">::</span><span class="fu">stopwords</span>(<span class="st">"en"</span>),</span>
 <span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>                    <span class="at">ngram =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">|&gt;</span></span>
 <span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prune_vocabulary</span>(<span class="at">term_count_min =</span> <span class="dv">10</span>,</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">doc_proportion_max =</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">nchar</span>(term) <span class="sc">&gt;=</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"[0-9]"</span>, term))</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>vocab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>                   <span class="at">doc_proportion_min =</span> <span class="fl">0.05</span>,</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>                   <span class="at">doc_proportion_max =</span> <span class="fl">0.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">nchar</span>(term) <span class="sc">&gt;=</span><span class="dv">3</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">grepl</span>(<span class="st">"[0-9]"</span>, term))</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>vocab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Number of docs: 133 
 175 stopwords: i, me, my, myself, we, our ... 
@@ -401,13 +432,13 @@ Vocabulary:
   2:         announc         10         8
   3: approach_driver         10         9
   4:        cartridg         10         9
-  5:         chelten         10         3
+  5:  district_place         10        10
  ---                                     
-551:           point        105        54
-552:         suspect        110        21
-553:     inform_post        120        60
-554:            post        120        60
-555:          offend        308        56</code></pre>
+524:           point        105        54
+525:         suspect        110        21
+526:     inform_post        120        60
+527:            post        120        60
+528:          offend        308        56</code></pre>
 </div>
 </div>
 <p>Now we have a collection of words and word phrases gathered from our documents. Note that it includes so two word phrases (bigrams) with the two stemmed words combined with an underscore between them.</p>
@@ -433,8 +464,8 @@ Vocabulary:
     corpus_insert(vocab_corpus_ptr, iterator, grow_dtm, skip_grams_window_context, 
         window_size, weights, binary_cooccurence)
 }
-&lt;bytecode: 0x000001ae4d1b4f20&gt;
-&lt;environment: 0x000001ae4d9c3b60&gt;</code></pre>
+&lt;bytecode: 0x0000026647c577e8&gt;
+&lt;environment: 0x0000026647c80348&gt;</code></pre>
 </div>
 </div>
 <p>It is a little difficult to interpret, but we can see that it is going to take in a iterator over our tokenized documents and produce something that will (hopefully!) be useful. Let’s give it a try.</p>
@@ -446,17 +477,17 @@ Vocabulary:
 <span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>oisDTM <span class="ot">&lt;-</span> <span class="fu">create_dtm</span>(tokens, vectorizer)</span>
 <span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>oisDTM[<span class="dv">65</span><span class="sc">:</span><span class="dv">74</span>, <span class="dv">445</span><span class="sc">:</span><span class="dv">454</span>] <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
-administr         0     0     0     0     0     0     0     0     0     0
-affair            0     0     0     0     0     0     0     0     0     0
-intern            0     0     0     0     0     0     0     0     0     0
-intern_affair     0     0     0     0     0     0     0     0     0     0
-offic_offic       0     3     0     0     0     0     0     0     0     1
-sever             0     1     0     0     0     0     3     1     0     5
-wound             0     0     1     1     0     1     2     0     0     0
-complain          0     0     4     0     0     0    23     0     0     0
-dure              0     0     1     0     0     1     0     0     0     0
-duti              0     0     0     0     0     0     0     0     0     0</code></pre>
+<pre><code>               20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
+charg_decis        0     0     0     0     0     0     0     0     0     1
+decis              0     0     0     0     0     0     0     0     0     1
+gunshot            0     0     1     1     0     0     3     2     0     1
+incid_inform       0     0     0     0     0     0     0     0     0     1
+incid_may          0     0     0     0     0     0     0     0     0     1
+inform_ppd         0     0     0     0     0     0     0     0     0     1
+investig_lead      0     0     0     0     0     0     0     0     0     1
+investig_prior     0     0     0     0     0     0     0     0     0     1
+lead               0     0     0     0     0     0     0     0     0     1
+lead_new           0     0     0     0     0     0     0     0     0     1</code></pre>
 </div>
 </div>
 <p>We have a DTM! I have picked a few interesting rows and columns. I also transposed the DTM so it is more readable, but typically the rows are documents and columns are terms. You can see a few non-zero counts in this matrix. These indicate which documents include these terms and how many times that term appears in the document.</p>
@@ -465,7 +496,7 @@ duti              0     0     0     0     0     0     0     0     0     0</code>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># number of documents and words</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(oisDTM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 133 555</code></pre>
+<pre><code>[1] 133 528</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rows represent individual OIS shooting reports</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -476,45 +507,45 @@ duti              0     0     0     0     0     0     0     0     0     0</code>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]     <span class="co"># feature names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code> [1] "advanc_toward"   "announc"         "approach_driver" "cartridg"       
- [5] "chelten"         "district_place"  "district_polic"  "drop_gun"       
- [9] "due"             "fled_scene"     </code></pre>
+ [5] "district_place"  "district_polic"  "drop_gun"        "due"            
+ [9] "fled_scene"      "gave"           </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many vocab words in document?</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rowSums</span>(oisDTM)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>24-37 24-36 24-35 24-32 24-31 24-30 24-29 24-28 24-27 24-23 24-22 24-21 24-20 
-   63    75   123    56    65    67    70    68    49    96    90    91   104 
+   60    75   123    56    65    67    70    68    49    92    90    90   102 
 24-18 24-17 24-15 24-14 24-13 24-12 24-10 24-09 24-08 24-07 24-06 24-05 24-04 
-  129    85   107    88   107   155   102   171   127   104   108   189   249 
+  118    84   105    88   104   154   102   148   125   104   105   188   246 
 24-03 24-02 24-01 23-33 23-31 23-29 23-27 23-26 23-25 23-24 23-23 23-21 23-14 
-  107    98   108    80   151    81   149   119   100    98   114   113   101 
+  107    97   107    80   148    81   147   119    99    98   112   110   101 
 23-13 23-10 23-04 22-27 22-26 22-24 22-22 22-15 22-14 22-10 22-09 22-08 22-07 
-   79   101   162   121   176   119    97   195   133   256   102   111   117 
+   79    99   162   116   175   114    94   173   132   254   102   105   113 
 22-06 22-05 22-04 22-03 22-01 21-15 21-14 21-12 21-10 21-09 21-06 21-04 20-34 
-  195   142    89    99   100    93    92   212   163    70   109   188    66 
+  185   140    89    99    96    93    92   167   163    70   109   175    65 
 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20 20-15 20-12 20-08 20-07 
-  175   145   106   126   115   313   138   105   212   124   133   149   112 
+  159   143   106   124   115   292   135   104   210   122   132   145   109 
 19-23 19-21 19-20 19-14 19-13 19-11 19-09 19-06 19-04 18-28 18-27 18-26 18-25 
-  139   116   172    98   159   124   173   149   137   149   142   144   126 
+  139   114   172    98   158   124   172   146   137   143   142   144   126 
 18-22 18-19 18-17 18-16 18-12 18-08 18-02 18-01 17-37 17-36 17-30 17-28 17-25 
-  104   122   141   154    95   100   110   161   153   109    87    86   113 
+  104   118   141   142    95   100   110   155   153   109    86    86   112 
 17-23 17-22 17-20 17-19 17-17 17-13 17-03 16-43 16-40 16-38 16-37 16-35 16-34 
-  147   112   103   115   132   123   146   148   158   120   169   150    95 
+  143   112   101   115   129   122   143   148   158   119   169   145    95 
 16-33 16-32 16-30 16-29 16-28 16-19 16-18 16-16 16-13 16-12 16-11 16-10 16-07 
-  182   149   151   136   106   101   128   117   117   143   143   137   127 
+  182   149   151   135   106   100   122   113   117   138   143   137   127 
 16-03 16-02 16-01 
-  196   139   121 </code></pre>
+  181   139   121 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># how many documents have these words?</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">colSums</span>(oisDTM)[<span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  advanc_toward         announc approach_driver        cartridg         chelten 
+<pre><code>  advanc_toward         announc approach_driver        cartridg  district_place 
              10              10              10              10              10 
- district_place  district_polic        drop_gun             due      fled_scene 
+ district_polic        drop_gun             due      fled_scene            gave 
              10              10              10              10              10 
-           gave            gray     ground_drop      hand_offic   hospit_critic 
+    ground_drop      hand_offic   hospit_critic    hospit_polic            june 
              10              10              10              10              10 
-   hospit_polic            june           knock            lane            lost 
+          knock            lost          notifi      offic_drew      offic_oper 
              10              10              10              10              10 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Most common words?</span></span>
@@ -616,17 +647,17 @@ duti              0     0     0     0     0     0     0     0     0     0</code>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>oisTFIDF[<span class="dv">65</span><span class="sc">:</span><span class="dv">74</span>, <span class="dv">445</span><span class="sc">:</span><span class="dv">454</span>] <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>() <span class="sc">|&gt;</span> <span class="fu">round</span>(<span class="dv">2</span>) <span class="sc">|&gt;</span> <span class="fu">t</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>              20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
-administr         0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
-affair            0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
-intern            0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
-intern_affair     0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00
-offic_offic       0  0.03  0.00  0.00     0  0.00  0.00  0.00     0  0.01
-sever             0  0.01  0.00  0.00     0  0.00  0.02  0.01     0  0.04
-wound             0  0.00  0.01  0.01     0  0.01  0.01  0.00     0  0.00
-complain          0  0.00  0.07  0.00     0  0.00  0.18  0.00     0  0.00
-dure              0  0.00  0.01  0.00     0  0.01  0.00  0.00     0  0.00
-duti              0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00</code></pre>
+<pre><code>               20-34 20-33 20-32 20-31 20-30 20-29 20-26 20-24 20-23 20-20
+charg_decis        0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+decis              0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+gunshot            0     0  0.01  0.01     0     0  0.02  0.02     0  0.01
+incid_inform       0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+incid_may          0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+inform_ppd         0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+investig_lead      0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+investig_prior     0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+lead               0     0  0.00  0.00     0     0  0.00  0.00     0  0.01
+lead_new           0     0  0.00  0.00     0     0  0.00  0.00     0  0.01</code></pre>
 </div>
 </div>
 <p>Let’s compare the top features.</p>
@@ -647,9 +678,9 @@ duti              0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00</code>
 <span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      offend          dog      suspect philadelphia  inform_post         post 
-   2.9529790    2.0350301    1.7283867    1.0976406    1.0908235    1.0908235 
-       shoot        knife        avenu       driver 
-   1.0562196    1.0383902    1.0139401    0.9471882 </code></pre>
+   2.9928661    2.0769953    1.7502536    1.1204332    1.1029141    1.1029141 
+       shoot        knife        avenu       victim 
+   1.0784460    1.0605790    1.0338190    0.9726278 </code></pre>
 </div>
 </div>
 <p>The TF-IDF does change which terms make the top-10 list. We see “knife” and “driver” show up and “door” and “point” drop off.</p>
@@ -680,11 +711,13 @@ duti              0  0.00  0.00  0.00     0  0.00  0.00  0.00     0  0.00</code>
 16-03 16-02 16-01 
     2     2     2 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span> </span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id<span class="sc">==</span><span class="st">"20-20"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(text) <span class="sc">|&gt;</span> </span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="st">"post"</span>, bgYellow<span class="sc">$</span><span class="fu">black</span>(<span class="st">"post"</span>), <span class="at">x=</span>_) <span class="sc">|&gt;</span> </span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># highlight the word "post" in the report</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(crayon)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span> </span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id<span class="sc">==</span><span class="st">"20-20"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(text) <span class="sc">|&gt;</span> </span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="st">"post"</span>, bgYellow<span class="sc">$</span><span class="fu">black</span>(<span class="st">"post"</span>), <span class="at">x=</span>_) <span class="sc">|&gt;</span> </span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>6th Street and McKean
 On Tuesday June 23, 2020 at approximately 4:49 p.m., officer assigned to Criminal Intelligence in plainclothes and unmarked vehicle. While on patrol, information was received from police radio of a large crowd gathering and gunshots in the area of 6th street and McKean. The officers began to monitor the Real Time Crime camera at 500 McClellan Street. While watching the camera, a black male wearing a blue ball cap, white t-shirt, and gray shorts, later identified as G.T. 32/ B/M, reached inside the driver’s side door of a gold Buick and removed a black handgun and placed it inside of his waistband. The officers requested marked patrol units to proceed to the area.
@@ -738,55 +771,55 @@ Joining with `by = join_by(feature2)`</code></pre>
 <pre><code>
    weight                  term1               term2
 1    30.0         investig_prior        ppd_investig
-2    30.0             inform_ppd        ppd_investig
-3    30.0             inform_ppd       provid_inform
+2    30.0             inform_ppd       provid_inform
+3    30.0           offic_provid       provid_inform
 4    30.0               lead_new          new_inform
 5    30.0                   lead                 new
 6    30.0          investig_lead      updat_investig
 7    30.0              may_updat      updat_investig
-8    30.0              incid_may         short_incid
-9    30.0           incid_inform          time_incid
-10   30.0             occur_time    understand_occur
-11   30.0 preliminari_understand    understand_occur
-12   30.0             understand         preliminari
-13   30.0                summari              origin
-14   30.0         origin_summari         post_origin
-15   30.0            post_origin         inform_post
-16   30.0                reflect             summari
-17   30.0              incid_may           may_updat
-18   30.0             post_short         inform_post
-19   30.0                reflect         preliminari
-20   30.0          investig_lead            lead_new
-21   30.0             occur_time          time_incid
-22   30.0         origin_summari     summari_reflect
-23   30.0           incid_inform         inform_post
-24   30.0                 origin                post
-25   30.0             post_short         short_incid
-26   30.0    reflect_preliminari     summari_reflect
-27   30.0 preliminari_understand reflect_preliminari
-28   30.0           offic_provid       provid_inform
+8    30.0              incid_may           may_updat
+9    30.0              incid_may         short_incid
+10   30.0           incid_inform         inform_post
+11   30.0           incid_inform          time_incid
+12   30.0             occur_time          time_incid
+13   30.0             occur_time    understand_occur
+14   30.0 preliminari_understand    understand_occur
+15   30.0             understand         preliminari
+16   30.0 preliminari_understand reflect_preliminari
+17   30.0    reflect_preliminari     summari_reflect
+18   30.0                reflect             summari
+19   30.0                summari              origin
+20   30.0         origin_summari         post_origin
+21   30.0                reflect         preliminari
+22   30.0            post_origin         inform_post
+23   30.0         origin_summari     summari_reflect
+24   30.0          investig_lead            lead_new
+25   30.0             inform_ppd        ppd_investig
+26   30.0                 origin                post
+27   30.0             post_short         short_incid
+28   30.0             post_short         inform_post
 29   29.5            prior_charg      investig_prior
 30   29.5             ***_inform         inform_post
 31   29.5            prior_charg         charg_decis
 32   25.0                 affair              intern
 33   24.0         officer-involv               shoot
 34   24.0                 outcom                pend
-35   24.0              administr                duti
-36   24.0              administr               place
+35   24.0              administr               place
+36   24.0              administr                duti
 37   23.5                   duti                pend
 38   23.5              duti_pend      administr_duti
 39   23.0              duti_pend         pend_outcom
 40   23.0         administr_duti     place_administr
 41   22.5           polic_depart  philadelphia_polic
 42   21.5               da_offic        offic_provid
-43   21.5               da_offic           inform_da
-44   21.5              inform_da          new_inform
+43   21.5              inform_da          new_inform
+44   21.5               da_offic           inform_da
 45   20.0           ppd_investig               prior
-46   20.0             inform_ppd              provid
-47   20.0          investig_lead                 new
-48   20.0                   lead      updat_investig
-49   20.0          investig_lead               updat
-50   20.0              incid_may               updat</code></pre>
+46   20.0                   lead          new_inform
+47   20.0                   lead      updat_investig
+48   20.0          investig_lead               updat
+49   20.0              incid_may               updat
+50   20.0            short_incid                post</code></pre>
 </div>
 </div>
 <p>Much of this co-occurrence is due to the template language describing where the department is in the investigation, referrals to the district attorney, and the report offers preliminary summary.</p>
@@ -811,35 +844,618 @@ Template language on the report
 <div class="cell-output cell-output-stdout">
 <pre><code>
      weight                 term1             term2
-1  9.000000                  open              door
-2  9.000000        firearm_strike  discharg_firearm
-3  9.000000        univers_hospit             templ
-4  9.000000                driver              door
+1  9.000000        firearm_strike  discharg_firearm
+2  9.000000                  open              door
+3  9.000000                driver              door
+4  9.000000        univers_hospit             templ
 5  8.999996             duti_pend             place
 6  8.750000                attack               dog
-7  8.666667 affair_officer-involv             shoot
+7  8.666667         respond_radio              call
 8  8.666667 affair_officer-involv            intern
-9  8.666667         respond_radio              call
-10 8.599997              da_offic               new
-11 8.599997             inform_da              lead
-12 8.599997             inform_da            provid
+9  8.666667 affair_officer-involv             shoot
+10 8.599997             inform_da            provid
+11 8.599997              da_offic               new
+12 8.599997             inform_da              lead
 13 8.500000            offic_mark        mark_polic
-14 8.500000             incid_***       inform_post
+14 8.500000       inform_district        new_inform
 15 8.500000        attorney_offic      offic_provid
-16 8.500000          semi-automat            pistol
-17 8.500000       inform_district        new_inform
-18 8.500000                return              fire
-19 8.500000    philadelphia_polic       polic_offic
+16 8.500000       inform_district district_attorney
+17 8.500000             incid_***       inform_post
+18 8.500000    philadelphia_polic       polic_offic
+19 8.500000                return              fire
 20 8.500000                intern              pend
-21 8.500000                  drop            offend
-22 8.500000       inform_district district_attorney
-23 8.250000         outcom_intern         duti_pend
-24 8.250000                 knife              drop
-25 8.250000           pend_outcom     intern_affair
-26 8.250000                outcom            affair
-27 8.250000                  miss            offend
+21 8.500000          semi-automat            pistol
+22 8.500000                  drop            offend
+23 8.250000           pend_outcom     intern_affair
+24 8.250000         outcom_intern         duti_pend
+25 8.250000                outcom            affair
+26 8.250000                  miss            offend
+27 8.250000                 knife              drop
 28 8.000001                unmark      polic_vehicl
 29 8.000000                 arriv             locat</code></pre>
+</div>
+</div>
+</section>
+<section id="singular-value-decomposition-for-text" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Singular value decomposition for text</h1>
+<p>We already explored how SVD can be used to (compress images and classify emojis)[https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html]. Now we will explore what SVD does for text.</p>
+<p>Since TFIDF matrices can get large, we will use the SVD implementation in the IRLBA package (Implicitly Restarted Lanczos Bidiagonalization Algorithm). The IRLBA implementation of SVD allows you to limit the number of singular vectors to compute, ignoring and never computing the rest.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(irlba)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>oisSVD <span class="ot">&lt;-</span> <span class="fu">irlba</span>(<span class="fu">t</span>(oisTFIDF), <span class="at">nv =</span> <span class="dv">50</span>)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="co"># each run of SVD can switch the signs on U and V</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    this forces sign(v[1,]) = +1, so SVD is unique</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>oisSVD<span class="sc">$</span>u <span class="ot">&lt;-</span> <span class="fu">sweep</span>(oisSVD<span class="sc">$</span>u, <span class="dv">2</span>, <span class="fu">sign</span>(oisSVD<span class="sc">$</span>v[<span class="dv">1</span>,]), <span class="st">`</span><span class="at">*</span><span class="st">`</span>)</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>oisSVD<span class="sc">$</span>v <span class="ot">&lt;-</span> <span class="fu">sweep</span>(oisSVD<span class="sc">$</span>v, <span class="dv">2</span>, <span class="fu">sign</span>(oisSVD<span class="sc">$</span>v[<span class="dv">1</span>,]), <span class="st">`</span><span class="at">*</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s see how many singular vectors seem important. In <a href="#fig-SVDsingularvalues" class="quarto-xref">Figure&nbsp;1</a> we see the first two or three singular values seem large, but then they decrease quite slowly from there.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(oisSVD<span class="sc">$</span>d, </span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Index of the singular value"</span>, <span class="at">ylab=</span><span class="st">"Singular value"</span>,</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(oisSVD<span class="sc">$</span>d)),</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch=</span><span class="dv">16</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-SVDsingularvalues" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-SVDsingularvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-SVDsingularvalues-1.png" class="img-fluid figure-img" width="384">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-SVDsingularvalues-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Singular values from SVD of oisTFIDF
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The columns of <span class="math inline">\(\mathbf{U}\)</span> are our “eigendocuments,” the fundamental building blocks that the actual documents blend to form their word collections. We will take a look at the first five eigendocuments, highlighting the 10 terms with the highest weight in the left singular vectors. Note that both large positive and large negative values are important to interpret. I have added headings to each left singular vector summarizing what kinds of incidents might heavily weight this column of <span class="math inline">\(\mathbf{U}\)</span>.</p>
+<p>Note that “dog” shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its <span class="math inline">\(v_2\)</span>, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the “offender” term. The first left singular vector measure the combined presence of “dog,” “offender,” and “suspect” (or the absence of all three if a document’s value of <span class="math inline">\(v_1\)</span> is large and negative.</p>
+<div class="cell" data-caption="Top 10 Terms for First 5 SVD Components">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Stack the top 10 terms from each component into one long table</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">term=</span><span class="fu">colnames</span>(oisTFIDF),</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">u1=</span>oisSVD<span class="sc">$</span>u[,<span class="dv">1</span>],</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">u2=</span>oisSVD<span class="sc">$</span>u[,<span class="dv">2</span>],</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">u3=</span>oisSVD<span class="sc">$</span>u[,<span class="dv">3</span>],</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">u4=</span>oisSVD<span class="sc">$</span>u[,<span class="dv">4</span>],</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">u5=</span>oisSVD<span class="sc">$</span>u[,<span class="dv">5</span>])</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(a <span class="sc">|&gt;</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(term, u1) <span class="sc">|&gt;</span> </span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>            <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(u1))) <span class="sc">|&gt;</span> </span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>            <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">component =</span> <span class="st">"u1"</span>, <span class="at">u =</span> u1),</span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>          a <span class="sc">|&gt;</span> </span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(term, u2) <span class="sc">|&gt;</span> </span>
+<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a>            <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(u2))) <span class="sc">|&gt;</span> </span>
+<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a>            <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-18"><a href="#cb56-18" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">component =</span> <span class="st">"u2"</span>, <span class="at">u =</span> u2),</span>
+<span id="cb56-19"><a href="#cb56-19" aria-hidden="true" tabindex="-1"></a>          a <span class="sc">|&gt;</span> </span>
+<span id="cb56-20"><a href="#cb56-20" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(term, u3) <span class="sc">|&gt;</span> </span>
+<span id="cb56-21"><a href="#cb56-21" aria-hidden="true" tabindex="-1"></a>            <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(u3))) <span class="sc">|&gt;</span> </span>
+<span id="cb56-22"><a href="#cb56-22" aria-hidden="true" tabindex="-1"></a>            <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-23"><a href="#cb56-23" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">component =</span> <span class="st">"u3"</span>, <span class="at">u =</span> u3),</span>
+<span id="cb56-24"><a href="#cb56-24" aria-hidden="true" tabindex="-1"></a>          a <span class="sc">|&gt;</span> </span>
+<span id="cb56-25"><a href="#cb56-25" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(term, u4) <span class="sc">|&gt;</span> </span>
+<span id="cb56-26"><a href="#cb56-26" aria-hidden="true" tabindex="-1"></a>            <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(u4))) <span class="sc">|&gt;</span> </span>
+<span id="cb56-27"><a href="#cb56-27" aria-hidden="true" tabindex="-1"></a>            <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-28"><a href="#cb56-28" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">component =</span> <span class="st">"u4"</span>, <span class="at">u =</span> u4),</span>
+<span id="cb56-29"><a href="#cb56-29" aria-hidden="true" tabindex="-1"></a>          a <span class="sc">|&gt;</span> </span>
+<span id="cb56-30"><a href="#cb56-30" aria-hidden="true" tabindex="-1"></a>            <span class="fu">select</span>(term, u5) <span class="sc">|&gt;</span> </span>
+<span id="cb56-31"><a href="#cb56-31" aria-hidden="true" tabindex="-1"></a>            <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(u5))) <span class="sc">|&gt;</span> </span>
+<span id="cb56-32"><a href="#cb56-32" aria-hidden="true" tabindex="-1"></a>            <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb56-33"><a href="#cb56-33" aria-hidden="true" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">component =</span> <span class="st">"u5"</span>, <span class="at">u =</span> u5)) <span class="sc">|&gt;</span> </span>
+<span id="cb56-34"><a href="#cb56-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(component, term, u) <span class="sc">|&gt;</span> </span>
+<span id="cb56-35"><a href="#cb56-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(component) <span class="sc">|&gt;</span> </span>
+<span id="cb56-36"><a href="#cb56-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">rank =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span> </span>
+<span id="cb56-37"><a href="#cb56-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb56-38"><a href="#cb56-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> component, </span>
+<span id="cb56-39"><a href="#cb56-39" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> <span class="fu">c</span>(term, u),</span>
+<span id="cb56-40"><a href="#cb56-40" aria-hidden="true" tabindex="-1"></a>              <span class="at">names_sep =</span> <span class="st">"_"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb56-41"><a href="#cb56-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term_u1, u_u1, term_u2, u_u2, term_u3, u_u3,</span>
+<span id="cb56-42"><a href="#cb56-42" aria-hidden="true" tabindex="-1"></a>         term_u4, u_u4, term_u5, u_u5) <span class="sc">|&gt;</span></span>
+<span id="cb56-43"><a href="#cb56-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>(<span class="at">align =</span> <span class="st">"rrrrrrrrrr"</span>,</span>
+<span id="cb56-44"><a href="#cb56-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Term"</span>,<span class="st">"</span><span class="sc">\\</span><span class="st">(u_1</span><span class="sc">\\</span><span class="st">)"</span>,<span class="st">"Term"</span>,<span class="st">"</span><span class="sc">\\</span><span class="st">(u_2</span><span class="sc">\\</span><span class="st">)"</span>,</span>
+<span id="cb56-45"><a href="#cb56-45" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Term"</span>,<span class="st">"</span><span class="sc">\\</span><span class="st">(u_3</span><span class="sc">\\</span><span class="st">)"</span>,<span class="st">"Term"</span>,<span class="st">"</span><span class="sc">\\</span><span class="st">(u_4</span><span class="sc">\\</span><span class="st">)"</span>,</span>
+<span id="cb56-46"><a href="#cb56-46" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Term"</span>,<span class="st">"</span><span class="sc">\\</span><span class="st">(u_5</span><span class="sc">\\</span><span class="st">)"</span>),</span>
+<span id="cb56-47"><a href="#cb56-47" aria-hidden="true" tabindex="-1"></a>        <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb56-48"><a href="#cb56-48" aria-hidden="true" tabindex="-1"></a>        <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb56-49"><a href="#cb56-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">booktabs =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb56-50"><a href="#cb56-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_header_above</span>(<span class="fu">c</span>(<span class="st">"Offender and dog"</span> <span class="ot">=</span> <span class="dv">2</span>, </span>
+<span id="cb56-51"><a href="#cb56-51" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"Dog attack, no offender"</span> <span class="ot">=</span> <span class="dv">2</span>,</span>
+<span id="cb56-52"><a href="#cb56-52" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"Suspect/SWAT"</span> <span class="ot">=</span> <span class="dv">2</span>,</span>
+<span id="cb56-53"><a href="#cb56-53" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"Knife attacks"</span> <span class="ot">=</span> <span class="dv">2</span>,</span>
+<span id="cb56-54"><a href="#cb56-54" aria-hidden="true" tabindex="-1"></a>                     <span class="st">"Victims"</span> <span class="ot">=</span> <span class="dv">2</span>),</span>
+<span id="cb56-55"><a href="#cb56-55" aria-hidden="true" tabindex="-1"></a>                   <span class="at">escape =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb56-56"><a href="#cb56-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<colgroup>
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th colspan="2" data-quarto-table-cell-role="th" style="text-align: center; border-bottom: hidden; padding-bottom: 0; padding-left: 3px; padding-right: 3px;"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Offender and dog
+</div></th>
+<th colspan="2" data-quarto-table-cell-role="th" style="text-align: center; border-bottom: hidden; padding-bottom: 0; padding-left: 3px; padding-right: 3px;"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Dog attack, no offender
+</div></th>
+<th colspan="2" data-quarto-table-cell-role="th" style="text-align: center; border-bottom: hidden; padding-bottom: 0; padding-left: 3px; padding-right: 3px;"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Suspect/SWAT
+</div></th>
+<th colspan="2" data-quarto-table-cell-role="th" style="text-align: center; border-bottom: hidden; padding-bottom: 0; padding-left: 3px; padding-right: 3px;"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Knife attacks
+</div></th>
+<th colspan="2" data-quarto-table-cell-role="th" style="text-align: center; border-bottom: hidden; padding-bottom: 0; padding-left: 3px; padding-right: 3px;"><div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Victims
+</div></th>
+</tr>
+<tr class="odd">
+<th style="text-align: right;" data-quarto-table-cell-role="th">Term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">\(u_1\)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">\(u_2\)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">\(u_3\)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">\(u_4\)</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Term</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">\(u_5\)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">dog</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">dog</td>
+<td style="text-align: right;">0.45</td>
+<td style="text-align: right;">suspect</td>
+<td style="text-align: right;">-0.59</td>
+<td style="text-align: right;">knife</td>
+<td style="text-align: right;">-0.46</td>
+<td style="text-align: right;">knife</td>
+<td style="text-align: right;">-0.51</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">offend</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">offend</td>
+<td style="text-align: right;">-0.31</td>
+<td style="text-align: right;">dog</td>
+<td style="text-align: right;">0.36</td>
+<td style="text-align: right;">suspect</td>
+<td style="text-align: right;">0.28</td>
+<td style="text-align: right;">suspect</td>
+<td style="text-align: right;">-0.32</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">suspect</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">attack</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">swat</td>
+<td style="text-align: right;">-0.19</td>
+<td style="text-align: right;">offic_number</td>
+<td style="text-align: right;">0.26</td>
+<td style="text-align: right;">drop_knife</td>
+<td style="text-align: right;">-0.19</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">philadelphia</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">bull</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">attack</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">number</td>
+<td style="text-align: right;">0.23</td>
+<td style="text-align: right;">offic_number</td>
+<td style="text-align: right;">-0.19</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">shoot</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">pit_bull</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">offend</td>
+<td style="text-align: right;">0.16</td>
+<td style="text-align: right;">number_one</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">offend</td>
+<td style="text-align: right;">0.16</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">attack</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">pit</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">swat_offic</td>
+<td style="text-align: right;">-0.14</td>
+<td style="text-align: right;">drop_knife</td>
+<td style="text-align: right;">-0.19</td>
+<td style="text-align: right;">number</td>
+<td style="text-align: right;">-0.16</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">philadelphia_polic</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">philadelphia</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">offic_number</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">victim</td>
+<td style="text-align: right;">-0.18</td>
+<td style="text-align: right;">number_one</td>
+<td style="text-align: right;">-0.15</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">resid</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">offic_number</td>
+<td style="text-align: right;">-0.12</td>
+<td style="text-align: right;">number</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">offend</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: right;">rear</td>
+<td style="text-align: right;">0.14</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">victim</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">philadelphia_polic</td>
+<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">bull</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">drop</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: right;">unmark</td>
+<td style="text-align: right;">0.13</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">avenu</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">inform_post</td>
+<td style="text-align: right;">-0.11</td>
+<td style="text-align: right;">pit_bull</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">bedroom</td>
+<td style="text-align: right;">-0.12</td>
+<td style="text-align: right;">passeng</td>
+<td style="text-align: right;">0.13</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+<p>Remember that the columns of <span class="math inline">\(\mathbf{V}\)</span> tell us how a particular report mixes together the eigendocuments (columns of <span class="math inline">\(\mathbf{U}\)</span>) to form their TFIDF weighted terms. I am curious to explore documents involving dog attacks (<span class="math inline">\(\mathbf{u}_2\)</span>) and documents with knife attacks (<span class="math inline">\(\mathbf{u}_4\)</span>). The code below creates an interactive 2D map of documents on their values of <span class="math inline">\(v_2\)</span> and <span class="math inline">\(v_4\)</span>. For each document, the code extracts the 10 most heavily weighted TF-IDF terms to use as hover text, giving a quick sense of the content. It also assigns each document to a category, “Likely dog attack,” “Likely knife attack,” or “Other,” based on thresholds of <span class="math inline">\(v_2\)</span> and <span class="math inline">\(v_4\)</span>. <code>plotly()</code> produces an interactive scatterplot where each point is a document, colored by category and annotated with its key terms. This visualization allows us to explore thematic variation in the reports and visually distinguish different types of incidents based on the language used.</p>
+<div class="cell" data-caption="Plot of how documents weigh 2nd and 4th left singular vectors">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plotly)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a><span class="co"># collect the 10 terms with the highest weight in each document</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="fu">apply</span>(oisTFIDF, <span class="dv">1</span>, order, <span class="at">decreasing=</span><span class="cn">TRUE</span>)</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">apply</span>(i, <span class="dv">2</span>, </span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>           <span class="cf">function</span>(j) </span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>           {</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>             <span class="fu">colnames</span>(oisTFIDF)[j[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]] <span class="sc">|&gt;</span></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>               <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>           })</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a><span class="co"># label some document types</span></span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>group <span class="ot">&lt;-</span> <span class="fu">case_when</span>(oisSVD<span class="sc">$</span>v[,<span class="dv">2</span>] <span class="sc">&gt;</span>  <span class="fl">0.1</span> <span class="sc">~</span> <span class="st">"Likely dog attack"</span>,</span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>                   oisSVD<span class="sc">$</span>v[,<span class="dv">4</span>] <span class="sc">&lt;</span> <span class="sc">-</span><span class="fl">0.1</span> <span class="sc">~</span> <span class="st">"Likely knife attack"</span>,</span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>                   <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"Other"</span>)</span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>groupCols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Likely dog attack"</span> <span class="ot">=</span> <span class="st">"red"</span>,</span>
+<span id="cb57-17"><a href="#cb57-17" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Likely knife attack"</span> <span class="ot">=</span> <span class="st">"orange"</span>,</span>
+<span id="cb57-18"><a href="#cb57-18" aria-hidden="true" tabindex="-1"></a>               <span class="st">"Other"</span> <span class="ot">=</span> <span class="st">"steelblue"</span>)</span>
+<span id="cb57-19"><a href="#cb57-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-20"><a href="#cb57-20" aria-hidden="true" tabindex="-1"></a><span class="co"># make a plot with hovertext</span></span>
+<span id="cb57-21"><a href="#cb57-21" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(<span class="at">x =</span> oisSVD<span class="sc">$</span>v[,<span class="dv">2</span>],</span>
+<span id="cb57-22"><a href="#cb57-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> oisSVD<span class="sc">$</span>v[,<span class="dv">4</span>],</span>
+<span id="cb57-23"><a href="#cb57-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">type =</span> <span class="st">"scatter"</span>,</span>
+<span id="cb57-24"><a href="#cb57-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">mode =</span> <span class="st">"markers"</span>,</span>
+<span id="cb57-25"><a href="#cb57-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">text =</span> a,</span>
+<span id="cb57-26"><a href="#cb57-26" aria-hidden="true" tabindex="-1"></a>        <span class="at">hoverinfo =</span> <span class="st">"text"</span>,</span>
+<span id="cb57-27"><a href="#cb57-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> group,</span>
+<span id="cb57-28"><a href="#cb57-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">colors =</span> groupCols,</span>
+<span id="cb57-29"><a href="#cb57-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">marker =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">6</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb57-30"><a href="#cb57-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(<span class="at">xaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"V2 - Dog attack measure"</span>),</span>
+<span id="cb57-31"><a href="#cb57-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">yaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"V4 - Knife attack measure"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fig-documentMap" class="cell-output-display quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-documentMap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="plotly html-widget html-fill-item" id="htmlwidget-48c7b136376562626cb5" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-48c7b136376562626cb5">{"x":{"visdat":{"ead8561a11d2":["function () ","plotlyVisDat"]},"cur_data":"ead8561a11d2","attrs":{"ead8561a11d2":{"x":[0.17403511249172915,0.11289626209213616,0.006206403978465138,0.16906245122035199,0.030852496447168483,0.17366552107306288,0.12271903040311806,0.082002401437348424,0.074036783220665828,0.16288335904442239,0.15960187600614761,0.063144711893847752,0.050862745169919461,0.19915839045803671,0.040374029162718164,0.14222723818173208,0.25185720339605072,0.20516638044255489,0.030951505094374724,0.15240552895507084,0.018505883504918354,0.19770559799559645,0.060358795881776832,0.16338131592910543,-0.015401758970898164,-0.011666836382860948,0.04649974443494162,0.055463231366217572,0.15396431220227505,0.1299086378817853,0.055143278630971834,0.13537269157860499,0.045152610670663264,0.15229025848972372,0.016387725188701376,0.043476058007197997,0.016251441185000659,-0.0057677296095977413,-0.030961872252845503,0.0097163042307443145,-0.044740736149371102,-0.022927268376320649,-0.014651848740927745,0.034100194885690951,-0.10232360976819407,-0.075552611645860621,0.013653148051798325,7.050576966050874e-07,-0.0061023053772366583,0.016471407436168505,-0.047599138636601868,-0.076077482407519215,0.002435692965138527,-0.069041121590329824,-0.039005279953318886,-0.0028722004089990474,0.010370541134446661,-0.075625523593923522,-0.054966672351712854,-0.0046536533722788438,-0.040453350009204823,-0.03935807532435464,-0.01878043320281915,-0.042087011487686211,-0.055808856467332385,-0.045006661794226237,-0.0019624112302030054,-0.015667472603067806,-0.027913739450036893,-0.053879648484018772,-0.051196864075046984,-0.033628283545147672,-0.041563522367158261,-0.042106034789619051,-0.045654593136369687,-0.048412311606166596,-0.050034581786788962,-0.060011230216487389,-0.051085574424770748,-0.041521464541494191,-0.048683365384765906,-0.071322458169833208,-0.048449629855757223,-0.052862562072989561,-0.055931460389154884,-0.063410869124554639,-0.061826960560385981,-0.047406768440816684,-0.051629388854604052,-0.04062573258107214,-0.055416558812284716,-0.06209380812260961,-0.061229511371228021,-0.061446168709819581,-0.042766943120416762,-0.095511102431285105,-0.094001264552999536,-0.079169619206258687,-0.10592745697160232,-0.072150607134067402,-0.074338549346075297,-0.076712116675115585,-0.085252040501025972,-0.12804454544623725,-0.114275854391841,-0.0735729518779112,-0.09281095058997911,-0.071688952634583511,-0.074795060600143792,-0.10683203015107601,-0.12589112007521391,-0.081212508137546283,-0.10506057855001279,-0.11638289628351858,-0.099540212355649582,-0.086923877580052766,-0.093891519316652947,-0.098305782952640683,-0.08643158149691875,-0.091325952939032701,-0.075014171935932211,-0.084735879576295761,-0.075678496766345929,-0.083129833390233582,-0.093285193998507737,-0.091451035664769739,-0.090579268201874452,-0.1080262368800938,-0.097213326845124098,-0.091092179335945003,-0.084060031919606676,-0.082613030872556045,-0.098015673744956761],"y":[0.007256245619491189,-0.027985844957994631,-0.024927406879137706,-0.0042293916372508292,0.012814794813831718,-7.9951175399404738e-05,0.038880665470787508,0.032667716214000039,0.024446758701252541,-0.0059557311814736318,0.030007452945903686,0.090203302184100012,0.13644671053655444,0.0076264959533839391,0.08989900544961596,0.0048561224791002491,0.046963149676559464,0.02491762245367907,0.14761874271447803,0.0053535314216172237,-0.055742304598943006,0.017564781211317004,0.08984535990175381,0.0059771019319882429,-0.013236634665181952,0.049752526069712005,0.037895470529230577,0.063994651829722249,-0.0084649624171165578,0.00062868963714128514,0.061667258074772698,-0.029892949164587495,0.031187135547415725,0.0078527160276399485,0.013666431859449806,-0.016595478712659571,0.027713111122861876,-0.0083692630433802387,-0.087559063550453259,-0.051706504387759658,-0.036593716027401232,-0.0065188932502743078,-0.048668355689998638,-0.015975589620168519,-0.12051991816026411,-0.16637192465552508,-0.12780107973677557,-0.049632043640799504,-0.075587209897572227,-0.034916308511253692,-0.0066253456285907345,-0.33762260384723969,-0.022740831399485257,-0.054147538553589274,-0.016149572286306542,-0.098719704185962376,-0.040011017693336294,-0.12855203257174053,-0.10394555153909542,-0.032670734236524938,-0.030862575851361988,-0.019389439189613403,-0.085767175250981306,-0.015600644382330903,-0.15659098066168284,-0.32919070651666477,0.096944372076403662,-0.079515327858368498,0.096041696917235311,-0.37716976007148639,-0.064107222308309869,-0.029114138715686227,-0.021895159530383304,-0.0082774492458325775,0.001934754757703833,0.028919703531361324,0.028244096762175274,0.05184263028499838,-0.01048717485635412,0.050176247047570073,-0.041120318538478438,0.053926385457845345,0.056969108215366895,0.0086163909139650684,0.028321657771606286,0.003370394757709502,-0.16057075503060889,-0.081521573845608167,0.0048661443808202453,-0.029362879306645676,0.03604154854506423,0.042838362911569762,0.056189941738922729,0.0028217734702192889,0.018035068216000656,0.011824971895751813,0.096900026880805845,0.03468176102957269,0.17517427936036706,0.048924377662796135,0.066198229445957907,-0.1036053185869526,0.086713750368326292,0.19415013556529181,0.23135392475519584,0.032246076904928554,0.031219524215839702,0.0064070077415627098,0.028604506920264033,-0.029309364323516798,0.24933684834842171,0.024838254105337926,0.088599440463559609,0.12891851646544136,-0.11894646517516201,0.1198934193027707,0.021440116408686802,0.0086833311100357382,-0.059269182898502464,0.028034460758916021,0.025790950485206618,0.047382489563737265,0.046688598471513375,-0.023116343338183423,0.029446605705037026,0.031798816253903295,-0.0032081067926485948,0.015902311756650696,-0.0020100423751670299,0.048980385349267783,0.030754009371903736,0.054486461771980244,0.043212924866864746],"mode":"markers","text":["dog<br />narcot<br />back<br />secur<br />unit<br />insid_properti<br />compli<br />onc<br />tuesday<br />retreat","dog<br />district_offic<br />femal<br />polic_district<br />bedroom<br />officer-involv<br />officer-involv_shoot<br />insid<br />kill<br />locat_offic","servic<br />sergeant<br />year<br />wit<br />involv<br />male_point<br />investig_unit<br />home<br />unknown<br />complain","dog<br />narcot<br />block_e<br />resid<br />retreat<br />involv_shoot<br />kitchen<br />offic_involv<br />bull<br />pit_bull","detect<br />shoot<br />seat<br />person<br />unit<br />homicid<br />philadelphia<br />vehicl_approach<br />investig_unit<br />involv_shoot","dog<br />femal<br />partner<br />insid<br />kill<br />went<br />avenu<br />outsid<br />home<br />offic_heard","dog<br />septemb<br />encount<br />philadelphia_polic<br />officer-involv<br />officer-involv_shoot<br />white<br />philadelphia<br />area<br />avenu","injur<br />polic_district<br />philadelphia<br />polic_depart<br />veteran<br />philadelphia_polic<br />officer-involv<br />officer-involv_shoot<br />depart<br />investig_unit","room<br />officer-involv<br />officer-involv_shoot<br />district_place<br />one_round<br />duti<br />discharg_one<br />incid_offic<br />place<br />affair_investig","dog<br />resid<br />polic_depart<br />dure<br />philadelphia_polic<br />assault<br />officer-involv<br />officer-involv_shoot<br />depart<br />shout","dog<br />west<br />anim<br />bull<br />pit_bull<br />pit<br />philadelphia<br />philadelphia_polic<br />kill<br />servic","suspect<br />one_offic<br />year<br />shot<br />discharg_offic<br />driver<br />philadelphia_polic<br />male_suspect<br />june<br />use","suspect<br />block_north<br />saturday<br />uniform_offic<br />north<br />unit<br />philadelphia_polic<br />due<br />june<br />philadelphia","dog<br />resid<br />attack<br />philadelphia<br />ongo<br />block_north<br />medic<br />two<br />north<br />philadelphia_polic","suspect<br />graze<br />male_suspect<br />white<br />robberi<br />off-duti<br />sustain<br />dure<br />philadelphia_polic<br />wound","sergeant<br />bull<br />pit_bull<br />pit<br />discharg_offic<br />attack<br />also<br />year_old<br />old<br />dog","attack<br />dog<br />bull<br />pit_bull<br />pit<br />kill<br />philadelphia<br />year<br />philadelphia_polic<br />anim","attack<br />dog<br />owner<br />bull<br />pit_bull<br />block_south<br />pit<br />control<br />philadelphia<br />femal","suspect<br />off-duti<br />assault<br />robberi<br />take<br />struggl<br />dure<br />male_suspect<br />remain<br />violat","dog<br />kill<br />wit<br />bull<br />pit_bull<br />pit<br />attack<br />philadelphia<br />bodi<br />victim","complain<br />front_door<br />knock<br />outsid<br />taken<br />unit<br />subsequ<br />took<br />arm<br />front","bull<br />pit_bull<br />pit<br />dog<br />attack<br />owner<br />control<br />philadelphia<br />stop<br />discharg_offic","suspect<br />stolen<br />vehicl_offic<br />polic_district<br />driver<br />attempt<br />philadelphia_polic<br />male_suspect<br />officer-involv<br />officer-involv_shoot","dog<br />attack<br />anim<br />depart<br />philadelphia<br />avenu<br />later<br />polic_depart<br />philadelphia_polic<br />shout","magazin<br />block_north<br />offend<br />park<br />black<br />north<br />live<br />handgun<br />live_round<br />round","passeng<br />suspect<br />open<br />driver<br />door<br />strike_offic<br />driver_side<br />window<br />fled_scene<br />side","suspect<br />veteran_philadelphia<br />templ_univers<br />univers_hospit<br />depart_assign<br />shot<br />univers<br />shoot<br />person<br />polic_depart","swat<br />suspect<br />swat_offic<br />assist<br />year_old<br />respond_offic<br />old<br />still<br />year<br />direct","dog<br />yard<br />bull<br />pit_bull<br />owner<br />pit<br />resid<br />year_old<br />old<br />year","block_south<br />resid<br />dog<br />south<br />offic_offic<br />philadelphia_polic<br />philadelphia<br />drew_weapon<br />made<br />bull","highway<br />graze<br />suspect<br />patrol<br />veteran_philadelphia<br />depart_assign<br />polic_depart<br />veteran<br />philadelphia_polic<br />assault","dog<br />attack<br />victim<br />wit<br />violat<br />home<br />highway<br />bull<br />pit_bull<br />bodi_worn","suspect<br />sergeant<br />home<br />depart<br />encount<br />shot<br />veteran<br />involv<br />verbal<br />one_time","dog<br />anim<br />remain<br />control<br />dure_incid<br />philadelphia<br />injur<br />three<br />sustain<br />polic_depart","suspect<br />shoot<br />victim<br />passeng<br />pronounc_deceas<br />deceas<br />driver<br />unit<br />pronounc<br />wound","suspect<br />knife<br />ecw<br />deploy<br />offic_respond<br />began<br />philadelphia_polic<br />advanc_toward<br />step<br />male_suspect","robberi<br />victim<br />suspect<br />approach_male<br />polic_vehicl<br />gun<br />follow<br />vehicl_offic<br />phone<br />drop_gun","side_door<br />door_offic<br />side<br />passeng<br />approach_driver<br />passeng_side<br />car<br />driver_side<br />driver<br />onto","lot<br />gun_offic<br />rear<br />bodi<br />ground<br />car<br />handgun<br />gun<br />pm_offic<br />strike_male","phone<br />detect<br />swat<br />one_time<br />properti<br />struck<br />enter<br />bedroom<br />swat_offic<br />announc","offend<br />offic_involv<br />gun_offic<br />observ_offend<br />area<br />involv<br />discharg_offic<br />turn<br />left<br />offic_offic","offic_involv<br />offend<br />side_door<br />involv<br />involv_shoot<br />side<br />taken<br />block_north<br />driver<br />shoot","swat<br />gsw<br />sustain<br />unit<br />insid_properti<br />front<br />properti<br />north<br />offend<br />rear","fire<br />cover<br />veteran_philadelphia<br />depart_assign<br />polic_depart<br />veteran<br />philadelphia_polic<br />depart<br />philadelphia<br />district_offic","offend<br />gun<br />point_gun<br />lot<br />drop_gun<br />offend_drop<br />gun_offic<br />around<br />began<br />drop","offend<br />victim<br />east<br />handgun<br />gun<br />one_time<br />locat<br />return<br />partner<br />point_gun","victim<br />one_time<br />shot<br />shoot<br />left<br />unknown<br />area<br />south<br />homicid<br />shoulder","room<br />offic_offic<br />oper<br />hospit_polic<br />open_door<br />discharg_offic<br />sever_time<br />window<br />templ_hospit<br />pull","gsw<br />victim<br />discharg_offic<br />locat<br />offic_arriv<br />locat_offic<br />arriv_locat<br />gunshot<br />believ<br />head","secur<br />unknown<br />westbound<br />pursuit<br />avenu<br />return<br />black_male<br />activ<br />black<br />front","passeng<br />refer<br />rear<br />unmark<br />unmark_vehicl<br />area<br />want<br />struck<br />window<br />pm_offic","bedroom<br />knife<br />offend<br />victim<br />observ_offend<br />resid<br />arm<br />wit<br />front<br />enter","floor<br />polic_offic<br />swat<br />door<br />magazin<br />warrant<br />unit<br />search<br />point_offic<br />vest","offend<br />unmark_vehicl<br />black<br />wear<br />unmark<br />drove<br />unknown<br />intersect<br />time_offic<br />handgun","stolen<br />partner<br />point_gun<br />black<br />taken<br />pursuit<br />street_offic<br />run<br />point<br />district_offic","arriv_locat<br />corner<br />gun<br />drop<br />drop_gun<br />verbal<br />locat<br />front<br />ground_drop<br />polic_civilian","swat<br />announc<br />swat_offic<br />door<br />addit<br />south<br />order<br />assault<br />insid<br />knock","offend<br />encount<br />head<br />arm<br />point_offic<br />near<br />struck<br />fell<br />dure<br />wound","rifl<br />offend<br />homicid<br />believ<br />gunfir<br />multipl<br />gunshot<br />area<br />involv<br />direct","respond_offic<br />run<br />point<br />polic_offic<br />observ_male<br />male_point<br />offic_observ<br />walk<br />weapon_male<br />avenu","park<br />polic_offic<br />westbound<br />still<br />seat<br />foot<br />behind<br />driver_seat<br />cover<br />car","unmark_vehicl<br />corner<br />bodi<br />unmark<br />medic<br />north<br />point_gun<br />narcot<br />wound<br />oper_unmark","road<br />bodi<br />front<br />refer<br />two<br />live<br />toward<br />civilian<br />turn<br />resid","passeng<br />rear<br />driver<br />request<br />posit<br />broad<br />due<br />blue<br />passeng_side<br />approach","victim<br />offend<br />pronounc<br />weapon_offend<br />polic_civilian<br />highway<br />drew_weapon<br />larg<br />torso<br />ongo","knife<br />drop_knife<br />strike_male<br />drop<br />toward_offic<br />advanc_toward<br />arm<br />shout<br />advanc<br />deploy","suspect<br />swat_offic<br />swat<br />femal<br />properti<br />male_suspect<br />complain<br />road<br />point<br />white","properti<br />swat<br />black_male<br />black<br />driveway<br />went<br />locat<br />side<br />rear<br />full_uniform","suspect<br />vehicl_offic<br />polic_vehicl<br />gave<br />move<br />oper<br />driver<br />east<br />upon<br />point_offic","knife<br />drop_knife<br />drop<br />walk<br />order<br />order_male<br />away<br />back<br />toward<br />park","complain<br />car<br />get<br />floor<br />avenu<br />point<br />observ_male<br />male_arm<br />black<br />intersect","vest<br />rear<br />seat<br />vehicl_offic<br />black<br />area<br />road<br />near<br />unmark_polic<br />driver","unmark_polic<br />narcot<br />unmark<br />polic_vehicl<br />street_offic<br />front<br />black<br />search<br />front_door<br />area","sergeant<br />blue<br />unmark<br />camera<br />sever<br />insid<br />remov<br />run<br />plaincloth_offic<br />arrest","knock<br />off-duti<br />block_south<br />south<br />began<br />offic_offic<br />offic_drew<br />shout<br />locat<br />outsid","femal<br />yard<br />room<br />calib<br />found<br />multipl<br />also<br />live<br />properti<br />rear","medic<br />man<br />unit<br />driver<br />struggl<br />emerg<br />flee<br />pursuit<br />drive<br />lot","narcot<br />run<br />plaincloth_offic<br />gunshot<br />gun<br />unmark_vehicl<br />offic_heard<br />conduct<br />februari<br />round_recov","gun<br />third<br />gun_offic<br />door<br />saw<br />rear<br />arm<br />front<br />fire<br />ran","car<br />saw<br />window<br />still<br />approach<br />later<br />side<br />driver<br />approach_driver<br />area","man<br />away<br />advanc_toward<br />advanc<br />toward_offic<br />toward<br />drop<br />open<br />fell<br />car","detect<br />car<br />unmark<br />male_point<br />list_critic<br />approach_male<br />light<br />stop<br />believ<br />intersect","driver<br />broad<br />struggl<br />block_n<br />move<br />north<br />block_north<br />gun<br />still<br />open","calib<br />insid_resid<br />heard<br />gunshot<br />stand<br />search<br />front<br />come<br />area<br />resid","road<br />intersect<br />head<br />hold<br />pursu_male<br />offic_pursu<br />male_foot<br />male_fled<br />foot<br />discharg_firearm","complain<br />saw<br />struggl<br />drop_weapon<br />order_male<br />fled_foot<br />point<br />properti<br />order<br />point_gun","knife<br />drop_knife<br />male_drop<br />drop<br />order_male<br />away<br />back<br />continu<br />order<br />advanc_toward","ecw<br />advanc_toward<br />advanc<br />kitchen<br />knife<br />enter<br />get<br />resid<br />offic_observ<br />drew","driveway<br />road<br />hand_offic<br />near<br />foot<br />hand<br />fled_foot<br />bodi<br />observ_male<br />turn","point_firearm<br />kill<br />male_point<br />direct<br />state<br />point<br />shoot<br />heard<br />left<br />order","street_observ<br />male_fled<br />patrol_car<br />leg<br />toward<br />car<br />strike_offic<br />insid<br />man<br />area","cartridg<br />fire<br />south<br />corner<br />sidewalk<br />patrol_car<br />calib<br />car<br />handgun<br />graze","narcot<br />unmark_polic<br />unmark<br />use<br />conduct<br />driver_door<br />polic_vehicl<br />three<br />driver<br />unit","street_male<br />patrol_vehicl<br />fire<br />south<br />male_male<br />weapon_offic<br />drop<br />run<br />calib<br />uniform_offic","swat<br />unit<br />hospit_critic<br />insid_resid<br />insid<br />admit<br />critic_condit<br />resid<br />insid_properti<br />detect","detect<br />offend<br />observ_offend<br />resid<br />bedroom<br />gunshot<br />june<br />went<br />oper_unmark<br />radio_assign","stolen<br />driver_side<br />side<br />driver<br />rear<br />park_vehicl<br />refus<br />offic_oper<br />one_round<br />vehicl_approach","detect<br />treat_releas<br />chase<br />head<br />treat<br />releas<br />offend<br />westbound<br />shoulder<br />off-duti","offic_number<br />number<br />passeng<br />pistol<br />two<br />servic<br />number_one<br />four<br />unmark<br />offend","plaincloth_offic<br />unmark_polic<br />unmark<br />plaincloth<br />civilian<br />two<br />polic_vehicl<br />homicid<br />hand<br />avenu","robberi<br />stolen<br />driver_door<br />driver<br />offic_approach<br />open<br />plaincloth<br />posit<br />three<br />plaincloth_offic","knife<br />offic_drew<br />one_offic<br />properti<br />drew<br />drop_knife<br />hospit_critic<br />ecw<br />one_round<br />move","complain<br />phone<br />driveway<br />cartridg<br />number_one<br />offic_number<br />next<br />magazin<br />two<br />septemb","number_one<br />offic_number<br />number<br />offend<br />firearm_offic<br />south<br />yard<br />weapon_offend<br />august<br />pistol_load","offic_number<br />number<br />number_one<br />three<br />two<br />firearm_offic<br />pull<br />releas<br />offend<br />take","drop<br />hospit_critic<br />man<br />refus<br />ground_drop<br />street_male<br />august<br />monday<br />radio_assign<br />torso","stolen<br />offend<br />car<br />man<br />one_round<br />male_arm<br />report<br />discharg_one<br />light<br />emerg","offend<br />resid<br />admit<br />victim<br />semi-automat<br />templ_univers<br />univers_hospit<br />femal<br />univers<br />gunshot","waistband<br />june<br />offend<br />avenu_offic<br />pull<br />avenu<br />round<br />pistol<br />stop<br />patrol_vehicl","knife<br />offic_number<br />offend<br />number<br />move<br />number_one<br />open<br />toward_offic<br />offic_offic<br />bedroom","number_one<br />number<br />plaincloth_offic<br />offic_number<br />plaincloth<br />two<br />uniform_offic<br />februari<br />offend<br />park_vehicl","offend<br />east<br />street_offic<br />offend_offend<br />univers_hospit<br />toward<br />civilian<br />treatment<br />univers<br />turn","offend<br />number_one<br />offic_number<br />number<br />live_round<br />block_n<br />drop<br />hand<br />live<br />offend_offend","miss_offend<br />offend<br />offic_number<br />discharg_firearm<br />number<br />miss<br />north<br />number_one<br />block_n<br />seat","knife<br />offend<br />move<br />control<br />drop_knife<br />torso<br />deploy<br />number_one<br />offic_number<br />complain","offic_number<br />number<br />driveway<br />offic_approach<br />block_n<br />apprehend<br />approach<br />two<br />foot<br />fled_scene","rifl<br />offend<br />front<br />scene_injuri<br />radio_assign<br />octob<br />subsequ<br />inform_post<br />post<br />offend_transport","offend<br />miss_offend<br />compli<br />drop_weapon<br />offend_offend<br />pursu<br />weapon_offend<br />driveway<br />miss<br />ran","offend<br />properti<br />victim<br />penn-presbyterian<br />penn-presbyterian_hospit<br />knife<br />right_hand<br />hand<br />femal<br />right","offend<br />park_vehicl<br />sergeant<br />discharg_firearm<br />univers<br />firearm_strike<br />mark_polic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />femal","insid_properti<br />properti<br />offend<br />femal<br />swat<br />insid<br />struck<br />person<br />assault<br />swat_offic","polic_vehicl<br />sidewalk<br />onto<br />drive<br />offend<br />direct<br />weapon_recov<br />block_e<br />passeng_side<br />drove","broad<br />block_north<br />oper<br />north<br />turn<br />miss_offend<br />approach_driver<br />offic_oper<br />weapon_recov<br />highway","step<br />door_offic<br />offend<br />rear<br />kitchen<br />off-duti<br />door<br />apprehend<br />miss<br />offic_observ","offend<br />properti<br />swat<br />secur<br />unit<br />one_offic<br />insid_properti<br />miss_offend<br />weapon_offend<br />offic_pursu","unmark_polic<br />polic_vehicl<br />unmark<br />offend<br />vehicl_respond<br />avenu<br />mark_polic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />offic_drew","properti<br />offend<br />avenu<br />rear<br />avenu_offic<br />second<br />enter<br />penn-presbyterian<br />penn-presbyterian_hospit<br />gun","offend<br />complain<br />point_gun<br />robberi<br />struggl<br />exit_vehicl<br />subsequ<br />polic_vehicl<br />gun<br />femal","offend<br />weapon_offend<br />broad<br />offend_fled<br />block_n<br />offend_offend<br />park<br />lot<br />drop<br />result","offend<br />yard<br />lot<br />want<br />block_n<br />offend_drop<br />offic_pursu<br />unmark_polic<br />onc<br />pistol_load","polic_vehicl<br />second<br />offend<br />want<br />two<br />drive<br />park_vehicl<br />violat<br />front<br />move","polic_vehicl<br />block_north<br />pursu<br />pursu_male<br />north<br />offend<br />rear<br />yard<br />miss_offend<br />foot","offend<br />polic_vehicl<br />strike_offic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />discharg_firearm<br />remain<br />advanc<br />scene_injuri<br />street_male"],"hoverinfo":"text","marker":{"size":6},"color":["Likely dog attack","Likely dog attack","Other","Likely dog attack","Other","Likely dog attack","Likely dog attack","Other","Other","Likely dog attack","Likely dog attack","Other","Other","Likely dog attack","Other","Likely dog attack","Likely dog attack","Likely dog attack","Other","Likely dog attack","Other","Likely dog attack","Other","Likely dog attack","Other","Other","Other","Other","Likely dog attack","Likely dog attack","Other","Likely dog attack","Other","Likely dog attack","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Likely knife attack","Likely knife attack","Likely knife attack","Other","Other","Other","Other","Likely knife attack","Other","Other","Other","Other","Other","Likely knife attack","Likely knife attack","Other","Other","Other","Other","Other","Likely knife attack","Likely knife attack","Other","Other","Other","Likely knife attack","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Likely knife attack","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Likely knife attack","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Likely knife attack","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other","Other"],"colors":["red","orange","steelblue"],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"V2 - Dog attack measure"},"yaxis":{"domain":[0,1],"automargin":true,"title":"V4 - Knife attack measure"},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[0.17403511249172915,0.11289626209213616,0.16906245122035199,0.17366552107306288,0.12271903040311806,0.16288335904442239,0.15960187600614761,0.19915839045803671,0.14222723818173208,0.25185720339605072,0.20516638044255489,0.15240552895507084,0.19770559799559645,0.16338131592910543,0.15396431220227505,0.1299086378817853,0.13537269157860499,0.15229025848972372],"y":[0.007256245619491189,-0.027985844957994631,-0.0042293916372508292,-7.9951175399404738e-05,0.038880665470787508,-0.0059557311814736318,0.030007452945903686,0.0076264959533839391,0.0048561224791002491,0.046963149676559464,0.02491762245367907,0.0053535314216172237,0.017564781211317004,0.0059771019319882429,-0.0084649624171165578,0.00062868963714128514,-0.029892949164587495,0.0078527160276399485],"mode":"markers","text":["dog<br />narcot<br />back<br />secur<br />unit<br />insid_properti<br />compli<br />onc<br />tuesday<br />retreat","dog<br />district_offic<br />femal<br />polic_district<br />bedroom<br />officer-involv<br />officer-involv_shoot<br />insid<br />kill<br />locat_offic","dog<br />narcot<br />block_e<br />resid<br />retreat<br />involv_shoot<br />kitchen<br />offic_involv<br />bull<br />pit_bull","dog<br />femal<br />partner<br />insid<br />kill<br />went<br />avenu<br />outsid<br />home<br />offic_heard","dog<br />septemb<br />encount<br />philadelphia_polic<br />officer-involv<br />officer-involv_shoot<br />white<br />philadelphia<br />area<br />avenu","dog<br />resid<br />polic_depart<br />dure<br />philadelphia_polic<br />assault<br />officer-involv<br />officer-involv_shoot<br />depart<br />shout","dog<br />west<br />anim<br />bull<br />pit_bull<br />pit<br />philadelphia<br />philadelphia_polic<br />kill<br />servic","dog<br />resid<br />attack<br />philadelphia<br />ongo<br />block_north<br />medic<br />two<br />north<br />philadelphia_polic","sergeant<br />bull<br />pit_bull<br />pit<br />discharg_offic<br />attack<br />also<br />year_old<br />old<br />dog","attack<br />dog<br />bull<br />pit_bull<br />pit<br />kill<br />philadelphia<br />year<br />philadelphia_polic<br />anim","attack<br />dog<br />owner<br />bull<br />pit_bull<br />block_south<br />pit<br />control<br />philadelphia<br />femal","dog<br />kill<br />wit<br />bull<br />pit_bull<br />pit<br />attack<br />philadelphia<br />bodi<br />victim","bull<br />pit_bull<br />pit<br />dog<br />attack<br />owner<br />control<br />philadelphia<br />stop<br />discharg_offic","dog<br />attack<br />anim<br />depart<br />philadelphia<br />avenu<br />later<br />polic_depart<br />philadelphia_polic<br />shout","dog<br />yard<br />bull<br />pit_bull<br />owner<br />pit<br />resid<br />year_old<br />old<br />year","block_south<br />resid<br />dog<br />south<br />offic_offic<br />philadelphia_polic<br />philadelphia<br />drew_weapon<br />made<br />bull","dog<br />attack<br />victim<br />wit<br />violat<br />home<br />highway<br />bull<br />pit_bull<br />bodi_worn","dog<br />anim<br />remain<br />control<br />dure_incid<br />philadelphia<br />injur<br />three<br />sustain<br />polic_depart"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"marker":{"color":"rgba(255,0,0,1)","size":6,"line":{"color":"rgba(255,0,0,1)"}},"type":"scatter","name":"Likely dog attack","textfont":{"color":"rgba(255,0,0,1)"},"error_y":{"color":"rgba(255,0,0,1)"},"error_x":{"color":"rgba(255,0,0,1)"},"line":{"color":"rgba(255,0,0,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[-0.10232360976819407,-0.075552611645860621,0.013653148051798325,-0.076077482407519215,-0.075625523593923522,-0.054966672351712854,-0.055808856467332385,-0.045006661794226237,-0.053879648484018772,-0.061826960560385981,-0.076712116675115585,-0.099540212355649582],"y":[-0.12051991816026411,-0.16637192465552508,-0.12780107973677557,-0.33762260384723969,-0.12855203257174053,-0.10394555153909542,-0.15659098066168284,-0.32919070651666477,-0.37716976007148639,-0.16057075503060889,-0.1036053185869526,-0.11894646517516201],"mode":"markers","text":["offend<br />gun<br />point_gun<br />lot<br />drop_gun<br />offend_drop<br />gun_offic<br />around<br />began<br />drop","offend<br />victim<br />east<br />handgun<br />gun<br />one_time<br />locat<br />return<br />partner<br />point_gun","victim<br />one_time<br />shot<br />shoot<br />left<br />unknown<br />area<br />south<br />homicid<br />shoulder","bedroom<br />knife<br />offend<br />victim<br />observ_offend<br />resid<br />arm<br />wit<br />front<br />enter","offend<br />encount<br />head<br />arm<br />point_offic<br />near<br />struck<br />fell<br />dure<br />wound","rifl<br />offend<br />homicid<br />believ<br />gunfir<br />multipl<br />gunshot<br />area<br />involv<br />direct","victim<br />offend<br />pronounc<br />weapon_offend<br />polic_civilian<br />highway<br />drew_weapon<br />larg<br />torso<br />ongo","knife<br />drop_knife<br />strike_male<br />drop<br />toward_offic<br />advanc_toward<br />arm<br />shout<br />advanc<br />deploy","knife<br />drop_knife<br />drop<br />walk<br />order<br />order_male<br />away<br />back<br />toward<br />park","knife<br />drop_knife<br />male_drop<br />drop<br />order_male<br />away<br />back<br />continu<br />order<br />advanc_toward","knife<br />offic_drew<br />one_offic<br />properti<br />drew<br />drop_knife<br />hospit_critic<br />ecw<br />one_round<br />move","knife<br />offend<br />move<br />control<br />drop_knife<br />torso<br />deploy<br />number_one<br />offic_number<br />complain"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text"],"marker":{"color":"rgba(255,165,0,1)","size":6,"line":{"color":"rgba(255,165,0,1)"}},"type":"scatter","name":"Likely knife attack","textfont":{"color":"rgba(255,165,0,1)"},"error_y":{"color":"rgba(255,165,0,1)"},"error_x":{"color":"rgba(255,165,0,1)"},"line":{"color":"rgba(255,165,0,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0.006206403978465138,0.030852496447168483,0.082002401437348424,0.074036783220665828,0.063144711893847752,0.050862745169919461,0.040374029162718164,0.030951505094374724,0.018505883504918354,0.060358795881776832,-0.015401758970898164,-0.011666836382860948,0.04649974443494162,0.055463231366217572,0.055143278630971834,0.045152610670663264,0.016387725188701376,0.043476058007197997,0.016251441185000659,-0.0057677296095977413,-0.030961872252845503,0.0097163042307443145,-0.044740736149371102,-0.022927268376320649,-0.014651848740927745,0.034100194885690951,7.050576966050874e-07,-0.0061023053772366583,0.016471407436168505,-0.047599138636601868,0.002435692965138527,-0.069041121590329824,-0.039005279953318886,-0.0028722004089990474,0.010370541134446661,-0.0046536533722788438,-0.040453350009204823,-0.03935807532435464,-0.01878043320281915,-0.042087011487686211,-0.0019624112302030054,-0.015667472603067806,-0.027913739450036893,-0.051196864075046984,-0.033628283545147672,-0.041563522367158261,-0.042106034789619051,-0.045654593136369687,-0.048412311606166596,-0.050034581786788962,-0.060011230216487389,-0.051085574424770748,-0.041521464541494191,-0.048683365384765906,-0.071322458169833208,-0.048449629855757223,-0.052862562072989561,-0.055931460389154884,-0.063410869124554639,-0.047406768440816684,-0.051629388854604052,-0.04062573258107214,-0.055416558812284716,-0.06209380812260961,-0.061229511371228021,-0.061446168709819581,-0.042766943120416762,-0.095511102431285105,-0.094001264552999536,-0.079169619206258687,-0.10592745697160232,-0.072150607134067402,-0.074338549346075297,-0.085252040501025972,-0.12804454544623725,-0.114275854391841,-0.0735729518779112,-0.09281095058997911,-0.071688952634583511,-0.074795060600143792,-0.10683203015107601,-0.12589112007521391,-0.081212508137546283,-0.10506057855001279,-0.11638289628351858,-0.086923877580052766,-0.093891519316652947,-0.098305782952640683,-0.08643158149691875,-0.091325952939032701,-0.075014171935932211,-0.084735879576295761,-0.075678496766345929,-0.083129833390233582,-0.093285193998507737,-0.091451035664769739,-0.090579268201874452,-0.1080262368800938,-0.097213326845124098,-0.091092179335945003,-0.084060031919606676,-0.082613030872556045,-0.098015673744956761],"y":[-0.024927406879137706,0.012814794813831718,0.032667716214000039,0.024446758701252541,0.090203302184100012,0.13644671053655444,0.08989900544961596,0.14761874271447803,-0.055742304598943006,0.08984535990175381,-0.013236634665181952,0.049752526069712005,0.037895470529230577,0.063994651829722249,0.061667258074772698,0.031187135547415725,0.013666431859449806,-0.016595478712659571,0.027713111122861876,-0.0083692630433802387,-0.087559063550453259,-0.051706504387759658,-0.036593716027401232,-0.0065188932502743078,-0.048668355689998638,-0.015975589620168519,-0.049632043640799504,-0.075587209897572227,-0.034916308511253692,-0.0066253456285907345,-0.022740831399485257,-0.054147538553589274,-0.016149572286306542,-0.098719704185962376,-0.040011017693336294,-0.032670734236524938,-0.030862575851361988,-0.019389439189613403,-0.085767175250981306,-0.015600644382330903,0.096944372076403662,-0.079515327858368498,0.096041696917235311,-0.064107222308309869,-0.029114138715686227,-0.021895159530383304,-0.0082774492458325775,0.001934754757703833,0.028919703531361324,0.028244096762175274,0.05184263028499838,-0.01048717485635412,0.050176247047570073,-0.041120318538478438,0.053926385457845345,0.056969108215366895,0.0086163909139650684,0.028321657771606286,0.003370394757709502,-0.081521573845608167,0.0048661443808202453,-0.029362879306645676,0.03604154854506423,0.042838362911569762,0.056189941738922729,0.0028217734702192889,0.018035068216000656,0.011824971895751813,0.096900026880805845,0.03468176102957269,0.17517427936036706,0.048924377662796135,0.066198229445957907,0.086713750368326292,0.19415013556529181,0.23135392475519584,0.032246076904928554,0.031219524215839702,0.0064070077415627098,0.028604506920264033,-0.029309364323516798,0.24933684834842171,0.024838254105337926,0.088599440463559609,0.12891851646544136,0.1198934193027707,0.021440116408686802,0.0086833311100357382,-0.059269182898502464,0.028034460758916021,0.025790950485206618,0.047382489563737265,0.046688598471513375,-0.023116343338183423,0.029446605705037026,0.031798816253903295,-0.0032081067926485948,0.015902311756650696,-0.0020100423751670299,0.048980385349267783,0.030754009371903736,0.054486461771980244,0.043212924866864746],"mode":"markers","text":["servic<br />sergeant<br />year<br />wit<br />involv<br />male_point<br />investig_unit<br />home<br />unknown<br />complain","detect<br />shoot<br />seat<br />person<br />unit<br />homicid<br />philadelphia<br />vehicl_approach<br />investig_unit<br />involv_shoot","injur<br />polic_district<br />philadelphia<br />polic_depart<br />veteran<br />philadelphia_polic<br />officer-involv<br />officer-involv_shoot<br />depart<br />investig_unit","room<br />officer-involv<br />officer-involv_shoot<br />district_place<br />one_round<br />duti<br />discharg_one<br />incid_offic<br />place<br />affair_investig","suspect<br />one_offic<br />year<br />shot<br />discharg_offic<br />driver<br />philadelphia_polic<br />male_suspect<br />june<br />use","suspect<br />block_north<br />saturday<br />uniform_offic<br />north<br />unit<br />philadelphia_polic<br />due<br />june<br />philadelphia","suspect<br />graze<br />male_suspect<br />white<br />robberi<br />off-duti<br />sustain<br />dure<br />philadelphia_polic<br />wound","suspect<br />off-duti<br />assault<br />robberi<br />take<br />struggl<br />dure<br />male_suspect<br />remain<br />violat","complain<br />front_door<br />knock<br />outsid<br />taken<br />unit<br />subsequ<br />took<br />arm<br />front","suspect<br />stolen<br />vehicl_offic<br />polic_district<br />driver<br />attempt<br />philadelphia_polic<br />male_suspect<br />officer-involv<br />officer-involv_shoot","magazin<br />block_north<br />offend<br />park<br />black<br />north<br />live<br />handgun<br />live_round<br />round","passeng<br />suspect<br />open<br />driver<br />door<br />strike_offic<br />driver_side<br />window<br />fled_scene<br />side","suspect<br />veteran_philadelphia<br />templ_univers<br />univers_hospit<br />depart_assign<br />shot<br />univers<br />shoot<br />person<br />polic_depart","swat<br />suspect<br />swat_offic<br />assist<br />year_old<br />respond_offic<br />old<br />still<br />year<br />direct","highway<br />graze<br />suspect<br />patrol<br />veteran_philadelphia<br />depart_assign<br />polic_depart<br />veteran<br />philadelphia_polic<br />assault","suspect<br />sergeant<br />home<br />depart<br />encount<br />shot<br />veteran<br />involv<br />verbal<br />one_time","suspect<br />shoot<br />victim<br />passeng<br />pronounc_deceas<br />deceas<br />driver<br />unit<br />pronounc<br />wound","suspect<br />knife<br />ecw<br />deploy<br />offic_respond<br />began<br />philadelphia_polic<br />advanc_toward<br />step<br />male_suspect","robberi<br />victim<br />suspect<br />approach_male<br />polic_vehicl<br />gun<br />follow<br />vehicl_offic<br />phone<br />drop_gun","side_door<br />door_offic<br />side<br />passeng<br />approach_driver<br />passeng_side<br />car<br />driver_side<br />driver<br />onto","lot<br />gun_offic<br />rear<br />bodi<br />ground<br />car<br />handgun<br />gun<br />pm_offic<br />strike_male","phone<br />detect<br />swat<br />one_time<br />properti<br />struck<br />enter<br />bedroom<br />swat_offic<br />announc","offend<br />offic_involv<br />gun_offic<br />observ_offend<br />area<br />involv<br />discharg_offic<br />turn<br />left<br />offic_offic","offic_involv<br />offend<br />side_door<br />involv<br />involv_shoot<br />side<br />taken<br />block_north<br />driver<br />shoot","swat<br />gsw<br />sustain<br />unit<br />insid_properti<br />front<br />properti<br />north<br />offend<br />rear","fire<br />cover<br />veteran_philadelphia<br />depart_assign<br />polic_depart<br />veteran<br />philadelphia_polic<br />depart<br />philadelphia<br />district_offic","room<br />offic_offic<br />oper<br />hospit_polic<br />open_door<br />discharg_offic<br />sever_time<br />window<br />templ_hospit<br />pull","gsw<br />victim<br />discharg_offic<br />locat<br />offic_arriv<br />locat_offic<br />arriv_locat<br />gunshot<br />believ<br />head","secur<br />unknown<br />westbound<br />pursuit<br />avenu<br />return<br />black_male<br />activ<br />black<br />front","passeng<br />refer<br />rear<br />unmark<br />unmark_vehicl<br />area<br />want<br />struck<br />window<br />pm_offic","floor<br />polic_offic<br />swat<br />door<br />magazin<br />warrant<br />unit<br />search<br />point_offic<br />vest","offend<br />unmark_vehicl<br />black<br />wear<br />unmark<br />drove<br />unknown<br />intersect<br />time_offic<br />handgun","stolen<br />partner<br />point_gun<br />black<br />taken<br />pursuit<br />street_offic<br />run<br />point<br />district_offic","arriv_locat<br />corner<br />gun<br />drop<br />drop_gun<br />verbal<br />locat<br />front<br />ground_drop<br />polic_civilian","swat<br />announc<br />swat_offic<br />door<br />addit<br />south<br />order<br />assault<br />insid<br />knock","respond_offic<br />run<br />point<br />polic_offic<br />observ_male<br />male_point<br />offic_observ<br />walk<br />weapon_male<br />avenu","park<br />polic_offic<br />westbound<br />still<br />seat<br />foot<br />behind<br />driver_seat<br />cover<br />car","unmark_vehicl<br />corner<br />bodi<br />unmark<br />medic<br />north<br />point_gun<br />narcot<br />wound<br />oper_unmark","road<br />bodi<br />front<br />refer<br />two<br />live<br />toward<br />civilian<br />turn<br />resid","passeng<br />rear<br />driver<br />request<br />posit<br />broad<br />due<br />blue<br />passeng_side<br />approach","suspect<br />swat_offic<br />swat<br />femal<br />properti<br />male_suspect<br />complain<br />road<br />point<br />white","properti<br />swat<br />black_male<br />black<br />driveway<br />went<br />locat<br />side<br />rear<br />full_uniform","suspect<br />vehicl_offic<br />polic_vehicl<br />gave<br />move<br />oper<br />driver<br />east<br />upon<br />point_offic","complain<br />car<br />get<br />floor<br />avenu<br />point<br />observ_male<br />male_arm<br />black<br />intersect","vest<br />rear<br />seat<br />vehicl_offic<br />black<br />area<br />road<br />near<br />unmark_polic<br />driver","unmark_polic<br />narcot<br />unmark<br />polic_vehicl<br />street_offic<br />front<br />black<br />search<br />front_door<br />area","sergeant<br />blue<br />unmark<br />camera<br />sever<br />insid<br />remov<br />run<br />plaincloth_offic<br />arrest","knock<br />off-duti<br />block_south<br />south<br />began<br />offic_offic<br />offic_drew<br />shout<br />locat<br />outsid","femal<br />yard<br />room<br />calib<br />found<br />multipl<br />also<br />live<br />properti<br />rear","medic<br />man<br />unit<br />driver<br />struggl<br />emerg<br />flee<br />pursuit<br />drive<br />lot","narcot<br />run<br />plaincloth_offic<br />gunshot<br />gun<br />unmark_vehicl<br />offic_heard<br />conduct<br />februari<br />round_recov","gun<br />third<br />gun_offic<br />door<br />saw<br />rear<br />arm<br />front<br />fire<br />ran","car<br />saw<br />window<br />still<br />approach<br />later<br />side<br />driver<br />approach_driver<br />area","man<br />away<br />advanc_toward<br />advanc<br />toward_offic<br />toward<br />drop<br />open<br />fell<br />car","detect<br />car<br />unmark<br />male_point<br />list_critic<br />approach_male<br />light<br />stop<br />believ<br />intersect","driver<br />broad<br />struggl<br />block_n<br />move<br />north<br />block_north<br />gun<br />still<br />open","calib<br />insid_resid<br />heard<br />gunshot<br />stand<br />search<br />front<br />come<br />area<br />resid","road<br />intersect<br />head<br />hold<br />pursu_male<br />offic_pursu<br />male_foot<br />male_fled<br />foot<br />discharg_firearm","complain<br />saw<br />struggl<br />drop_weapon<br />order_male<br />fled_foot<br />point<br />properti<br />order<br />point_gun","ecw<br />advanc_toward<br />advanc<br />kitchen<br />knife<br />enter<br />get<br />resid<br />offic_observ<br />drew","driveway<br />road<br />hand_offic<br />near<br />foot<br />hand<br />fled_foot<br />bodi<br />observ_male<br />turn","point_firearm<br />kill<br />male_point<br />direct<br />state<br />point<br />shoot<br />heard<br />left<br />order","street_observ<br />male_fled<br />patrol_car<br />leg<br />toward<br />car<br />strike_offic<br />insid<br />man<br />area","cartridg<br />fire<br />south<br />corner<br />sidewalk<br />patrol_car<br />calib<br />car<br />handgun<br />graze","narcot<br />unmark_polic<br />unmark<br />use<br />conduct<br />driver_door<br />polic_vehicl<br />three<br />driver<br />unit","street_male<br />patrol_vehicl<br />fire<br />south<br />male_male<br />weapon_offic<br />drop<br />run<br />calib<br />uniform_offic","swat<br />unit<br />hospit_critic<br />insid_resid<br />insid<br />admit<br />critic_condit<br />resid<br />insid_properti<br />detect","detect<br />offend<br />observ_offend<br />resid<br />bedroom<br />gunshot<br />june<br />went<br />oper_unmark<br />radio_assign","stolen<br />driver_side<br />side<br />driver<br />rear<br />park_vehicl<br />refus<br />offic_oper<br />one_round<br />vehicl_approach","detect<br />treat_releas<br />chase<br />head<br />treat<br />releas<br />offend<br />westbound<br />shoulder<br />off-duti","offic_number<br />number<br />passeng<br />pistol<br />two<br />servic<br />number_one<br />four<br />unmark<br />offend","plaincloth_offic<br />unmark_polic<br />unmark<br />plaincloth<br />civilian<br />two<br />polic_vehicl<br />homicid<br />hand<br />avenu","robberi<br />stolen<br />driver_door<br />driver<br />offic_approach<br />open<br />plaincloth<br />posit<br />three<br />plaincloth_offic","complain<br />phone<br />driveway<br />cartridg<br />number_one<br />offic_number<br />next<br />magazin<br />two<br />septemb","number_one<br />offic_number<br />number<br />offend<br />firearm_offic<br />south<br />yard<br />weapon_offend<br />august<br />pistol_load","offic_number<br />number<br />number_one<br />three<br />two<br />firearm_offic<br />pull<br />releas<br />offend<br />take","drop<br />hospit_critic<br />man<br />refus<br />ground_drop<br />street_male<br />august<br />monday<br />radio_assign<br />torso","stolen<br />offend<br />car<br />man<br />one_round<br />male_arm<br />report<br />discharg_one<br />light<br />emerg","offend<br />resid<br />admit<br />victim<br />semi-automat<br />templ_univers<br />univers_hospit<br />femal<br />univers<br />gunshot","waistband<br />june<br />offend<br />avenu_offic<br />pull<br />avenu<br />round<br />pistol<br />stop<br />patrol_vehicl","knife<br />offic_number<br />offend<br />number<br />move<br />number_one<br />open<br />toward_offic<br />offic_offic<br />bedroom","number_one<br />number<br />plaincloth_offic<br />offic_number<br />plaincloth<br />two<br />uniform_offic<br />februari<br />offend<br />park_vehicl","offend<br />east<br />street_offic<br />offend_offend<br />univers_hospit<br />toward<br />civilian<br />treatment<br />univers<br />turn","offend<br />number_one<br />offic_number<br />number<br />live_round<br />block_n<br />drop<br />hand<br />live<br />offend_offend","miss_offend<br />offend<br />offic_number<br />discharg_firearm<br />number<br />miss<br />north<br />number_one<br />block_n<br />seat","offic_number<br />number<br />driveway<br />offic_approach<br />block_n<br />apprehend<br />approach<br />two<br />foot<br />fled_scene","rifl<br />offend<br />front<br />scene_injuri<br />radio_assign<br />octob<br />subsequ<br />inform_post<br />post<br />offend_transport","offend<br />miss_offend<br />compli<br />drop_weapon<br />offend_offend<br />pursu<br />weapon_offend<br />driveway<br />miss<br />ran","offend<br />properti<br />victim<br />penn-presbyterian<br />penn-presbyterian_hospit<br />knife<br />right_hand<br />hand<br />femal<br />right","offend<br />park_vehicl<br />sergeant<br />discharg_firearm<br />univers<br />firearm_strike<br />mark_polic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />femal","insid_properti<br />properti<br />offend<br />femal<br />swat<br />insid<br />struck<br />person<br />assault<br />swat_offic","polic_vehicl<br />sidewalk<br />onto<br />drive<br />offend<br />direct<br />weapon_recov<br />block_e<br />passeng_side<br />drove","broad<br />block_north<br />oper<br />north<br />turn<br />miss_offend<br />approach_driver<br />offic_oper<br />weapon_recov<br />highway","step<br />door_offic<br />offend<br />rear<br />kitchen<br />off-duti<br />door<br />apprehend<br />miss<br />offic_observ","offend<br />properti<br />swat<br />secur<br />unit<br />one_offic<br />insid_properti<br />miss_offend<br />weapon_offend<br />offic_pursu","unmark_polic<br />polic_vehicl<br />unmark<br />offend<br />vehicl_respond<br />avenu<br />mark_polic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />offic_drew","properti<br />offend<br />avenu<br />rear<br />avenu_offic<br />second<br />enter<br />penn-presbyterian<br />penn-presbyterian_hospit<br />gun","offend<br />complain<br />point_gun<br />robberi<br />struggl<br />exit_vehicl<br />subsequ<br />polic_vehicl<br />gun<br />femal","offend<br />weapon_offend<br />broad<br />offend_fled<br />block_n<br />offend_offend<br />park<br />lot<br />drop<br />result","offend<br />yard<br />lot<br />want<br />block_n<br />offend_drop<br />offic_pursu<br />unmark_polic<br />onc<br />pistol_load","polic_vehicl<br />second<br />offend<br />want<br />two<br />drive<br />park_vehicl<br />violat<br />front<br />move","polic_vehicl<br />block_north<br />pursu<br />pursu_male<br />north<br />offend<br />rear<br />yard<br />miss_offend<br />foot","offend<br />polic_vehicl<br />strike_offic<br />penn-presbyterian<br />penn-presbyterian_hospit<br />discharg_firearm<br />remain<br />advanc<br />scene_injuri<br />street_male"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"marker":{"color":"rgba(70,130,180,1)","size":6,"line":{"color":"rgba(70,130,180,1)"}},"type":"scatter","name":"Other","textfont":{"color":"rgba(70,130,180,1)"},"error_y":{"color":"rgba(70,130,180,1)"},"error_x":{"color":"rgba(70,130,180,1)"},"line":{"color":"rgba(70,130,180,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-documentMap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2
+</figcaption>
+</figure>
+</div>
+</div>
+</section>
+<section id="clustering-documents-using-their-svd-representation" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Clustering documents using their SVD representation</h1>
+<p>Hartigan’s k-means algorithm is an iterative method for partitioning data into <span class="math inline">\(k\)</span> clusters by minimizing the total within-cluster sum of squares. It begins with randomly chosen cluster centers (centroids) and alternates between two steps:</p>
+<ol type="1">
+<li>assigning each data point to the nearest centroid based on Euclidean distance</li>
+<li>updating each centroid to be the mean of the points currently assigned to it</li>
+</ol>
+<p>These steps repeat until the assignments no longer change significantly, indicating convergence. The algorithm is greedy and locally optimal. That is, it always reduces the the within cluster sum of squares at each iteration, but it can converge to different solutions depending on the initial centroids. Multiple runs with different random starts are often used to find a better overall solution.</p>
+<p>Let’s look at a little 2D demonstration before we run this on documents, which can be a little abstract. I have created three clusters with centers at (0,0), (3,3), and (5,5). Then I have R code that reassigns points to their nearest centroids, recomputes the cluster centroids, plots the points colored by their cluster assignment, checks for convergence, and repeats if needed.</p>
+<div class="cell" data-caption="Demonstration of Hartigan's k-means algorithm">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20250325</span>)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate data from 3 clusters</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x=</span><span class="fu">rnorm</span>(<span class="dv">180</span>, <span class="at">mean=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">5</span>)),</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">y=</span><span class="fu">rnorm</span>(<span class="dv">180</span>, <span class="at">mean=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">3</span>,<span class="dv">5</span>)))</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a><span class="co"># find three clusters</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a><span class="co"># pick three random points to start</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>old_centroid <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n=</span>k) <span class="sc">|&gt;</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x,y)</span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to assign points to nearest center</span></span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a><span class="co">#   compare each point to each of the three centers</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a><span class="co">#   assign the point to its closest center</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>assign_clusters <span class="ot">&lt;-</span> <span class="cf">function</span>(df, centers) </span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">apply</span>(df, <span class="dv">1</span>, <span class="cf">function</span>(point) </span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>    {</span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">which.min</span>(<span class="fu">colSums</span>((<span class="fu">t</span>(centers) <span class="sc">-</span> point)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>iter <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a><span class="cf">repeat</span> </span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Assign points to nearest cluster</span></span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>  df<span class="sc">$</span>cluster <span class="ot">&lt;-</span> <span class="fu">assign_clusters</span>(df[,<span class="fu">c</span>(<span class="st">"x"</span>,<span class="st">"y"</span>)], </span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>                                old_centroid)</span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get centroids of newly assigned clusters</span></span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>  new_centroid <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span></span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(cluster) <span class="sc">|&gt;</span></span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">x=</span><span class="fu">mean</span>(x), <span class="at">y=</span><span class="fu">mean</span>(y))</span>
+<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot showing old and new centroids</span></span>
+<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>  plotKmeans <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">color =</span> <span class="fu">factor</span>(cluster))) <span class="sc">+</span></span>
+<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> old_centroid, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y), </span>
+<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a>               <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">stroke =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">data =</span> new_centroid, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">fill=</span><span class="fu">factor</span>(cluster)), </span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>               <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">stroke =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">bind_cols</span>(old_centroid, new_centroid),</span>
+<span id="cb58-48"><a href="#cb58-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x...<span class="dv">1</span>, <span class="at">y =</span> y...<span class="dv">2</span>, <span class="at">xend =</span> x...<span class="dv">4</span>, <span class="at">yend =</span> y...<span class="dv">5</span>),</span>
+<span id="cb58-49"><a href="#cb58-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.15</span>, <span class="st">"inches"</span>)),</span>
+<span id="cb58-50"><a href="#cb58-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"black"</span></span>
+<span id="cb58-51"><a href="#cb58-51" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb58-52"><a href="#cb58-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggtitle</span>(<span class="fu">paste</span>(<span class="st">"K-Means Iteration"</span>, iter)) <span class="sc">+</span></span>
+<span id="cb58-53"><a href="#cb58-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>()</span>
+<span id="cb58-54"><a href="#cb58-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(plotKmeans)</span>
+<span id="cb58-55"><a href="#cb58-55" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-56"><a href="#cb58-56" aria-hidden="true" tabindex="-1"></a>  new_centroid <span class="ot">&lt;-</span> new_centroid <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>cluster)</span>
+<span id="cb58-57"><a href="#cb58-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-58"><a href="#cb58-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if converged</span></span>
+<span id="cb58-59"><a href="#cb58-59" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">all</span>(<span class="fu">abs</span>(new_centroid <span class="sc">-</span> old_centroid) <span class="sc">&lt;</span> <span class="fl">0.001</span>))</span>
+<span id="cb58-60"><a href="#cb58-60" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb58-61"><a href="#cb58-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span></span>
+<span id="cb58-62"><a href="#cb58-62" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb58-63"><a href="#cb58-63" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb58-64"><a href="#cb58-64" aria-hidden="true" tabindex="-1"></a>  old_centroid <span class="ot">&lt;-</span> new_centroid</span>
+<span id="cb58-65"><a href="#cb58-65" aria-hidden="true" tabindex="-1"></a>  iter <span class="ot">&lt;-</span> iter <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb58-66"><a href="#cb58-66" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-kmeans-1" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-1.png" id="fig-kmeans-1" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-2" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-2.png" id="fig-kmeans-2" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-3" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-3.png" id="fig-kmeans-3" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-4" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-4.png" id="fig-kmeans-4" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-5" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-5.png" id="fig-kmeans-5" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-5-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-6" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-6.png" id="fig-kmeans-6" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-6-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-7" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-7.png" id="fig-kmeans-7" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-7-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div id="fig-kmeans-8" class="quarto-figure quarto-figure-center quarto-float anchored" width="480">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kmeans-8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kmeans-8.png" id="fig-kmeans-8" class="img-fluid figure-img" width="480">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kmeans-8-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Now let’s try this same approach, but we are going to try it on documents, where documents are defined by their first 7 right singular vectors (columns of <span class="math inline">\(\mathbf{V}\)</span>). Fortunately, R has a built-in <code>kmeans()</code> function in the default <code>stats</code> package that will do all the work for us.</p>
+<p>First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, <span class="math inline">\(k\)</span>, and the total within-cluster sum of squares (SSE) produced by the k-means algorithm. This is the sum of the squared distance between each point and its assigned cluster centroid. This is a key part of the “elbow method,” a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of <span class="math inline">\(k\)</span> (from 1 to 40 in this case), and recording the corresponding SSE, we can visualize how much the clustering improves as <span class="math inline">\(k\)</span> increases. A plot of SSE versus <span class="math inline">\(k\)</span> typically shows a steep drop initially and then levels off. The “elbow” point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data.</p>
+<div class="cell" data-caption="Relationship between $k$ and the within clsuter sum of squares">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">40</span>, <span class="at">SSE=</span><span class="cn">NA</span>)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design))</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  km <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(oisSVD<span class="sc">$</span>v[,<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>], </span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">centers =</span> design<span class="sc">$</span>k[i], </span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">nstart =</span> <span class="dv">5</span>)</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>  design<span class="sc">$</span>SSE[i] <span class="ot">&lt;-</span> km<span class="sc">$</span>tot.withinss</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(SSE<span class="sc">~</span>k, <span class="at">data=</span>design, <span class="at">pch=</span><span class="dv">16</span>)</span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.2</span><span class="sc">*</span>design<span class="sc">$</span>SSE[<span class="dv">1</span>], <span class="at">col=</span><span class="st">"red"</span>)</span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>kSelect <span class="ot">&lt;-</span> design <span class="sc">|&gt;</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(SSE <span class="sc">&gt;</span> <span class="fl">0.2</span><span class="sc">*</span>design<span class="sc">$</span>SSE[<span class="dv">1</span>]) <span class="sc">|&gt;</span></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(SSE) <span class="sc">|&gt;</span></span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-kvsse" class="quarto-figure quarto-figure-center quarto-float anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-kvsse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L11-text_files/figure-html/fig-kvsse-1.png" id="fig-kvsse" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-kvsse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In <a href="#fig-kvsse" class="quarto-xref">Figure&nbsp;11</a> I have marked where the within cluster sum of squares has declined by 80% from having all points in one big cluster. That happens when we set <span class="math inline">\(k\)</span> to 11.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="co"># run kmeans on first 7 right singular vectors</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   clusters similar documents</span></span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20250325</span>)</span>
+<span id="cb60-4"><a href="#cb60-4" aria-hidden="true" tabindex="-1"></a>oisKmeans <span class="ot">&lt;-</span> <span class="fu">kmeans</span>(oisSVD<span class="sc">$</span>v[,<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>], </span>
+<span id="cb60-5"><a href="#cb60-5" aria-hidden="true" tabindex="-1"></a>                    <span class="at">centers =</span> kSelect,</span>
+<span id="cb60-6"><a href="#cb60-6" aria-hidden="true" tabindex="-1"></a>                    <span class="at">nstart =</span> <span class="dv">5</span>) <span class="co"># try 5 random starting points</span></span>
+<span id="cb60-7"><a href="#cb60-7" aria-hidden="true" tabindex="-1"></a><span class="co"># add the cluster labels to the dataset</span></span>
+<span id="cb60-8"><a href="#cb60-8" aria-hidden="true" tabindex="-1"></a>ois<span class="sc">$</span>cluster <span class="ot">&lt;-</span> oisKmeans<span class="sc">$</span>cluster</span>
+<span id="cb60-9"><a href="#cb60-9" aria-hidden="true" tabindex="-1"></a>ois <span class="sc">|&gt;</span></span>
+<span id="cb60-10"><a href="#cb60-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id,location,date,cluster) <span class="sc">|&gt;</span></span>
+<span id="cb60-11"><a href="#cb60-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     id                                 location       date cluster
+1 24-37      3450 Vista Street, Philadelphia, PA 2024-12-10       8
+2 24-36          3250 A Street, Philadelphia, PA 2024-11-12       8
+3 24-35 5450 Chancellor Street, Philadelphia, PA 2024-11-10       4
+4 24-32         2950 E. Street, Philadelphia, PA 2024-10-11       8
+5 24-31      3350 Willits Road, Philadelphia, PA 2024-10-03       4
+6 24-30    6150 Lebanon Avenue, Philadelphia, PA 2024-10-02       8</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>hovertext <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(oisTFIDF) <span class="sc">|&gt;</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">cluster =</span> ois<span class="sc">$</span>cluster) <span class="sc">|&gt;</span></span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(cluster) <span class="sc">|&gt;</span></span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), mean)) <span class="sc">|&gt;</span></span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>cluster) <span class="sc">|&gt;</span></span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">1</span>, <span class="cf">function</span>(w)</span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>    i <span class="ot">&lt;-</span> <span class="fu">order</span>(w, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">colnames</span>(oisTFIDF)[i[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]]</span>
+<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>  }) <span class="sc">|&gt;</span></span>
+<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">t</span>() <span class="sc">|&gt;</span></span>
+<span id="cb62-13"><a href="#cb62-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">apply</span>(<span class="dv">1</span>, paste, <span class="at">collapse=</span><span class="st">", "</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb62-14"><a href="#cb62-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.frame</span>() <span class="sc">|&gt;</span></span>
+<span id="cb62-15"><a href="#cb62-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="at">size =</span> oisKmeans<span class="sc">$</span>size,</span>
+<span id="cb62-16"><a href="#cb62-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">cluster =</span> <span class="dv">1</span><span class="sc">:</span>kSelect) <span class="sc">|&gt;</span></span>
+<span id="cb62-17"><a href="#cb62-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename_with</span>(<span class="sc">~</span><span class="st">"terms"</span>, <span class="at">.cols=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-caption="Plot of document by first two right singular vectors, colored by cluster">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_ly</span>(</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> oisSVD<span class="sc">$</span>v[,<span class="dv">1</span>],</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> oisSVD<span class="sc">$</span>v[,<span class="dv">2</span>],</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">"scatter"</span>,</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">mode =</span> <span class="st">"markers"</span>,</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">color =</span> ois<span class="sc">$</span>cluster,</span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">text =</span> hovertext<span class="sc">$</span>terms[ois<span class="sc">$</span>cluster], </span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">marker =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">6</span>)</span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layout</span>(</span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">xaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"SVD Dimension 1"</span>),</span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">yaxis =</span> <span class="fu">list</span>(<span class="at">title =</span> <span class="st">"SVD Dimension 2"</span>),</span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"K-Means Clustering of OIS Reports"</span></span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fig-clusteredDocuments" class="cell-output-display quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-clusteredDocuments-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="plotly html-widget html-fill-item" id="htmlwidget-a34e12fe2441f5624a7c" style="width:100%;height:464px;"></div>
+<script type="application/json" data-for="htmlwidget-a34e12fe2441f5624a7c">{"x":{"visdat":{"ead86f424feb":["function () ","plotlyVisDat"]},"cur_data":"ead86f424feb","attrs":{"ead86f424feb":{"x":[0.12809101801173972,0.10143020755684841,0.086694669433611551,0.12747386571725569,0.086265364600661767,0.12886013227559953,0.10740982165343897,0.090456049812433839,0.086834636371068891,0.12413025337483288,0.11553179143963746,0.097925237637608131,0.10523601304286277,0.13847090548115387,0.10235038886013921,0.1067300888419427,0.13938314777682106,0.13034709643193851,0.10023447204067895,0.1152343654320528,0.083842261407203689,0.12252903833194619,0.10024178873221692,0.11772233703580717,0.090678306805002176,0.089234646937243839,0.090838026753821313,0.10281417259767657,0.11187962635105526,0.10452880234907913,0.095786374490251097,0.11248877175421509,0.097346388423486779,0.11441409328411251,0.097239726883754291,0.1055532625484213,0.09526191406819004,0.078647093333567661,0.074127612303507062,0.091462909429766301,0.086469936943868272,0.086293688639400248,0.094216280781637629,0.083300054306917462,0.10103279754274755,0.10523541263282109,0.091676284326934906,0.073453379169994032,0.082696617292141075,0.08238853645839217,0.076526184396504257,0.10607016771686321,0.084526238635009424,0.10055907825409309,0.07641452849244941,0.074188920213690376,0.085683644943127857,0.098665403731459878,0.085387890561222562,0.079671029830106196,0.071808896811749359,0.072759325512459075,0.073479632143116119,0.080278587098433121,0.094250261353843248,0.076913748745529739,0.11908042227309437,0.083084227695591414,0.10087642127203396,0.081073494102848573,0.079742727443912628,0.078156404683886432,0.085327850349264489,0.071119576991081082,0.061088297636844452,0.064628015932150312,0.065171846737473796,0.062411066539794925,0.065741852184999797,0.069282178824364646,0.061950357762286641,0.061731933376507765,0.074153872922680233,0.063954285403867023,0.062246335988670728,0.066409547023213333,0.064894348527805651,0.063155000174443032,0.060122003975292722,0.061910488774523653,0.059527059821787826,0.060849853133494766,0.067115490539359141,0.061213697172935247,0.075070689225424231,0.079454268004051337,0.068006650419493359,0.067417436329644032,0.075763326574544695,0.066555613446914311,0.063496871580719483,0.06632463913787856,0.069549602308002612,0.07699184141303346,0.076853903709694402,0.060482964998178984,0.071760494476999115,0.075086788717691366,0.066887808213329958,0.084201612177188703,0.076515663327684877,0.068626509014621237,0.07389950010656457,0.080604462012749692,0.084948623980769217,0.067996066862301391,0.070018970199928574,0.07657098972963057,0.084340692147978472,0.075557109854665697,0.076972695614552125,0.065682223566862458,0.065319864615413448,0.076234077974010814,0.079477682944417941,0.069610861330877252,0.075498671320146399,0.089314382874623219,0.075800944927862532,0.073596551389184514,0.075051916441717451,0.06713696468800065,0.07253982799607428],"y":[0.17403511249172915,0.11289626209213616,0.006206403978465138,0.16906245122035199,0.030852496447168483,0.17366552107306288,0.12271903040311806,0.082002401437348424,0.074036783220665828,0.16288335904442239,0.15960187600614761,0.063144711893847752,0.050862745169919461,0.19915839045803671,0.040374029162718164,0.14222723818173208,0.25185720339605072,0.20516638044255489,0.030951505094374724,0.15240552895507084,0.018505883504918354,0.19770559799559645,0.060358795881776832,0.16338131592910543,-0.015401758970898164,-0.011666836382860948,0.04649974443494162,0.055463231366217572,0.15396431220227505,0.1299086378817853,0.055143278630971834,0.13537269157860499,0.045152610670663264,0.15229025848972372,0.016387725188701376,0.043476058007197997,0.016251441185000659,-0.0057677296095977413,-0.030961872252845503,0.0097163042307443145,-0.044740736149371102,-0.022927268376320649,-0.014651848740927745,0.034100194885690951,-0.10232360976819407,-0.075552611645860621,0.013653148051798325,7.050576966050874e-07,-0.0061023053772366583,0.016471407436168505,-0.047599138636601868,-0.076077482407519215,0.002435692965138527,-0.069041121590329824,-0.039005279953318886,-0.0028722004089990474,0.010370541134446661,-0.075625523593923522,-0.054966672351712854,-0.0046536533722788438,-0.040453350009204823,-0.03935807532435464,-0.01878043320281915,-0.042087011487686211,-0.055808856467332385,-0.045006661794226237,-0.0019624112302030054,-0.015667472603067806,-0.027913739450036893,-0.053879648484018772,-0.051196864075046984,-0.033628283545147672,-0.041563522367158261,-0.042106034789619051,-0.045654593136369687,-0.048412311606166596,-0.050034581786788962,-0.060011230216487389,-0.051085574424770748,-0.041521464541494191,-0.048683365384765906,-0.071322458169833208,-0.048449629855757223,-0.052862562072989561,-0.055931460389154884,-0.063410869124554639,-0.061826960560385981,-0.047406768440816684,-0.051629388854604052,-0.04062573258107214,-0.055416558812284716,-0.06209380812260961,-0.061229511371228021,-0.061446168709819581,-0.042766943120416762,-0.095511102431285105,-0.094001264552999536,-0.079169619206258687,-0.10592745697160232,-0.072150607134067402,-0.074338549346075297,-0.076712116675115585,-0.085252040501025972,-0.12804454544623725,-0.114275854391841,-0.0735729518779112,-0.09281095058997911,-0.071688952634583511,-0.074795060600143792,-0.10683203015107601,-0.12589112007521391,-0.081212508137546283,-0.10506057855001279,-0.11638289628351858,-0.099540212355649582,-0.086923877580052766,-0.093891519316652947,-0.098305782952640683,-0.08643158149691875,-0.091325952939032701,-0.075014171935932211,-0.084735879576295761,-0.075678496766345929,-0.083129833390233582,-0.093285193998507737,-0.091451035664769739,-0.090579268201874452,-0.1080262368800938,-0.097213326845124098,-0.091092179335945003,-0.084060031919606676,-0.082613030872556045,-0.098015673744956761],"mode":"markers","text":["dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark"],"marker":{"size":6},"color":[8,8,4,8,4,8,8,4,4,8,8,2,2,8,2,8,8,8,2,8,4,8,2,8,11,2,2,7,8,8,2,8,2,8,4,2,2,10,10,7,11,4,7,4,11,11,11,4,11,4,10,5,7,11,10,4,7,11,11,4,4,10,4,10,11,5,7,7,2,5,4,10,10,3,3,3,3,3,3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,7,6,3,6,1,3,3,9,3,1,1,6,6,6,3,9,1,6,6,1,9,1,6,6,6,6,6,3,3,6,6,3,6,6,6,6,3,3,6],"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"type":"scatter"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"SVD Dimension 1"},"yaxis":{"domain":[0,1],"automargin":true,"title":"SVD Dimension 2"},"title":"K-Means Clustering of OIS Reports","hovermode":"closest","showlegend":false,"legend":{"yanchor":"top","y":0.5}},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false},"data":[{"x":[0.12809101801173972,0.10143020755684841,0.086694669433611551,0.12747386571725569,0.086265364600661767,0.12886013227559953,0.10740982165343897,0.090456049812433839,0.086834636371068891,0.12413025337483288,0.11553179143963746,0.097925237637608131,0.10523601304286277,0.13847090548115387,0.10235038886013921,0.1067300888419427,0.13938314777682106,0.13034709643193851,0.10023447204067895,0.1152343654320528,0.083842261407203689,0.12252903833194619,0.10024178873221692,0.11772233703580717,0.090678306805002176,0.089234646937243839,0.090838026753821313,0.10281417259767657,0.11187962635105526,0.10452880234907913,0.095786374490251097,0.11248877175421509,0.097346388423486779,0.11441409328411251,0.097239726883754291,0.1055532625484213,0.09526191406819004,0.078647093333567661,0.074127612303507062,0.091462909429766301,0.086469936943868272,0.086293688639400248,0.094216280781637629,0.083300054306917462,0.10103279754274755,0.10523541263282109,0.091676284326934906,0.073453379169994032,0.082696617292141075,0.08238853645839217,0.076526184396504257,0.10607016771686321,0.084526238635009424,0.10055907825409309,0.07641452849244941,0.074188920213690376,0.085683644943127857,0.098665403731459878,0.085387890561222562,0.079671029830106196,0.071808896811749359,0.072759325512459075,0.073479632143116119,0.080278587098433121,0.094250261353843248,0.076913748745529739,0.11908042227309437,0.083084227695591414,0.10087642127203396,0.081073494102848573,0.079742727443912628,0.078156404683886432,0.085327850349264489,0.071119576991081082,0.061088297636844452,0.064628015932150312,0.065171846737473796,0.062411066539794925,0.065741852184999797,0.069282178824364646,0.061950357762286641,0.061731933376507765,0.074153872922680233,0.063954285403867023,0.062246335988670728,0.066409547023213333,0.064894348527805651,0.063155000174443032,0.060122003975292722,0.061910488774523653,0.059527059821787826,0.060849853133494766,0.067115490539359141,0.061213697172935247,0.075070689225424231,0.079454268004051337,0.068006650419493359,0.067417436329644032,0.075763326574544695,0.066555613446914311,0.063496871580719483,0.06632463913787856,0.069549602308002612,0.07699184141303346,0.076853903709694402,0.060482964998178984,0.071760494476999115,0.075086788717691366,0.066887808213329958,0.084201612177188703,0.076515663327684877,0.068626509014621237,0.07389950010656457,0.080604462012749692,0.084948623980769217,0.067996066862301391,0.070018970199928574,0.07657098972963057,0.084340692147978472,0.075557109854665697,0.076972695614552125,0.065682223566862458,0.065319864615413448,0.076234077974010814,0.079477682944417941,0.069610861330877252,0.075498671320146399,0.089314382874623219,0.075800944927862532,0.073596551389184514,0.075051916441717451,0.06713696468800065,0.07253982799607428],"y":[0.17403511249172915,0.11289626209213616,0.006206403978465138,0.16906245122035199,0.030852496447168483,0.17366552107306288,0.12271903040311806,0.082002401437348424,0.074036783220665828,0.16288335904442239,0.15960187600614761,0.063144711893847752,0.050862745169919461,0.19915839045803671,0.040374029162718164,0.14222723818173208,0.25185720339605072,0.20516638044255489,0.030951505094374724,0.15240552895507084,0.018505883504918354,0.19770559799559645,0.060358795881776832,0.16338131592910543,-0.015401758970898164,-0.011666836382860948,0.04649974443494162,0.055463231366217572,0.15396431220227505,0.1299086378817853,0.055143278630971834,0.13537269157860499,0.045152610670663264,0.15229025848972372,0.016387725188701376,0.043476058007197997,0.016251441185000659,-0.0057677296095977413,-0.030961872252845503,0.0097163042307443145,-0.044740736149371102,-0.022927268376320649,-0.014651848740927745,0.034100194885690951,-0.10232360976819407,-0.075552611645860621,0.013653148051798325,7.050576966050874e-07,-0.0061023053772366583,0.016471407436168505,-0.047599138636601868,-0.076077482407519215,0.002435692965138527,-0.069041121590329824,-0.039005279953318886,-0.0028722004089990474,0.010370541134446661,-0.075625523593923522,-0.054966672351712854,-0.0046536533722788438,-0.040453350009204823,-0.03935807532435464,-0.01878043320281915,-0.042087011487686211,-0.055808856467332385,-0.045006661794226237,-0.0019624112302030054,-0.015667472603067806,-0.027913739450036893,-0.053879648484018772,-0.051196864075046984,-0.033628283545147672,-0.041563522367158261,-0.042106034789619051,-0.045654593136369687,-0.048412311606166596,-0.050034581786788962,-0.060011230216487389,-0.051085574424770748,-0.041521464541494191,-0.048683365384765906,-0.071322458169833208,-0.048449629855757223,-0.052862562072989561,-0.055931460389154884,-0.063410869124554639,-0.061826960560385981,-0.047406768440816684,-0.051629388854604052,-0.04062573258107214,-0.055416558812284716,-0.06209380812260961,-0.061229511371228021,-0.061446168709819581,-0.042766943120416762,-0.095511102431285105,-0.094001264552999536,-0.079169619206258687,-0.10592745697160232,-0.072150607134067402,-0.074338549346075297,-0.076712116675115585,-0.085252040501025972,-0.12804454544623725,-0.114275854391841,-0.0735729518779112,-0.09281095058997911,-0.071688952634583511,-0.074795060600143792,-0.10683203015107601,-0.12589112007521391,-0.081212508137546283,-0.10506057855001279,-0.11638289628351858,-0.099540212355649582,-0.086923877580052766,-0.093891519316652947,-0.098305782952640683,-0.08643158149691875,-0.091325952939032701,-0.075014171935932211,-0.084735879576295761,-0.075678496766345929,-0.083129833390233582,-0.093285193998507737,-0.091451035664769739,-0.090579268201874452,-0.1080262368800938,-0.097213326845124098,-0.091092179335945003,-0.084060031919606676,-0.082613030872556045,-0.098015673744956761],"mode":"markers","text":["dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","dog, attack, bull, pit_bull, pit, philadelphia, philadelphia_polic, resid, owner, officer-involv","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","offend, victim, handgun, gun, area, one_time, right, left, black, gsw","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","suspect, philadelphia_polic, philadelphia, male_suspect, depart, robberi, depart_assign, driver, dure, veteran","knife, drop_knife, bedroom, drop, offend, arm, walk, front, victim, continu","shoot, complain, room, philadelphia, unit, depart, front, point, veteran, polic_district","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","passeng, rear, unmark, driver, unmark_polic, area, street_offic, black, unmark_vehicl, narcot","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","swat, swat_offic, properti, suspect, announc, unit, door, detect, floor, insid","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","knife, drop_knife, offend, move, ecw, offic_drew, male_drop, offic_number, inform_post, post","offic_number, number, number_one, offend, two, plaincloth_offic, inform_post, post, block_n, firearm_offic","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","inform_post, post, polic_vehicl, driver, offend, provid, prior, unmark, charg_decis, decis","offend, inform_post, post, detect, offend_offend, properti, polic_vehicl, da_offic, inform_da, offic_mark"],"marker":{"colorbar":{"title":"","ticklen":2},"cmin":1,"cmax":11,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":false,"color":[8,8,4,8,4,8,8,4,4,8,8,2,2,8,2,8,8,8,2,8,4,8,2,8,11,2,2,7,8,8,2,8,2,8,4,2,2,10,10,7,11,4,7,4,11,11,11,4,11,4,10,5,7,11,10,4,7,11,11,4,4,10,4,10,11,5,7,7,2,5,4,10,10,3,3,3,3,3,3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,7,6,3,6,1,3,3,9,3,1,1,6,6,6,3,9,1,6,6,1,9,1,6,6,6,6,6,3,3,6,6,3,6,6,6,6,3,3,6],"size":6,"line":{"colorbar":{"title":"","ticklen":2},"cmin":1,"cmax":11,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":false,"color":[8,8,4,8,4,8,8,4,4,8,8,2,2,8,2,8,8,8,2,8,4,8,2,8,11,2,2,7,8,8,2,8,2,8,4,2,2,10,10,7,11,4,7,4,11,11,11,4,11,4,10,5,7,11,10,4,7,11,11,4,4,10,4,10,11,5,7,7,2,5,4,10,10,3,3,3,3,3,3,3,3,3,3,3,3,3,9,9,3,3,3,3,3,3,7,6,3,6,1,3,3,9,3,1,1,6,6,6,3,9,1,6,6,1,9,1,6,6,6,6,6,3,3,6,6,3,6,6,6,6,3,3,6]}},"type":"scatter","xaxis":"x","yaxis":"y","frame":null},{"x":[0.059527059821787826,0.13938314777682106],"y":[-0.12804454544623725,0.25185720339605072],"type":"scatter","mode":"markers","opacity":0,"hoverinfo":"none","showlegend":false,"marker":{"colorbar":{"title":"","ticklen":2,"len":0.5,"lenmode":"fraction","y":1,"yanchor":"top"},"cmin":1,"cmax":11,"colorscale":[["0","rgba(68,1,84,1)"],["0.0416666666666667","rgba(70,19,97,1)"],["0.0833333333333333","rgba(72,32,111,1)"],["0.125","rgba(71,45,122,1)"],["0.166666666666667","rgba(68,58,128,1)"],["0.208333333333333","rgba(64,70,135,1)"],["0.25","rgba(60,82,138,1)"],["0.291666666666667","rgba(56,93,140,1)"],["0.333333333333333","rgba(49,104,142,1)"],["0.375","rgba(46,114,142,1)"],["0.416666666666667","rgba(42,123,142,1)"],["0.458333333333333","rgba(38,133,141,1)"],["0.5","rgba(37,144,140,1)"],["0.541666666666667","rgba(33,154,138,1)"],["0.583333333333333","rgba(39,164,133,1)"],["0.625","rgba(47,174,127,1)"],["0.666666666666667","rgba(53,183,121,1)"],["0.708333333333333","rgba(79,191,110,1)"],["0.75","rgba(98,199,98,1)"],["0.791666666666667","rgba(119,207,85,1)"],["0.833333333333333","rgba(147,214,70,1)"],["0.875","rgba(172,220,52,1)"],["0.916666666666667","rgba(199,225,42,1)"],["0.958333333333333","rgba(226,228,40,1)"],["1","rgba(253,231,37,1)"]],"showscale":true,"color":[1,11],"line":{"color":"rgba(255,127,14,1)"}},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-clusteredDocuments-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12
+</figcaption>
+</figure>
 </div>
 </div>
 </section>

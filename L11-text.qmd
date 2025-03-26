@@ -14,6 +14,7 @@ format:
     html-math-method: mathjax
   pdf:
     toc: true
+    exclude: true
 prefer-html: true
 number-sections: true
 editor_options: 
@@ -23,9 +24,13 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 
 <!-- In terminal -->
 
-<!-- quarto render L11-text.qmd -->
+<!-- quarto render L11-text.qmd --to html-->
+<!-- quarto render L11-text.qmd --cache-refresh --to html -->
 
-<!-- quarto render L11-text.qmd --cache-refresh  -->
+<!-- git commit L11-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 
 # Introduction
 
@@ -36,9 +41,13 @@ To start, we are going to need a couple of R packages to facilitate our work. `t
 ```{r}
 #| warning: false
 #| message: false
-library(text2vec)
+library(kableExtra)
+
 library(dplyr)
+library(tidyr)
 library(stringr)
+
+library(text2vec)
 library(Matrix)
 ```
 
@@ -175,6 +184,7 @@ vocab <- tokens |>
   create_vocabulary(stopwords = stopwords::stopwords("en"),
                     ngram = 1:2) |>
   prune_vocabulary(term_count_min = 10,
+                   doc_proportion_min = 0.05,
                    doc_proportion_max = 0.5) |>
   filter(nchar(term) >=3) |>
   filter(!grepl("[0-9]", term))
@@ -373,8 +383,14 @@ Since TFIDF matrices can get large, we will use the SVD implementation in the IR
 
 ```{r}
 library(irlba)
-oisSVD <- irlba(oisTFIDF, nv = 50)
+oisSVD <- irlba(t(oisTFIDF), nv = 50)
+# each run of SVD can switch the signs on U and V
+#    this forces sign(v[1,]) = +1, so SVD is unique
+oisSVD$u <- sweep(oisSVD$u, 2, sign(oisSVD$v[1,]), `*`)
+oisSVD$v <- sweep(oisSVD$v, 2, sign(oisSVD$v[1,]), `*`)
 ```
+
+
 
 Let's see how many singular vectors seem important. In @fig-SVDsingularvalues we see the first two or three singular values seem large, but then they decrease quite slowly from there.
 ```{r}
@@ -388,6 +404,278 @@ plot(oisSVD$d,
      pch=16)
 ```
 
+The columns of $\mathbf{U}$ are our "eigendocuments," the fundamental building blocks that the actual documents blend to form their word collections. We will take a look at the first five eigendocuments, highlighting the 10 terms with the highest weight in the left singular vectors. Note that both large positive and large negative values are important to interpret. I have added headings to each left singular vector summarizing what kinds of incidents might heavily weight this column of $\mathbf{U}$.
+
+Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measure the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
 ```{r}
+#| caption: "Top 10 Terms for First 5 SVD Components"
+#| label: tab-uterms
+# Stack the top 10 terms from each component into one long table
+a <- data.frame(term=colnames(oisTFIDF),
+           u1=oisSVD$u[,1],
+           u2=oisSVD$u[,2],
+           u3=oisSVD$u[,3],
+           u4=oisSVD$u[,4],
+           u5=oisSVD$u[,5])
+
+bind_rows(a |>
+            select(term, u1) |> 
+            arrange(desc(abs(u1))) |> 
+            slice_head(n = 10) |> 
+            mutate(component = "u1", u = u1),
+          a |> 
+            select(term, u2) |> 
+            arrange(desc(abs(u2))) |> 
+            slice_head(n = 10) |> 
+            mutate(component = "u2", u = u2),
+          a |> 
+            select(term, u3) |> 
+            arrange(desc(abs(u3))) |> 
+            slice_head(n = 10) |> 
+            mutate(component = "u3", u = u3),
+          a |> 
+            select(term, u4) |> 
+            arrange(desc(abs(u4))) |> 
+            slice_head(n = 10) |> 
+            mutate(component = "u4", u = u4),
+          a |> 
+            select(term, u5) |> 
+            arrange(desc(abs(u5))) |> 
+            slice_head(n = 10) |> 
+            mutate(component = "u5", u = u5)) |> 
+  select(component, term, u) |> 
+  group_by(component) |> 
+  mutate(rank = row_number()) |> 
+  ungroup() |> 
+  pivot_wider(names_from = component, 
+              values_from = c(term, u),
+              names_sep = "_") |>
+  select(term_u1, u_u1, term_u2, u_u2, term_u3, u_u3,
+         term_u4, u_u4, term_u5, u_u5) |>
+  kable(align = "rrrrrrrrrr",
+        col.names = c("Term","\\(u_1\\)","Term","\\(u_2\\)",
+                      "Term","\\(u_3\\)","Term","\\(u_4\\)",
+                      "Term","\\(u_5\\)"),
+        digits = 2,
+        escape = FALSE,
+        booktabs = TRUE) |>
+  add_header_above(c("Offender and dog" = 2, 
+                     "Dog attack, no offender" = 2,
+                     "Suspect/SWAT" = 2,
+                     "Knife attacks" = 2,
+                     "Victims" = 2),
+                   escape = FALSE) |>
+  kable_styling(full_width = FALSE)
+```
+
+
+Remember that the columns of $\mathbf{V}$ tell us how a particular report mixes together the eigendocuments (columns of $\mathbf{U}$) to form their TFIDF weighted terms. I am curious to explore documents involving dog attacks ($\mathbf{u}_2$) and documents with knife attacks ($\mathbf{u}_4$). The code below creates an interactive 2D map of documents on their values of $v_2$ and $v_4$. For each document, the code extracts the 10 most heavily weighted TF-IDF terms to use as hover text, giving a quick sense of the content. It also assigns each document to a category, "Likely dog attack," "Likely knife attack," or "Other," based on thresholds of $v_2$ and $v_4$. `plotly()` produces an interactive scatterplot where each point is a document, colored by category and annotated with its key terms. This visualization allows us to explore thematic variation in the reports and visually distinguish different types of incidents based on the language used.
+```{r}
+#| label: fig-documentMap
+#| caption: Plot of how documents weigh 2nd and 4th left singular vectors
+#| warning: false
+#| message: false
+
+library(plotly)
+
+# collect the 10 terms with the highest weight in each document
+i <- apply(oisTFIDF, 1, order, decreasing=TRUE)
+a <- apply(i, 2, 
+           function(j) 
+           {
+             colnames(oisTFIDF)[j[1:10]] |>
+               paste(collapse = "\n")
+           })
+
+# label some document types
+group <- case_when(oisSVD$v[,2] >  0.1 ~ "Likely dog attack",
+                   oisSVD$v[,4] < -0.1 ~ "Likely knife attack",
+                   TRUE ~ "Other")
+groupCols <- c("Likely dog attack" = "red",
+               "Likely knife attack" = "orange",
+               "Other" = "steelblue")
+
+# make a plot with hovertext
+plot_ly(x = oisSVD$v[,2],
+        y = oisSVD$v[,4],
+        type = "scatter",
+        mode = "markers",
+        text = a,
+        hoverinfo = "text",
+        color = group,
+        colors = groupCols,
+        marker = list(size = 6)) |>
+  layout(xaxis = list(title = "V2 - Dog attack measure"),
+         yaxis = list(title = "V4 - Knife attack measure"))
+```
+
+
+# Clustering documents using their SVD representation
+
+Hartigan's k-means algorithm is an iterative method for partitioning data into $k$ clusters by minimizing the total within-cluster sum of squares. It begins with randomly chosen cluster centers (centroids) and alternates between two steps: 
+
+1.  assigning each data point to the nearest centroid based on Euclidean distance
+2.  updating each centroid to be the mean of the points currently assigned to it
+
+These steps repeat until the assignments no longer change significantly, indicating convergence. The algorithm is greedy and locally optimal. That is, it always reduces the the within cluster sum of squares at each iteration, but it can converge to different solutions depending on the initial centroids. Multiple runs with different random starts are often used to find a better overall solution.
+
+Let's look at a little 2D demonstration before we run this on documents, which can be a little abstract. I have created three clusters with centers at (0,0), (3,3), and (5,5). Then I have R code that reassigns points to their nearest centroids, recomputes the cluster centroids, plots the points colored by their cluster assignment, checks for convergence, and repeats if needed.
+
+```{r}
+#| label: fig-kmeans
+#| fig.show: asis 
+#| warning: false
+#| message: false
+#| caption: Demonstration of Hartigan's k-means algorithm
+#| fig-width: 5
+#| fig-height: 4
+
+set.seed(20250325)
+library(ggplot2)
+
+# Simulate data from 3 clusters
+df <- data.frame(x=rnorm(180, mean=c(0,3,5)),
+                 y=rnorm(180, mean=c(0,3,5)))
+
+# find three clusters
+k <- 3
+
+# pick three random points to start
+old_centroid <- df |>
+  slice_sample(n=k) |>
+  select(x,y)
+
+# Function to assign points to nearest center
+#   compare each point to each of the three centers
+#   assign the point to its closest center
+assign_clusters <- function(df, centers) 
+  {
+    apply(df, 1, function(point) 
+    {
+      which.min(colSums((t(centers) - point)^2))
+    })
+  }
+
+iter <- 1
+repeat 
+{
+  # Assign points to nearest cluster
+  df$cluster <- assign_clusters(df[,c("x","y")], 
+                                old_centroid)
+
+  # get centroids of newly assigned clusters
+  new_centroid <- df |>
+    group_by(cluster) |>
+    summarize(x=mean(x), y=mean(y))
+  
+  # plot showing old and new centroids
+  plotKmeans <- ggplot(df, aes(x = x, y = y, color = factor(cluster))) +
+    geom_point(size = 2) +
+    geom_point(data = old_centroid, aes(x = x, y = y), 
+               shape = 21, size = 5, stroke = 2, color = "black") +
+    geom_point(data = new_centroid, aes(x = x, y = y, fill=factor(cluster)), 
+               shape = 21, size = 5, stroke = 2, color = "black") +
+  geom_segment(
+    data = bind_cols(old_centroid, new_centroid),
+    aes(x = x...1, y = y...2, xend = x...4, yend = y...5),
+    arrow = arrow(length = unit(0.15, "inches")),
+    color = "black"
+  ) +
+    ggtitle(paste("K-Means Iteration", iter)) +
+    theme_minimal()
+  print(plotKmeans)
+  
+  new_centroid <- new_centroid |> select(-cluster)
+
+  # check if converged
+  if(all(abs(new_centroid - old_centroid) < 0.001))
+  {
+    break
+  }
+  
+  old_centroid <- new_centroid
+  iter <- iter + 1
+}
 
 ```
+
+Now let's try this same approach, but we are going to try it on documents, where documents are defined by their first 7 right singular vectors (columns of $\mathbf{V}$). Fortunately, R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us.
+
+First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and the total within-cluster sum of squares (SSE) produced by the k-means algorithm. This is the sum of the squared distance between each point and its assigned cluster centroid. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding SSE, we can visualize how much the clustering improves as $k$ increases. A plot of SSE versus $k$ typically shows a steep drop initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data.
+```{r}
+#| caption: Relationship between $k$ and the within clsuter sum of squares
+#| label: fig-kvsse
+design <- data.frame(k=1:40, SSE=NA)
+for(i in 1:nrow(design))
+{
+  km <- kmeans(oisSVD$v[,1:7], 
+               centers = design$k[i], 
+               nstart = 5)
+  design$SSE[i] <- km$tot.withinss
+}
+plot(SSE~k, data=design, pch=16)
+abline(h=0.2*design$SSE[1], col="red")
+kSelect <- design |>
+  filter(SSE > 0.2*design$SSE[1]) |>
+  slice_min(SSE) |>
+  pull(k)
+```
+In @fig-kvsse I have marked where the within cluster sum of squares has declined by 80\% from having all points in one big cluster. That happens when we set $k$ to `r kSelect`.
+```{r}
+# run kmeans on first 7 right singular vectors
+#   clusters similar documents
+set.seed(20250325)
+oisKmeans <- kmeans(oisSVD$v[,1:7], 
+                    centers = kSelect,
+                    nstart = 5) # try 5 random starting points
+# add the cluster labels to the dataset
+ois$cluster <- oisKmeans$cluster
+ois |>
+  select(id,location,date,cluster) |>
+  head()
+```
+
+
+```{r}
+hovertext <- as.matrix(oisTFIDF) |>
+  as.data.frame() |>
+  mutate(cluster = ois$cluster) |>
+  group_by(cluster) |>
+  summarize(across(everything(), mean)) |>
+  select(-cluster) |>
+  apply(1, function(w)
+  {
+    i <- order(w, decreasing = TRUE)
+    colnames(oisTFIDF)[i[1:10]]
+  }) |>
+  t() |>
+  apply(1, paste, collapse=", ") |> 
+  data.frame() |>
+  cbind(size = oisKmeans$size,
+        cluster = 1:kSelect) |>
+  rename_with(~"terms", .cols=1)
+
+```
+
+
+
+```{r}
+#| label: fig-clusteredDocuments
+#| caption: Plot of document by first two right singular vectors, colored by cluster
+plot_ly(
+  x = oisSVD$v[,1],
+  y = oisSVD$v[,2],
+  type = "scatter",
+  mode = "markers",
+  color = ois$cluster,
+  text = hovertext$terms[ois$cluster], 
+  marker = list(size = 6)
+) |>
+  layout(
+    xaxis = list(title = "SVD Dimension 1"),
+    yaxis = list(title = "SVD Dimension 2"),
+    title = "K-Means Clustering of OIS Reports"
+  )
+```
+
+
