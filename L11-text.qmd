@@ -22,7 +22,7 @@ editor_options:
 bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
-<!-- In terminal -->
+<!-- In terminal: Only to HTML since heavy plotly() use -->
 
 <!-- quarto render L11-text.qmd --to html-->
 <!-- quarto render L11-text.qmd --cache-refresh --to html -->
@@ -395,9 +395,9 @@ oisSVD$v <- sweep(oisSVD$v, 2, sign(oisSVD$v[1,]), `*`)
 Let's see how many singular vectors seem important. In @fig-SVDsingularvalues we see the first two or three singular values seem large, but then they decrease quite slowly from there.
 ```{r}
 #| label: fig-SVDsingularvalues
-#| fig-cap: "Singular values from SVD of oisTFIDF"
-#| fig-width: 4
-#| fig-height: 5
+#| fig-cap: "Singular values from SVD of `oisTFIDF`"
+#| fig-width: 5
+#| fig-height: 4
 plot(oisSVD$d, 
      xlab="Index of the singular value", ylab="Singular value",
      ylim=c(0, max(oisSVD$d)),
