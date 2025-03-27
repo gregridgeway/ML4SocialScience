@@ -51,7 +51,7 @@ library(text2vec)
 library(Matrix)
 ```
 
-As for the source of our documents, the Philadelphia Police Department posts (reports)\[https://www.phillypolice.com/accountability/ois/\] on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame `ois`. Details on how to pull the data off of the PPD website are part of my (R4crim collection)\[https://github.com/gregridgeway/R4crim?tab=readme-ov-file\] of scripts.
+As for the source of our documents, the Philadelphia Police Department posts [reports](https://www.phillypolice.com/accountability/ois/) on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame `ois`. Details on how to pull the data off of the PPD website are part of my [R4crim collection](https://github.com/gregridgeway/R4crim?tab=readme-ov-file) of scripts.
 
 ```{r}
 load("data/PPD OIS.RData")
@@ -327,7 +327,7 @@ ois |>
 
 # Term co-occurrence matrix (TCM)
 
-A term co-occurrence matrix (TCM) captures how often pairs of words appear near each other within a given window of text, such as a sentence or a few neighboring words. Unlike a document-term matrix, which represents the relationship between documents and individual terms, a TCM focuses on the relationships between terms themselves. This is useful for uncovering word associations, identifying common phrases, and building more advanced representations like word embeddings. In our case, we will use the TCM to explore how certain words, such as "officer," "suspect," or "weapon," tend to co-occur across police shooting reports, revealing patterns that might not be visible from frequency counts alone.
+There may be some concepts that are not limited to a single word or a few adjacent words. Term co-occurrence looks for words that tend to appear close to each other in text to possibly help you expand the vocabulary to additional phrases. A term co-occurrence matrix (TCM) captures how often pairs of words appear near each other within a given window of text, such as a sentence or a few neighboring words. Unlike a document-term matrix, which represents the relationship between documents and individual terms, a TCM focuses on the relationships between terms themselves. This is useful for uncovering word associations and identifying common phrases. In our case, we will use the TCM to explore how certain words, such as "officer," "suspect," or "weapon," tend to co-occur across police shooting reports, revealing patterns that might not be visible from frequency counts alone.
 
 When scanning through each document, setting `skip_grams_window = 5` will treat any two terms that appear within a window of 5 tokens as co-occurring. For example, if the document has the phrase "the officer shot the suspect with a weapon" and we set `skip_grams_window = 5`, then for the word "shot" it will consider "the", "officer", "the", "suspect", "with" as co-occurring terms.
 
@@ -377,7 +377,7 @@ oisPairs |>
   
 # Singular value decomposition for text
 
-We already explored how SVD can be used to (compress images and classify emojis)[https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html]. Now we will explore what SVD does for text.
+We already explored how SVD can be used to [compress images and classify emojis](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L7-svd.html). Now we will explore what SVD does for text.
 
 Since TFIDF matrices can get large, we will use the SVD implementation in the IRLBA package (Implicitly Restarted Lanczos Bidiagonalization Algorithm). The IRLBA implementation of SVD allows you to limit the number of singular vectors to compute, ignoring and never computing the rest. 
 
@@ -399,7 +399,8 @@ Let's see how many singular vectors seem important. In @fig-SVDsingularvalues we
 #| fig-width: 5
 #| fig-height: 4
 plot(oisSVD$d, 
-     xlab="Index of the singular value", ylab="Singular value",
+     xlab="Index of the singular value", 
+     ylab="Singular value",
      ylim=c(0, max(oisSVD$d)),
      pch=16)
 ```
@@ -523,10 +524,10 @@ Let's look at a little 2D demonstration before we run this on documents, which c
 
 ```{r}
 #| label: fig-kmeans
-#| fig.show: asis 
+#| fig-show: asis 
 #| warning: false
 #| message: false
-#| caption: Demonstration of Hartigan's k-means algorithm
+#| fig-cap: Demonstration of Hartigan's k-means algorithm
 #| fig-width: 5
 #| fig-height: 4
 
@@ -575,13 +576,14 @@ repeat
                shape = 21, size = 5, stroke = 2, color = "black") +
     geom_point(data = new_centroid, aes(x = x, y = y, fill=factor(cluster)), 
                shape = 21, size = 5, stroke = 2, color = "black") +
-  geom_segment(
-    data = bind_cols(old_centroid, new_centroid),
-    aes(x = x...1, y = y...2, xend = x...4, yend = y...5),
-    arrow = arrow(length = unit(0.15, "inches")),
-    color = "black"
-  ) +
+    geom_segment(
+      data = bind_cols(old_centroid, new_centroid),
+      aes(x = x...1, y = y...2, xend = x...4, yend = y...5),
+      arrow = arrow(length = unit(0.15, "inches")),
+      color = "black"
+    ) +
     ggtitle(paste("K-Means Iteration", iter)) +
+    labs(color="Cluster") +
     theme_minimal()
   print(plotKmeans)
   
@@ -599,28 +601,80 @@ repeat
 
 ```
 
-Now let's try this same approach, but we are going to try it on documents, where documents are defined by their first 7 right singular vectors (columns of $\mathbf{V}$). Fortunately, R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us.
-
-First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and the total within-cluster sum of squares (SSE) produced by the k-means algorithm. This is the sum of the squared distance between each point and its assigned cluster centroid. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding SSE, we can visualize how much the clustering improves as $k$ increases. A plot of SSE versus $k$ typically shows a steep drop initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data.
+The plot in @fig-totSS illustrates the total sum of squares (TSS), which measures the overall variability in the dataset. It shows each data point connected to the grand centroid, the average of all points in the data. The total sum of squares is calculated by summing the squared distances from each point to this overall centroid. This serves as a baseline measure of dispersion before clustering is applied.
 ```{r}
-#| caption: Relationship between $k$ and the within clsuter sum of squares
+#| label: fig-totSS
+#| fig-cap: Total sum of squares calculation. TSS sums all the squared distances between each point and the single centroid of the entire dataset
+#| warning: false
+#| message: false
+tot_centroid <- df |> 
+  select(x, y) |> 
+  colMeans() |> 
+  t() |> 
+  data.frame()
+plotTotCentroid <- ggplot(df, aes(x = x, y = y, 
+                                  color = factor(cluster))) +
+  geom_point(size = 2) +
+  geom_segment(
+    data = bind_cols(tot_centroid |>
+                       slice(rep(1,180)), 
+                     df |>
+                       select(x,y)),
+    aes(x = x...1, y = y...2, xend = x...3, yend = y...4),
+    color = "black"
+  ) +
+  labs(color="Cluster") +
+  theme_minimal()
+print(plotTotCentroid)
+```
+
+In contrast, @fig-withinSS depicts the within-cluster sum of squares (WCSS). Each point is now connected to its respective cluster centroid, rather than the overall centroid. The sum of squared distances from each point to its assigned cluster center quantifies how compact each cluster is.
+```{r}
+#| label: fig-withinSS
+#| fig-cap: Within cluster sum of squares calculation. WCSS sums the squared distances between each point and the center of its associated centroid
+new_centroid$cluster <- 1:3
+
+plotWithinCentroid <- ggplot(df, aes(x = x, y = y, 
+                                  color = factor(cluster))) +
+  geom_point(size = 2) +
+  geom_segment(
+    data = df |> 
+      left_join(new_centroid, by=join_by(cluster)),
+    aes(x = x.x, y = y.x, xend = x.y, yend = y.y),
+    color = "black"
+  ) +
+  labs(color="Cluster") +
+  theme_minimal()
+print(plotWithinCentroid)
+```
+A useful measure of clustering quality is the proportion of variance explained by the clustering, computed as $R^2 = 1-\frac{WCSS}{TSS}$. This tells us how much of the total variability has been accounted for by the clustering structure. A higher value indicates better clustering. If this proportion is low, it may suggest that the three clusters is insufficient to capture the underlying structure of the data.
+
+Let's put all this to work on the our officer-involved shooting reports. We will define documents by their first 7 right singular vectors (columns of $\mathbf{V}$). R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us.
+
+First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and $R^2$. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding SSE, we can visualize how much the clustering improves as $k$ increases. A plot of SSE versus $k$ typically shows a steep drop initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data.
+```{r}
+#| fig-cap: Relationship between $k$ and the within cluster sum of squares
 #| label: fig-kvsse
-design <- data.frame(k=1:40, SSE=NA)
-for(i in 1:nrow(design))
+design <- data.frame(k=1:40, R2=NA)
+for(i in 2:nrow(design))
 {
   km <- kmeans(oisSVD$v[,1:7], 
                centers = design$k[i], 
                nstart = 5)
-  design$SSE[i] <- km$tot.withinss
+  design$R2[i] <- ifelse(i==1, 1, 
+                         1 - km$tot.withinss/km$totss)
 }
-plot(SSE~k, data=design, pch=16)
-abline(h=0.2*design$SSE[1], col="red")
+plot(R2~k, data=design, pch=16,
+     xlab=expression(k),
+     ylab=expression(R^2),
+     ylim=0:1)
+abline(h=0.8, col="red")
 kSelect <- design |>
-  filter(SSE > 0.2*design$SSE[1]) |>
-  slice_min(SSE) |>
+  filter(R2 > 0.8) |>
+  slice_min(R2) |>
   pull(k)
 ```
-In @fig-kvsse I have marked where the within cluster sum of squares has declined by 80\% from having all points in one big cluster. That happens when we set $k$ to `r kSelect`.
+In @fig-kvsse I have marked where the $R^2$ reaches 80\%. That happens when we set $k$ to `r kSelect`. With $k$ set to `r kSelect`, the clustering captures 80\% of the variation in the first seven right singular vectors.
 ```{r}
 # run kmeans on first 7 right singular vectors
 #   clusters similar documents
@@ -628,6 +682,7 @@ set.seed(20250325)
 oisKmeans <- kmeans(oisSVD$v[,1:7], 
                     centers = kSelect,
                     nstart = 5) # try 5 random starting points
+
 # add the cluster labels to the dataset
 ois$cluster <- oisKmeans$cluster
 ois |>
@@ -635,30 +690,36 @@ ois |>
   head()
 ```
 
-
+We need to craft some labels or definitions for these clusters. For each cluster I will compute the average of their TFIDF weights for each term in the vocabulary. I will paste together the top ten terms as cluster labels.
 ```{r}
 hovertext <- as.matrix(oisTFIDF) |>
   as.data.frame() |>
   mutate(cluster = ois$cluster) |>
   group_by(cluster) |>
-  summarize(across(everything(), mean)) |>
+  # average the TFIDF values within each cluster
+  summarize(across(everything(), mean), .groups = "drop") |>
   select(-cluster) |>
+  # find the top 10 TFIDF weighted terms by cluster
   apply(1, function(w)
   {
     i <- order(w, decreasing = TRUE)
     colnames(oisTFIDF)[i[1:10]]
   }) |>
   t() |>
+  # paste together the top 10 terms
   apply(1, paste, collapse=", ") |> 
-  data.frame() |>
+  data.frame(terms = _) |>
   cbind(size = oisKmeans$size,
-        cluster = 1:kSelect) |>
-  rename_with(~"terms", .cols=1)
-
+        cluster = 1:kSelect)
 ```
 
+Let's examine the top 10 terms for the larges three clusters.
+```{r}
+hovertext |> arrange(desc(size)) |> head(3)
+```
+Perhaps the first two are variations on the typical officer-involved shooting involving an offender, possibly armed (cluster \#5). Cluster \#4 clearly seems to be shootings of dogs, commonly pit pulls, near a residence.
 
-
+Let's plot these out based on the values of each document's first two right singular vectors ($v_1$ and $v_2$). I will color them based on their clustering and add the top 10 terms as hovertext so we have some idea about the themes. Explore the clusters in the plot and see if you can extra some of those themes.
 ```{r}
 #| label: fig-clusteredDocuments
 #| caption: Plot of document by first two right singular vectors, colored by cluster
