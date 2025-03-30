@@ -15,17 +15,19 @@ format:
   pdf:
     toc: true
     exclude: true
-prefer-html: true
+    prefer-html: true
 number-sections: true
 editor_options: 
   chunk_output_type: console
 bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
-<!-- In terminal: Only to HTML since heavy plotly() use -->
+<!-- Since heavy plotly() use need this installed, no need to call-->
+<!-- install.packages("webdriver") -->
+<!-- webdriver::install_phantomjs() -->
 
-<!-- quarto render L11-text.qmd --to html-->
-<!-- quarto render L11-text.qmd --cache-refresh --to html -->
+<!-- quarto render L11-text.qmd  -->
+<!-- quarto render L11-text.qmd --cache-refresh -->
 
 <!-- git commit L11-* -m "commit message" -->
 <!-- git status -->
@@ -418,8 +420,19 @@ plot(oisSVD$d,
 The columns of $\mathbf{U}$ are our "eigendocuments," the fundamental building blocks that the actual documents blend to form their word collections. We will take a look at the first five eigendocuments, highlighting the 10 terms with the highest weight in the left singular vectors. Note that both large positive and large negative values are important to interpret. I have added headings to each left singular vector summarizing what kinds of incidents might heavily weight this column of $\mathbf{U}$.
 
 ```{r}
-#| fig-cap: "Top 10 Terms for First 5 SVD Components"
-#| label: tab-uterms
+#| echo: false
+if (knitr::is_latex_output()) {
+  header_labels <- c("Term", "$u_1$", "Term", "$u_2$",
+                   "Term", "$u_3$", "Term", "$u_4$",
+                   "Term", "$u_5$")
+} else {
+  header_labels <- c("Term", "\\(u_1\\)", "Term", "\\(u_2\\)",
+                     "Term", "\\(u_3\\)", "Term", "\\(u_4\\)",
+                     "Term", "\\(u_5\\)")
+}
+```
+
+```{r}
 # Stack the top 10 terms from each component into one long table
 a <- data.frame(term=colnames(oisTFIDF),
            u1=oisSVD$u[,1],
@@ -428,44 +441,59 @@ a <- data.frame(term=colnames(oisTFIDF),
            u4=oisSVD$u[,4],
            u5=oisSVD$u[,5])
 
-bind_rows(a |>
-            select(term, u1) |> 
-            arrange(desc(abs(u1))) |> 
-            slice_head(n = 10) |> 
-            mutate(component = "u1", u = u1),
-          a |> 
-            select(term, u2) |> 
-            arrange(desc(abs(u2))) |> 
-            slice_head(n = 10) |> 
-            mutate(component = "u2", u = u2),
-          a |> 
-            select(term, u3) |> 
-            arrange(desc(abs(u3))) |> 
-            slice_head(n = 10) |> 
-            mutate(component = "u3", u = u3),
-          a |> 
-            select(term, u4) |> 
-            arrange(desc(abs(u4))) |> 
-            slice_head(n = 10) |> 
-            mutate(component = "u4", u = u4),
-          a |> 
-            select(term, u5) |> 
-            arrange(desc(abs(u5))) |> 
-            slice_head(n = 10) |> 
-            mutate(component = "u5", u = u5)) |> 
-  select(component, term, u) |> 
+a <- bind_rows(a |>
+                 select(term, u1) |> 
+                 arrange(desc(abs(u1))) |> 
+                 slice_head(n = 10) |> 
+                 mutate(component = "u1", u = u1),
+               a |> 
+                 select(term, u2) |> 
+                 arrange(desc(abs(u2))) |> 
+                 slice_head(n = 10) |> 
+                 mutate(component = "u2", u = u2),
+               a |> 
+                 select(term, u3) |> 
+                 arrange(desc(abs(u3))) |> 
+                 slice_head(n = 10) |> 
+                 mutate(component = "u3", u = u3),
+               a |> 
+                 select(term, u4) |> 
+                 arrange(desc(abs(u4))) |> 
+                 slice_head(n = 10) |> 
+                 mutate(component = "u4", u = u4),
+               a |> 
+                 select(term, u5) |> 
+                 arrange(desc(abs(u5))) |> 
+                 slice_head(n = 10) |> 
+                 mutate(component = "u5", u = u5)) |> 
+  select(component, term, u)
+```
+
+```{r}
+#| echo: false
+# Escape _ in all character columns
+if (knitr::is_latex_output()) {
+  a <- a |>
+    mutate(across(where(is.character),
+                  ~ str_replace_all(.x, "_", "\\\\_")))
+}
+```
+
+```{r}
+#| tbl-cap: "Top 10 Terms for First 5 SVD Components"
+#| label: tbl-uterms
+a |> 
   group_by(component) |> 
   mutate(rank = row_number()) |> 
   ungroup() |> 
   pivot_wider(names_from = component, 
               values_from = c(term, u),
               names_sep = "_") |>
+  data.frame() |>
   select(term_u1, u_u1, term_u2, u_u2, term_u3, u_u3,
          term_u4, u_u4, term_u5, u_u5) |>
-  kable(align = "rrrrrrrrrr",
-        col.names = c("Term","\\(u_1\\)","Term","\\(u_2\\)",
-                      "Term","\\(u_3\\)","Term","\\(u_4\\)",
-                      "Term","\\(u_5\\)"),
+  kbl(align = "rrrrrrrrrr",
+        col.names = header_labels,
         digits = 2,
         escape = FALSE,
         booktabs = TRUE) |>
@@ -475,7 +503,8 @@ bind_rows(a |>
                      "Knife attacks" = 2,
                      "?" = 2),
                    escape = FALSE) |>
-  kable_styling(full_width = FALSE)
+  kable_styling(full_width = FALSE,
+                latex_options = "scale_down")
 ```
 Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measure the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
 
@@ -733,8 +762,7 @@ hovertext <- as.matrix(oisTFIDF) |>
 Let's examine the top 10 terms for these clusters.
 ```{r}
 hovertext |>
-  kable("html", 
-        escape = FALSE, 
+  kable(escape = FALSE, 
         col.names = c("Top Terms", "Size", "Cluster")) |>
   kable_styling(full_width = FALSE, 
                 position = "left", 
@@ -791,8 +819,7 @@ coef(oisLasso, s = "lambda.min") |>
   tibble::rownames_to_column("Term") |>
   arrange(desc(s1)) |>
   slice_head(n=10) |>
-  kable("html", 
-        digits = 2, 
+  kable(digits = 2, 
         col.names = c("Term", "LASSO Coefficient")) %>%
   kable_styling(full_width = FALSE, 
                 bootstrap_options = c("striped", "hover"), 
