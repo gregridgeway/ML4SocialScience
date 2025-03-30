@@ -51,8 +51,7 @@ library(caret)
 library(text2vec)
 library(Matrix)
 
-library(gbm3)
-library(uwot)
+library(glmnet)
 ```
 
 As for the source of our documents, the Philadelphia Police Department posts [reports](https://www.phillypolice.com/accountability/ois/) on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame `ois`. Details on how to pull the data off of the PPD website are part of my [R4crim collection](https://github.com/gregridgeway/R4crim?tab=readme-ov-file) of scripts.
@@ -799,7 +798,7 @@ coef(oisLasso, s = "lambda.min") |>
                 bootstrap_options = c("striped", "hover"), 
                 position = "left")
 ```
-Quite sensibly we see terms associated with the subject being "pronounced deceased" and is variations. Only `r -1 + coef(oisLasso, s = "lambda.min") |> sign() |> abs() |> sum()`$ terms have non-zero coefficients.
+Quite sensibly we see terms associated with the subject being "pronounced deceased" and is variations. Only `r -1 + coef(oisLasso, s = "lambda.min") |> sign() |> abs() |> sum()` terms have non-zero coefficients.
 
 Let's see how it performs in terms of misclassification. I will use 10-fold cross-validation to get out-of-fold predicted probabilities for each document.
 ```{r}
