@@ -16,6 +16,8 @@ format:
     toc: true
     exclude: true
     prefer-html: true
+execute:
+  dev: "ragg_png"
 number-sections: true
 editor_options: 
   chunk_output_type: console
@@ -35,7 +37,9 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 
 # Introduction
 
-In this section we will use `text2vec` to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.
+We will use `text2vec` to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.
+
+Before we begin, the field of natural language processing is evolving at an extraordinary pace, particularly with the rise of large language models (LLMs). These models can perform many text analysis tasks, summarization, classification, sentiment detection, with little or no training data, often outperforming traditional methods. While these notes focus on classic, interpretable techniques such as tokenization, TF-IDF, and clustering, it is important to recognize that some of these approaches may eventually be replaced or augmented by access to inexpensive, broadly available LLMs. However, understanding how text is structured, processed, and represented remains critical to interpreting any model, including LLMs.
 
 To start, we are going to need a couple of R packages to facilitate our work. `text2vec` will do most of the work converting the documents into a form of data that we can analyze.
 
@@ -43,15 +47,17 @@ To start, we are going to need a couple of R packages to facilitate our work. `t
 #| warning: false
 #| message: false
 library(kableExtra)
+library(ggplot2)
 
 library(dplyr)
 library(tidyr)
 library(stringr)
-library(crayon)
 library(caret)
+library(Matrix)
 
 library(text2vec)
-library(Matrix)
+library(tidytext)
+library(uwot)
 
 library(glmnet)
 ```
@@ -66,13 +72,12 @@ ois |> select(-text) |> head()
 ```
 
 The data include an incident ID, the date of the shooting, the address and coordinates where the shooting occurred, and a URL to the incident report. There is also a column called `text` containing the full text of the officer-involved shooting report. Some can be long, but here's one that hits close to home as an example.
-```{r}
-#| results: hide
-ois |> filter(id=="16-30") |> select(text) |> unlist() |> cat()
-```
 
 ::: {.callout-note title="Narrative from OIS Report 16-30"}
-```{r, results = 'asis', echo = FALSE}
+```{r}
+#| results: asis
+#| echo: false
+
 ois |>
   filter(id == "16-30") |>
   pull(text) |>
@@ -86,7 +91,7 @@ With this set of `r nrow(ois)` reports, we will use a variety of data cleaning m
 
 To transform the text into a form that is better suited for analysis, we need to go through a number of steps. Part of the reason `text2vec` is popular is that it can handle large collections of documents. To make the tasks computational efficient there are a number of steps to work through in order to get a usable dataset.
 
-We start by create a "tokenizer," a process that breaks raw text into individual units like words, phrases, or symbols—called (the "tokens"), the basic building blocks for text analysis. The `itoken()` function in the `text2vec` package creates an iterator over a collection of text documents, preparing them for efficient text processing. Instead of transforming all text at once, `itoken()` streams the documents one at a time, making it well-suited for handling large sets of documents. It "tokenizes" each document using =either a built-in default or a custom tokenizer (which we will do) and produces a structure that can be passed on to other functions that will tidy up the collection of tokens and convert them into a dataset. Because it does not store all tokenized text in memory, `itoken()` enables fast and memory-efficient text analysis workflows.
+We start by creating a "tokenizer," a process that breaks raw text into individual units like words, phrases, or symbols (the "tokens"), the basic building blocks for text analysis. The `itoken()` function in the `text2vec` package creates an iterator over a collection of text documents, preparing them for efficient text processing. Instead of transforming all text at once, `itoken()` streams the documents one at a time, making it well-suited for handling large sets of documents. It "tokenizes" each document using either a built-in default or a custom tokenizer (which we will do) and produces a structure that can be passed on to other functions that will tidy up the collection of tokens and convert them into a dataset. Because it does not store all tokenized text in memory, `itoken()` enables fast and memory-efficient text analysis workflows.
 
 ```{r}
 # Create an iterator over tokens
@@ -115,7 +120,7 @@ There are lists for several other languages as well, Italian, for example.
 ```{r}
 stopwords::stopwords("it") |> head(20)
 ```
-We can also ask consider pairs of words in addition to single words (`ngram=1:2`). This allows word phrases like "police officer" and "pit bull" to be considered as words.
+We can also consider pairs of words in addition to single words (`ngram=1:2`). This allows word phrases like "police officer" and "pit bull" to be considered as words.
 
 `prune_vocabulary()` trims down words from our vocabulary that are probably not particularly useful 
 
@@ -149,7 +154,7 @@ vocab <- tokens |>
 vocab
 ```
 
-Let's make our own tokenizer instead of using the default. As we see, the default (`space_tokenizer()`) often retains punctuation, symbols, or other strange features that dilute or fragment our vocabulary. Customizing the tokenizer allows us to tailor the cleaning process to the structure and quirks of the officer-involved shooting reports. The function that we will create, `oisTokenizer()`, is a custom tokenizer designed to clean and standardize the raw text from officer-involved shooting reports before further text analysis. It converts the text to lowercase, removes common punctuation patterns (like those in abbreviations such as “3 p.m.”), strips out unusual or inconsistent symbols (such as smart quotes, parentheses, and hash symbols), and splits the text into individual tokens using whitespace as the delimiter. 
+Let's make our own tokenizer instead of using the default. As we see, the default (`space_tokenizer()`) often retains punctuation, symbols, or other strange features that dilute or fragment our vocabulary. Customizing the tokenizer allows us to tailor the cleaning process to the structure and quirks of the officer-involved shooting reports. The function that we will create, `oisTokenizer()`, is a custom tokenizer designed to clean and standardize the raw text from officer-involved shooting reports before further text analysis. It converts the text to lowercase, removes common punctuation patterns (like those in abbreviations such as "3 p.m."), strips out unusual or inconsistent symbols (such as smart quotes, parentheses, and hash symbols), and splits the text into individual tokens using whitespace as the delimiter. 
 
 After tokenization, it will also apply "stemming". Stemming is a text preprocessing technique that reduces words to their root or base form by removing common suffixes. For example, "running", "runner", and "runs" might all be reduced to "run", allowing the model to treat these variations as the same underlying concept. The `SnowballC` package has a handy `wordStem()` function in it. Let's test it out on a few words.
 ```{r}
@@ -202,7 +207,7 @@ vocab <- tokens |>
 
 vocab
 ```
-Now we have a collection of words and word phrases gathered from our documents. Note that it includes so two word phrases (bigrams) with the two stemmed words combined with an underscore between them.
+Now we have a collection of words and word phrases gathered from our documents. Note that it includes some two-word phrases (bigrams) with the two stemmed words combined with an underscore between them.
 
 ## Creating a document-term matrix (DTM)
 
@@ -217,7 +222,7 @@ vectorizer <- vocab_vectorizer(vocab)
 # Let's see what this function looks like!
 vectorizer
 ```
-It is a little difficult to interpret, but we can see that it is going to take in a iterator over our tokenized documents and produce something that will (hopefully!) be useful. Let's give it a try.
+It is a little difficult to interpret, but we can see that it is going to take in an iterator over our tokenized documents and produce something that will (hopefully!) be useful. Let's give it a try.
 ```{r}
 # Create the document-term matrix (DTM)
 #   row represents a document
@@ -282,7 +287,7 @@ $\mathrm{IDF}_{ij}=\log\frac{N}{\mathrm{DF}_j}$ captures the rarity across docum
 Assume there are $N=100$ documents.
 
 | Term      | TF in Doc A | DF across corpus | IDF | TF-IDF |
-|-----------|-------------|------------------|-----|--------|
+|-----------|------------:|-----------------:|----:|-------:|
 | "weapon"  | 5           | 10               | 2.3 | 11.5   |
 | "officer" | 6           | 95               | 0.1 | 0.3    |
 | "said"    | 20          | 100              | 0   | 0      |
@@ -291,6 +296,9 @@ Assume there are $N=100$ documents.
 -   "officer" is common, downweighted
 -   "said" is everywhere, zeroed out
 
+So "weapon" is most distinctive while "said" contributes no distinguishing information.
+
+Let's create the TFIDF for our OIS reports.
 ```{r}
 # TF-IDF: term frequency–inverse document frequency weights
 #    downweights common words that appear in many documents
@@ -376,7 +384,7 @@ oisPairs |>
 Much of this co-occurrence is due to the template language describing where the department is in the investigation, referrals to the district attorney, and the report offers preliminary summary.
 
 ::: {.callout-note title="Template language on the report"}
-*** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The District Attorney’s Office is provided all the information from the PPD’s investigation prior to their charging decision.
+*** Information posted in the original summary reflects a preliminary understanding of what occurred at the time of the incident. This information is posted shortly after the incident and may be updated as the investigation leads to new information. The District Attorney's Office is provided all the information from the PPD's investigation prior to their charging decision.
 :::
 
 Further on down the list some term pairs a more interesting.
@@ -410,6 +418,8 @@ Let's see how many singular vectors seem important. In @fig-SVDsingularvalues we
 #| fig-cap: "Singular values from SVD of `oisTFIDF`"
 #| fig-width: 5
 #| fig-height: 4
+#| cache: true
+
 plot(oisSVD$d, 
      xlab="Index of the singular value", 
      ylab="Singular value",
@@ -434,46 +444,22 @@ if (knitr::is_latex_output()) {
 
 ```{r}
 # Stack the top 10 terms from each component into one long table
-a <- data.frame(term=colnames(oisTFIDF),
-           u1=oisSVD$u[,1],
-           u2=oisSVD$u[,2],
-           u3=oisSVD$u[,3],
-           u4=oisSVD$u[,4],
-           u5=oisSVD$u[,5])
-
-a <- bind_rows(a |>
-                 select(term, u1) |> 
-                 arrange(desc(abs(u1))) |> 
-                 slice_head(n = 10) |> 
-                 mutate(component = "u1", u = u1),
-               a |> 
-                 select(term, u2) |> 
-                 arrange(desc(abs(u2))) |> 
-                 slice_head(n = 10) |> 
-                 mutate(component = "u2", u = u2),
-               a |> 
-                 select(term, u3) |> 
-                 arrange(desc(abs(u3))) |> 
-                 slice_head(n = 10) |> 
-                 mutate(component = "u3", u = u3),
-               a |> 
-                 select(term, u4) |> 
-                 arrange(desc(abs(u4))) |> 
-                 slice_head(n = 10) |> 
-                 mutate(component = "u4", u = u4),
-               a |> 
-                 select(term, u5) |> 
-                 arrange(desc(abs(u5))) |> 
-                 slice_head(n = 10) |> 
-                 mutate(component = "u5", u = u5)) |> 
-  select(component, term, u)
+termsTop10 <- lapply(1:5, function(uCol)
+  {
+    data.frame(component = paste0("u",uCol),
+               term=colnames(oisTFIDF),
+               u=oisSVD$u[,uCol]) |>
+    arrange(desc(abs(u))) |>
+    slice_head(n=10)
+  }) |>
+  bind_rows()
 ```
 
 ```{r}
 #| echo: false
 # Escape _ in all character columns
 if (knitr::is_latex_output()) {
-  a <- a |>
+  termsTop10 <- termsTop10 |>
     mutate(across(where(is.character),
                   ~ str_replace_all(.x, "_", "\\\\_")))
 }
@@ -482,7 +468,7 @@ if (knitr::is_latex_output()) {
 ```{r}
 #| tbl-cap: "Top 10 Terms for First 5 SVD Components"
 #| label: tbl-uterms
-a |> 
+termsTop10 |> 
   group_by(component) |> 
   mutate(rank = row_number()) |> 
   ungroup() |> 
@@ -506,12 +492,12 @@ a |>
   kable_styling(full_width = FALSE,
                 latex_options = "scale_down")
 ```
-Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measure the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
+Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measures the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
 
 Remember that the columns of $\mathbf{V}$ tell us how a particular report mixes together the eigendocuments (columns of $\mathbf{U}$) to form their TFIDF weighted terms. I am curious to explore documents involving dog attacks ($\mathbf{u}_2$) and documents with knife attacks ($\mathbf{u}_4$). The code below creates an interactive 2D map of documents on their values of $v_2$ and $v_4$. For each document, the code extracts the 10 most heavily weighted TF-IDF terms to use as hover text, giving a quick sense of the content. It also assigns each document to a category, "Likely dog attack," "Likely knife attack," or "Other," based on thresholds of $v_2$ and $v_4$. `plotly()` produces an interactive scatterplot where each point is a document, colored by category and annotated with its key terms. This visualization allows us to explore thematic variation in the reports and visually distinguish different types of incidents based on the language used.
 ```{r}
 #| label: fig-documentMap
-#| fig-cap: Plot of how documents weigh 2nd and 4th left singular vectors
+#| fig-cap: Plot of how documents weigh 2nd and 4th singular vectors
 #| warning: false
 #| message: false
 
@@ -548,10 +534,11 @@ plot_ly(x = oisSVD$v[,2],
          yaxis = list(title = "V4 - Knife attack measure"))
 ```
 
+# Clustering documents 
 
-# Clustering documents with Hartigan's k-means clustering algorithm
+## Hartigan's k-means clustering algorithm
 
-Hartigan's k-means algorithm is an iterative method for partitioning data into $k$ clusters by minimizing the total within-cluster sum of squares. It begins with randomly chosen cluster centers (centroids) and alternates between two steps: 
+Hartigan's k-means algorithm [@hartigan1975clustering; @hartigan1979kmeans] is an iterative method for partitioning data into $k$ clusters by minimizing the total within-cluster sum of squares. It begins with randomly chosen cluster centers (centroids) and alternates between two steps: 
 
 1.  assigning each data point to the nearest centroid based on Euclidean distance
 2.  updating each centroid to be the mean of the points currently assigned to it
@@ -568,9 +555,9 @@ Let's look at a little 2D demonstration before we run this on documents, which c
 #| fig-cap: Demonstration of Hartigan's k-means algorithm
 #| fig-width: 5
 #| fig-height: 4
+#| cache: true
 
 set.seed(20250325)
-library(ggplot2)
 
 # Simulate data from 3 clusters
 df <- data.frame(x=rnorm(180, mean=c(0,3,5)),
@@ -637,9 +624,8 @@ repeat
   old_centroid <- new_centroid
   iter <- iter + 1
 }
-
 ```
-After 8 iterations, the centroids of the clusters do not change. That means the cluster assignments for each point will no longer changed. The k-means algorithm has converged after 8 iterations. Indeed k-means seems to have figured out the three clusters that I simulated. In practice we never really know how many real clusters there are. We need to come up with some measures that help us decide whether the number of clusters and their centroids adequately capture the data points.
+After 8 iterations, the centroids of the clusters do not change. That means the cluster assignments for each point will no longer change. The k-means algorithm has converged after 8 iterations. Indeed k-means seems to have figured out the three clusters that I simulated. In practice we never really know how many real clusters there are. We need to come up with some measures that help us decide whether the number of clusters and their centroids adequately capture the data points.
 
 The plot in @fig-totSS illustrates the total sum of squares (TSS), which measures the overall variability in the dataset. It shows each data point connected to the grand centroid, the average of all points in the data. The total sum of squares is calculated by summing the squared distances from each point to this overall centroid. This serves as a baseline measure of dispersion before we run our clustering algorithm.
 ```{r}
@@ -647,6 +633,7 @@ The plot in @fig-totSS illustrates the total sum of squares (TSS), which measure
 #| fig-cap: Total sum of squares calculation. TSS sums all the squared distances between each point and the single centroid of the entire dataset
 #| warning: false
 #| message: false
+#| cache: true
 tot_centroid <- df |> 
   select(x, y) |> 
   colMeans() |> 
@@ -672,6 +659,8 @@ In contrast, @fig-withinSS depicts the within-cluster sum of squares (WCSS). Eac
 ```{r}
 #| label: fig-withinSS
 #| fig-cap: Within cluster sum of squares calculation. WCSS sums the squared distances between each point and the center of its associated centroid
+#| cache: true
+
 new_centroid$cluster <- 1:3
 
 plotWithinCentroid <- ggplot(df, aes(x = x, y = y, 
@@ -689,18 +678,20 @@ print(plotWithinCentroid)
 ```
 A useful measure of clustering quality is the proportion of variance explained by the clustering, computed as $R^2 = 1-\frac{WCSS}{TSS}$. This tells us how much of the total variability has been accounted for by the clustering structure. A higher value indicates better clustering. If this proportion is low, it may suggest that the three clusters is insufficient to capture the underlying structure of the data.
 
-Let's put all this to work on our officer-involved shooting reports. We will define documents by their first 7 right singular vectors (columns of $\mathbf{V}$). We will actually cluster on $\mathbf{V}\boldsymbol\Sigma$. Remember that SVD normalizes all the columns in $\mathbf{V}$ (and those in $\mathbf{U}$ as well) to have length 1. That has the effect of making differences between documents basedon their values of $v_{30}$ just as large as differences on $v_1$. The singular values in $\boldsymbol\Sigma$ tell us how to weight each column based how much variance it captures in the original TF-IDF matrix. Without this weighting, each dimension would contribute equally to distance calculations during clustering, even though some components may be far more informative than others. By using $\mathbf{V}\boldsymbol\Sigma$, our clustering algorithm will more accurately group documents based on their underlying thematic content.
+Let's put all this to work on our officer-involved shooting reports. We will define documents by their first 10 right singular vectors (columns of $\mathbf{V}$). We will actually cluster on $\mathbf{V}\boldsymbol\Sigma$. Remember that SVD normalizes all the columns in $\mathbf{V}$ (and those in $\mathbf{U}$ as well) to have length 1. That has the effect of making differences between documents based on their values of $v_{30}$ just as large as differences on $v_1$. The singular values in $\boldsymbol\Sigma$ tell us how to weight each column based how much variance it captures in the original TF-IDF matrix. Without this weighting, each dimension would contribute equally to distance calculations during clustering, even though some components may be far more informative than others. By using $\mathbf{V}\boldsymbol\Sigma$, our clustering algorithm will more accurately group documents based on their underlying thematic content.
 
 R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us. First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and $R^2$. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding $R^2$, we can visualize how much the clustering improves as $k$ increases. A plot of $R^2$ versus $k$ typically shows a steep increase initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data. Another common method is to consider more and more clusters until $R^2$ reaches 0.80 (or 0.90).
 
 ```{r}
 #| fig-cap: Relationship between $k$ and $R^2$
 #| label: fig-kvsse
+#| cache: true
+
 design <- data.frame(k=1:40, R2=NA)
 for(i in 2:nrow(design))
 {
   # multiply by the singular values to incorporate the importance of each 
-  km <- kmeans(oisSVD$v[,1:7] %*% diag(oisSVD$d[1:7]), 
+  km <- kmeans(oisSVD$v[,1:10] %*% diag(oisSVD$d[1:10]), 
                centers = design$k[i], 
                nstart = 5)
   design$R2[i] <- ifelse(i==1, 1, 
@@ -769,12 +760,14 @@ hovertext |>
                 bootstrap_options = c("striped", "hover"))
 ```
 
-The first row describes the largest cluster with `r hovertext$size[1]` documents (Cluster \#`r hovertext$cluster[1]`). It describes shootings involving a car (driver, passenger, door). The second largest cluster (Cluster \#`r hovertext$cluster[2]`) seems to describe a prototypical officer-involved shooting involving an offender, a marked police vehicle, and some mention of charges. Clusters \#`r hovertext$cluster[3]` and \#`r hovertext$cluster[4]` are the SWAT (Special Weapons and Tactics) incidents. Cluster \#`r hovertext$cluster[5]` clearly seems to be shootings of dogs, commonly pit bulls. You can pick up other themes in the remaining clusters such as knife attacks and the involvement of plainclothes police officers.
+From the list of terms we can get a sense of what kinds of incidents fall into these clusters. You can see incidents surrounding a vehicle (driver, passenger, door), incidents involving SWAT Special Weapons and Tactics), incidents involving someone with a knife, and shootings of dogs, commonly pit bulls.
 
-Let's plot these out based on the values of each document's first two right singular vectors ($v_1$ and $v_2$). I will color them based on their clustering and add the top 10 terms as hovertext so we have some idea about the themes. Explore the clusters in the plot and see if you can extra some of those themes.
+Let's plot these out based on the values of each document's first two right singular vectors ($v_1$ and $v_2$). I will color them based on their clustering and add the top 10 terms as hovertext so we have some idea about the themes. Explore the clusters in the plot and see if you can extract some of those themes.
 ```{r}
 #| label: fig-clusteredDocuments
 #| fig-cap: Plot of document by first two right singular vectors, colored by cluster
+#| message: false
+
 plot_ly(
   x = oisSVD$v[,1],
   y = oisSVD$v[,2],
@@ -791,6 +784,76 @@ plot_ly(
     yaxis = list(title = "SVD Dimension 2"),
     title = "K-Means Clustering of OIS Reports"
   )
+```
+
+## Exploring Document Clusters with UMAP
+
+UMAP (Uniform Manifold Approximation and Projection) is another approach to visualizing document clusters [@mcinnes2018joss]. Unlike SVD, which finds linear axes of variation, UMAP attempts to preserve both local neighborhood structure and global relationships, making it especially useful for discovering clusters or themes in high-dimensional data like TF-IDF matrices. UMAP aims to find a low dimensional (like 2D) arrangement of points where distances between points in that low dimensional space is close to the distances in the higher dimensional space.
+
+We will apply UMAP to the TF-IDF representation of the reports.
+
+```{r}
+set.seed(20250330)
+oisUMAP <- umap(as.matrix(oisTFIDF), 
+                n_neighbors = 15, # default 15
+                min_dist = 0.1)   # default 0.01
+```
+
+Setting `min_dist = 0.01` (default)	tends to produce very tight clusters, often leading to visual "clumping," points getting packed very close together, even if they are semantically a bit different. This can look prettier, but may overemphasize local separation and distort the global structure. `min_dist = 0.1` loosens up the compression slightly. This spreads clusters out a bit more, helping you see more of the global relationships between them. It is often better for exploratory visualization, especially when you are trying to understand document similarity.
+
+```{r}
+# Add UMAP coordinates back to our data
+ois <- ois |>
+  mutate(UMAP1 = oisUMAP[, 1],
+         UMAP2 = oisUMAP[, 2])
+```
+
+We can now visualize the results. Each point represents a report, plotted based on its 2D UMAP coordinates. We will color the points based on whether the incident was fatal to explore whether fatal shootings tend to group together in text space.
+```{r}
+#| label: fig-UMAPggplot
+#| fig-cap: UMAP projection of officer-involved shooting reports
+#| cache: true
+
+ggplot(ois, aes(x = UMAP1, y = UMAP2, color = fatal)) +
+  geom_point(size = 2, alpha = 0.7) +
+  labs(color = "Fatal?") +
+  theme_minimal()
+```
+@fig-UMAPggplot shows how reports with similar language tend to cluster together. If fatal and non-fatal incidents form distinct regions in the UMAP space, that suggests the language used in the reports captures meaningful differences between these types of incidents. This insight can guide further modeling, such as classification or clustering.
+
+Let's add a little more context by tagging each point with its most important terms. @fig-UMAPplotly allows you to hover over each point to get additional details about the incident.
+```{r}
+#| label: fig-UMAPplotly
+#| fig-cap: UMAP projection of the TFIDF matrix of OIS reports
+#| message: false
+#| cache: true
+
+# For each document, get top 10 TF-IDF terms
+topTerms <- apply(oisTFIDF, 1, 
+  function(row) 
+  {
+     iTop <- order(row, decreasing = TRUE)[1:10]
+     colnames(oisTFIDF)[iTop] |>
+       paste(collapse = ", ")
+  })
+
+ois <- ois |>
+  mutate(topTerms = topTerms)
+
+plot_ly(ois,
+        x = ~UMAP1,
+        y = ~UMAP2,
+        type = "scatter",
+        mode = "markers",
+        color = ~fatal,
+        colors = c("steelblue", "firebrick"),
+        text = ~paste("ID:", id,
+                      "<br>Fatal:", fatal,
+                      "<br><b>Top terms:</b><br>", topTerms),
+        hoverinfo = "text",
+        marker = list(size = 6)) |>
+  layout(xaxis = list(title = "UMAP 1"),
+         yaxis = list(title = "UMAP 2"))
 ```
 
 
@@ -811,14 +874,14 @@ oisLasso <- cv.glmnet(as.matrix(oisDTM),
 
 @tbl-lassocoef shows the terms with the largest coefficients.
 ```{r}
-#| tbl-cap: "Top 5 terms  with the largest coefficients"
+#| tbl-cap: "Top 10 terms  with the largest coefficients"
 #| label: tbl-lassocoef
 coef(oisLasso, s = "lambda.min") |>
   as.matrix() |>
   as.data.frame() |>
   tibble::rownames_to_column("Term") |>
   arrange(desc(s1)) |>
-  slice_head(n=10) |>
+  slice_head(n = 10) |>
   kable(digits = 2, 
         col.names = c("Term", "LASSO Coefficient")) %>%
   kable_styling(full_width = FALSE, 
@@ -850,3 +913,177 @@ for (i in 1:10)
 table(oofPred>0.25, ois$fatal)
 ```
 Overall predictive performance seems reasonably good. There is a lot of information in the terms to separate most fatal incidents from the non-fatal ones.
+
+# Sentiment analysis
+
+Sentiment analysis is a natural extension of our text mining toolkit. It helps us quantify the emotional tone of a document, whether it is positive, negative, fearful, angry, etc. In this section, we will apply a lexicon-based approach to compute sentiment scores for OIS reports and explore how they vary across incidents.
+
+## Lexicon-Based Sentiment Analysis
+
+In this approach, we rely on a pre-defined dictionary (lexicon) of words labeled with emotional values. The most common sentiment lexicons in R include:
+
+- **Bing**: Binary classification of words as positive or negative
+- **AFINN**: Words scored on a numeric scale from -5 (very negative) to +5 (very positive)
+- **NRC**: Tags words with broader emotions (e.g., anger, fear, trust, joy)
+
+We will start with the Bing lexicon for a straightforward positive/negative breakdown. We first need to tokenize the text into individual words and join with the sentiment lexicon. `unnest_tokens()` breaks every document into its list of words.
+
+```{r}
+oisTokens <- ois |>
+  select(id, text) |>
+  unnest_tokens(word, text)
+head(oisTokens)
+```
+
+`get_sentiments("bing")` provides a list of `r nrow(get_sentiments("bing"))` words and their associated quality (positive or negative). We can join these sentiment qualities directly to `oisTokens`. 
+```{r}
+oisSentiment <- oisTokens |>
+  inner_join(get_sentiments("bing"), 
+             by = "word") |>
+  count(id, sentiment) |>
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) |>
+  mutate(net_sentiment = positive - negative)
+head(oisSentiment)
+```
+Now for each document we have a net sentiment score, the number of positive words minus the number of negative ones.
+
+We can now examine how sentiment differs across incidents—particularly between fatal and non-fatal events. We can attached new columns containing our sentiment measures to our original `ois` data frame.
+
+```{r}
+ois <- ois |>
+  left_join(oisSentiment, by = join_by("id"))
+```
+
+```{r}
+#| label: fig-fatalSentiment
+#| fig-cap: Net Sentiment of OIS Reports by Fatality
+#| cache: true
+
+ggplot(ois, aes(x = ifelse(fatal==1, "Fatal", "Non-fatal"), 
+                y = net_sentiment)) +
+  geom_boxplot() +
+  labs(title = "",
+       y = "Net Sentiment (Positive - Negative)",
+       x = "Was the shooting fatal?")
+```
+This plot shows that fatal incidents are described slightly more negatively than non-fatal ones.
+
+## Exploring emotion in OIS reports with the NRC lexicon
+
+In addition to binary positive/negative sentiment, we can use the NRC lexicon [@mohammad2013NRCsentiment] to examine a broader range of emotions, such as fear, anger, trust, and sadness. This gives us a more nuanced view of how OIS reports are framed.
+
+The NRC lexicon associates individual words with up to 8 emotions (anger, anticipation, disgust, fear, joy, sadness, surprise, trust) and 2 sentiments (positive and negative).
+
+```{r}
+oisNRC <- oisTokens |>
+  # same word may appear multiple times in document
+  #   and same word may have multiple entries in NRC
+  #   many-to-many will include all of them
+  inner_join(get_sentiments("nrc"), 
+             by = "word",
+             relationship = "many-to-many") |>
+  count(id, sentiment) |>
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0)
+
+head(oisNRC)
+```
+Each row now contains the number of words in a report associated with each NRC emotion. Now we can inspect emotional content across the dataset, for example, which incidents contain the most fear, trust, or anger. Let's start with the kinds of emotional language that distinguishes fatal and non-fatal incidents.
+```{r}
+#| label: fig-NRCboxplot
+#| fig-cap: Emotion counts by whether the incident was fatal
+#| cache: true
+
+ois |>
+  left_join(oisNRC, by=join_by(id)) |>
+  pivot_longer(cols = c(anger, fear, trust, sadness, joy,surprise), 
+               names_to = "emotion", values_to = "count") |>
+  ggplot(aes(x = ifelse(fatal==1,"Fatal","Non-fatal"), 
+             y = count)) +
+  geom_boxplot() +
+  facet_wrap(~ emotion, scales = "free_y") +
+  labs(title = "",
+       x = "Was the shooting fatal?", y = "Word Count") +
+  theme_minimal()
+```
+Let's extract the full-text reports that show the strongest expression of each emotion.
+
+The when with the most "fear" was the awful mass shooting on South Street in 2022 involving four shooters, three who died. Eleven other people were shot and survived. This incident also has the most surprise, anger, sadness, and anticipation.
+
+::: {.callout-note title="Narrative from OIS report with the most fear"}
+```{r}
+#| results: asis
+#| echo: false
+
+oisNRC |>
+  slice_max(fear) |>
+  left_join(ois |> select(id, text), 
+            by=join_by(id)) |>
+  pull(text) |>
+  cat()
+```
+:::
+
+Longer reports may have higher raw sentiment counts. Part of what makes the South Street shooting rate highly on several emotional dimensions is that it is a rather long report. We might prefer to normalize the emotion count by the total number of words so that we get a percentage of words that fall into a particular emotion category.
+
+```{r}
+countWords <- oisTokens |> count(id)
+  
+oisNRCpct <- oisTokens |>
+  # same word may appear multiple times in document
+  #   and same word may have multiple entries in NRC
+  #   many-to-many will include all of them
+  inner_join(get_sentiments("nrc"), 
+             by = "word",
+             relationship = "many-to-many") |>
+  count(id, sentiment) |>
+  left_join(countWords, by = join_by(id)) |>
+  mutate(pct = n.x/n.y) |>
+  select(id, sentiment, pct) |>
+  pivot_wider(names_from = sentiment, values_from = pct, values_fill = 0)
+
+head(oisNRCpct)
+```
+
+Turns out, even when measured by a percentage of words, the South Street mass shooting still tops the list.
+
+::: {.callout-note title="Narrative from OIS report with the most fear"}
+```{r}
+#| results: asis
+#| echo: false
+
+oisNRCpct |>
+  slice_max(anticipation) |>
+  left_join(ois |> select(id, text), 
+            by=join_by(id)) |>
+  pull(text) |>
+  substring(1, 404) |>
+  paste0("...") |>
+  cat()
+```
+:::
+
+
+# Summary
+
+We have explored how to transform unstructured text data, specifically officer-involved shooting reports, into a structured format suitable for analysis and modeling. Using the `text2vec` package, we walked through the full text processing pipeline: 
+
+1.  tokenization
+2.  vocabulary construction
+3.  creation of a document-term matrix (DTM)
+4.  TF-IDF weighting to highlight distinctive terms
+
+We then used dimensionality reduction techniques like singular value decomposition (SVD) and UMAP to visualize documents in a low-dimensional space, revealing thematic clusters such as reports involving dog shootings or knife attacks. We used k-means clustering to group similar documents and we a built classification model to predict whether an incident was fatal based on the text content. Throughout, we emphasized the importance of preprocessing choices, like stopword removal, stemming, and n-gram inclusion, and how they shape downstream analysis.
+
+*Key Ideas to Remember*
+
+- **Tokenization** is the process of breaking raw text into meaningful units like words or phrases
+- A **document-term matrix (DTM)** represents word counts across documents and is the foundation of most text modeling
+- **TF-IDF weighting** highlights terms that are important to a document but uncommon across the corpus
+- **Stemming** reduces related words to a common root but may reduce interpretability (e.g., "office" and "officer" both become "offic")
+- **Singular Value Decomposition (SVD)** compresses the DTM and reveals major axes of variation in word usage
+- **K-means clustering** helps uncover groups of thematically similar documents in low-dimensional spaces
+- **UMAP** is a nonlinear method for visualizing document similarity and capturing both local and global structure
+- Interpretation of models and clusters is enriched by examining **top-weighted terms** for each dimension or group
+- **Sentiment analysis** uses predefined lexicons to quantify emotional tone (e.g., positive, negative, fear, trust) in text. The NRC lexicon allows you to analyze specific emotions, helping reveal how reports differ in framing and tone
+- Text preprocessing decisions can significantly affect model outcomes. Make sure to inspect the documents directly to make sure you understand the context
+
