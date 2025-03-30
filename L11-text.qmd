@@ -31,7 +31,6 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- git status -->
 <!-- git push -->
 
-
 # Introduction
 
 In this section we will use `text2vec` to explore the language used in a collection of police reports describing officer-involved shootings (OIS). These reports contain unstructured narrative text. Our goal is to transform that text into a format we can analyze using tools from natural language processing (NLP). We will walk through a typical text analysis process: tokenizing the reports, building a vocabulary, constructing a document-term matrix, and applying TF-IDF to highlight the most distinctive terms. Along the way, we will also examine co-occurrence patterns.
@@ -46,20 +45,26 @@ library(kableExtra)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(crayon)
+library(caret)
 
 library(text2vec)
 library(Matrix)
+
+library(gbm3)
+library(uwot)
 ```
 
 As for the source of our documents, the Philadelphia Police Department posts [reports](https://www.phillypolice.com/accountability/ois/) on each officer-involved shooting. I have pulled the data off their website and packaged it into an .RData file. Loading it will create the data frame `ois`. Details on how to pull the data off of the PPD website are part of my [R4crim collection](https://github.com/gregridgeway/R4crim?tab=readme-ov-file) of scripts.
 
 ```{r}
 load("data/PPD OIS.RData")
+ois <- ois |>
+  mutate(fatal = grepl("1 Killed|^Killed$", subInjury) |> as.numeric())
 ois |> select(-text) |> head()
 ```
 
-The data include an incident ID, the date of the shooting, the address and coordinates where the shooting occurred, and a URL to the incident report. There is also a column called `text` containing the full text of the officer-involved shooting report. Some can be long, but here's the first one as an example.
-
+The data include an incident ID, the date of the shooting, the address and coordinates where the shooting occurred, and a URL to the incident report. There is also a column called `text` containing the full text of the officer-involved shooting report. Some can be long, but here's one that hits close to home as an example.
 ```{r}
 #| results: hide
 ois |> filter(id=="16-30") |> select(text) |> unlist() |> cat()
@@ -150,7 +155,7 @@ After tokenization, it will also apply "stemming". Stemming is a text preprocess
 c("dog","dogs","office","officer","officers","police","policy","policies") |>
   SnowballC::wordStem(language = "en")
 ```
-Conveniently, it makes both "dog" and "dogs" simply "dog". However, note that it also makes "office", "officer", and "officers" all simplified to "office"... maybe not ideal. Since our text will have a lot of "officer" and "officers" and probably very few of any "office", we will need to remember that this stemming has reduced our "police officers" to "police office".
+Conveniently, it makes both "dog" and "dogs" simply "dog". However, note that it also makes "office", "officer", and "officers" all simplified to "office"... maybe not ideal. Since our text will have a lot of "officer" and "officers" and probably very few, if any, "office", we will need to remember that this stemming has reduced our "police officers" to "polic_offic". You may see terms like "offic_offic" or "offend_offend". Typically this occurs because officer or offender was the last word in one sentence and the first non-stop word in the next sentence (e.g. "The suspect ran from the officer. The officer said 'stop!'").
 
 ```{r}
 # our own custom tokenizer
@@ -187,7 +192,12 @@ vocab <- tokens |>
                    doc_proportion_min = 0.05,
                    doc_proportion_max = 0.5) |>
   filter(nchar(term) >=3) |>
-  filter(!grepl("[0-9]", term))
+  filter(!grepl("[0-9]", term))  |>
+  #   Drop some specific terms that are not useful (e.g. philadelphia)
+  filter(!term %in% c("philadelphia_polic","philadelphia",
+                     "inform_da","da_offic","incid_inform","inform_ppd",
+                     "inform_post","post","officer-involv",
+                     "officer-involv_shoot"))
 
 vocab
 ```
@@ -213,7 +223,7 @@ It is a little difficult to interpret, but we can see that it is going to take i
 #   column represents a unique term (word or phrase)
 #   cell contains the count (or weight) of that term in the document
 oisDTM <- create_dtm(tokens, vectorizer)
-oisDTM[65:74, 445:454] |> as.matrix() |> t()
+oisDTM[65:74, 415:424] |> as.matrix() |> t()
 ```
 We have a DTM! I have picked a few interesting rows and columns. I also transposed the DTM so it is more readable, but typically the rows are documents and columns are terms. You can see a few non-zero counts in this matrix. These indicate which documents include these terms and how many times that term appears in the document.
 
@@ -295,7 +305,7 @@ oisTFIDF <- tfidf_transformer$fit_transform(oisDTM)
 
 Let's take a look at those same rows and columns that we did before for the DTM. The matrix looks largely the same, just everything scaled down.
 ```{r}
-oisTFIDF[65:74, 445:454] |> as.matrix() |> round(2) |> t()
+oisTFIDF[65:74, 415:424] |> as.matrix() |> round(2) |> t()
 ```
 
 Let's compare the top features.
@@ -312,18 +322,17 @@ colSums(oisTFIDF) %>%
 ```
 The TF-IDF does change which terms make the top-10 list. We see "knife" and "driver" show up and "door" and "point" drop off.
 
-Why does "inform_post" show up in this list? "Information posted" was very common in reports before 2020.
-```{r}
-oisDTM[,"inform_post"]
+<!-- Why does "resid" show up in this list? -->
+<!-- ```{r} -->
+<!-- oisDTM[,"resid"] -->
 
-# highlight the word "post" in the report
-library(crayon)
-ois |> 
-  filter(id=="20-20") |> 
-  pull(text) |> 
-  gsub("post", bgYellow$black("post"), x=_) |> 
-  cat()
-```
+<!-- # highlight the word "post" in the report -->
+<!-- ois |>  -->
+<!--   filter(id=="20-20") |>  -->
+<!--   pull(text) |>  -->
+<!--   gsub("resid", bgYellow$black("resid"), x=_) |>  -->
+<!--   cat() -->
+<!-- ``` -->
 
 # Term co-occurrence matrix (TCM)
 
@@ -331,7 +340,7 @@ There may be some concepts that are not limited to a single word or a few adjace
 
 When scanning through each document, setting `skip_grams_window = 5` will treat any two terms that appear within a window of 5 tokens as co-occurring. For example, if the document has the phrase "the officer shot the suspect with a weapon" and we set `skip_grams_window = 5`, then for the word "shot" it will consider "the", "officer", "the", "suspect", "with" as co-occurring terms.
 
-We will use `create_tcm()` to create a TCM. The $(i,j)$ element of the TCm will be the number of times term $i$ occurs within 5 terms of term $j$.
+We will use `create_tcm()` to create a TCM. The $(i,j)$ element of the TCM will be the number of times term $i$ occurs within 5 terms of term $j$.
 ```{r}
 # Create a co-occurrence matrix (Feature Co-occurrence Matrix)
 oisTCM <- itoken(ois$text,
@@ -349,9 +358,11 @@ oisPairs <- Matrix::summary(oisTCM) |>
   filter(i != j) |>
   rename(feature1 = i, feature2 = j, weight = x) |>
   left_join(data.frame(feature1 = 1:nrow(oisTCM),
-                       term1 = colnames(oisTCM)))  |>
+                       term1 = colnames(oisTCM)),
+            by = join_by(feature1))  |>
   left_join(data.frame(feature2 = 1:nrow(oisTCM),
-                       term2 = colnames(oisTCM))) |>
+                       term2 = colnames(oisTCM)),
+            by = join_by(feature2)) |>
   select(-feature1, -feature2) |>
   filter(term1 != term2) |>
   filter(!str_detect(term1, fixed(term2)) & 
@@ -407,9 +418,8 @@ plot(oisSVD$d,
 
 The columns of $\mathbf{U}$ are our "eigendocuments," the fundamental building blocks that the actual documents blend to form their word collections. We will take a look at the first five eigendocuments, highlighting the 10 terms with the highest weight in the left singular vectors. Note that both large positive and large negative values are important to interpret. I have added headings to each left singular vector summarizing what kinds of incidents might heavily weight this column of $\mathbf{U}$.
 
-Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measure the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
 ```{r}
-#| caption: "Top 10 Terms for First 5 SVD Components"
+#| fig-cap: "Top 10 Terms for First 5 SVD Components"
 #| label: tab-uterms
 # Stack the top 10 terms from each component into one long table
 a <- data.frame(term=colnames(oisTFIDF),
@@ -464,16 +474,16 @@ bind_rows(a |>
                      "Dog attack, no offender" = 2,
                      "Suspect/SWAT" = 2,
                      "Knife attacks" = 2,
-                     "Victims" = 2),
+                     "?" = 2),
                    escape = FALSE) |>
   kable_styling(full_width = FALSE)
 ```
-
+Note that "dog" shows up with a large absolute value in the first three left singular vectors. Even if there is a large negative value, that still means the term is important. A report of shooting a pit bull will have a large negative value for its $v_2$, signalling a heavy presence of dog, pit bull, and attack terms, but the absence of the "offender" term. The first left singular vector measure the combined presence of "dog," "offender," and "suspect" (or the absence of all three if a document's value of $v_1$ is large and negative.
 
 Remember that the columns of $\mathbf{V}$ tell us how a particular report mixes together the eigendocuments (columns of $\mathbf{U}$) to form their TFIDF weighted terms. I am curious to explore documents involving dog attacks ($\mathbf{u}_2$) and documents with knife attacks ($\mathbf{u}_4$). The code below creates an interactive 2D map of documents on their values of $v_2$ and $v_4$. For each document, the code extracts the 10 most heavily weighted TF-IDF terms to use as hover text, giving a quick sense of the content. It also assigns each document to a category, "Likely dog attack," "Likely knife attack," or "Other," based on thresholds of $v_2$ and $v_4$. `plotly()` produces an interactive scatterplot where each point is a document, colored by category and annotated with its key terms. This visualization allows us to explore thematic variation in the reports and visually distinguish different types of incidents based on the language used.
 ```{r}
 #| label: fig-documentMap
-#| caption: Plot of how documents weigh 2nd and 4th left singular vectors
+#| fig-cap: Plot of how documents weigh 2nd and 4th left singular vectors
 #| warning: false
 #| message: false
 
@@ -481,16 +491,16 @@ library(plotly)
 
 # collect the 10 terms with the highest weight in each document
 i <- apply(oisTFIDF, 1, order, decreasing=TRUE)
-a <- apply(i, 2, 
-           function(j) 
-           {
-             colnames(oisTFIDF)[j[1:10]] |>
-               paste(collapse = "\n")
-           })
+hovertext <- apply(i, 2, 
+                   function(j) 
+                   {
+                     colnames(oisTFIDF)[j[1:10]] |>
+                       paste(collapse = "\n")
+                   })
 
 # label some document types
-group <- case_when(oisSVD$v[,2] >  0.1 ~ "Likely dog attack",
-                   oisSVD$v[,4] < -0.1 ~ "Likely knife attack",
+group <- case_when(oisSVD$v[,2] > 0.1 ~ "Likely dog attack",
+                   oisSVD$v[,4] > 0.1 ~ "Likely knife attack",
                    TRUE ~ "Other")
 groupCols <- c("Likely dog attack" = "red",
                "Likely knife attack" = "orange",
@@ -501,7 +511,7 @@ plot_ly(x = oisSVD$v[,2],
         y = oisSVD$v[,4],
         type = "scatter",
         mode = "markers",
-        text = a,
+        text = hovertext,
         hoverinfo = "text",
         color = group,
         colors = groupCols,
@@ -511,7 +521,7 @@ plot_ly(x = oisSVD$v[,2],
 ```
 
 
-# Clustering documents using their SVD representation
+# Clustering documents with Hartigan's k-means clustering algorithm
 
 Hartigan's k-means algorithm is an iterative method for partitioning data into $k$ clusters by minimizing the total within-cluster sum of squares. It begins with randomly chosen cluster centers (centroids) and alternates between two steps: 
 
@@ -584,6 +594,7 @@ repeat
     ) +
     ggtitle(paste("K-Means Iteration", iter)) +
     labs(color="Cluster") +
+    guides(fill = "none") +
     theme_minimal()
   print(plotKmeans)
   
@@ -600,8 +611,9 @@ repeat
 }
 
 ```
+After 8 iterations, the centroids of the clusters do not change. That means the cluster assignments for each point will no longer changed. The k-means algorithm has converged after 8 iterations. Indeed k-means seems to have figured out the three clusters that I simulated. In practice we never really know how many real clusters there are. We need to come up with some measures that help us decide whether the number of clusters and their centroids adequately capture the data points.
 
-The plot in @fig-totSS illustrates the total sum of squares (TSS), which measures the overall variability in the dataset. It shows each data point connected to the grand centroid, the average of all points in the data. The total sum of squares is calculated by summing the squared distances from each point to this overall centroid. This serves as a baseline measure of dispersion before clustering is applied.
+The plot in @fig-totSS illustrates the total sum of squares (TSS), which measures the overall variability in the dataset. It shows each data point connected to the grand centroid, the average of all points in the data. The total sum of squares is calculated by summing the squared distances from each point to this overall centroid. This serves as a baseline measure of dispersion before we run our clustering algorithm.
 ```{r}
 #| label: fig-totSS
 #| fig-cap: Total sum of squares calculation. TSS sums all the squared distances between each point and the single centroid of the entire dataset
@@ -649,16 +661,18 @@ print(plotWithinCentroid)
 ```
 A useful measure of clustering quality is the proportion of variance explained by the clustering, computed as $R^2 = 1-\frac{WCSS}{TSS}$. This tells us how much of the total variability has been accounted for by the clustering structure. A higher value indicates better clustering. If this proportion is low, it may suggest that the three clusters is insufficient to capture the underlying structure of the data.
 
-Let's put all this to work on the our officer-involved shooting reports. We will define documents by their first 7 right singular vectors (columns of $\mathbf{V}$). R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us.
+Let's put all this to work on our officer-involved shooting reports. We will define documents by their first 7 right singular vectors (columns of $\mathbf{V}$). We will actually cluster on $\mathbf{V}\boldsymbol\Sigma$. Remember that SVD normalizes all the columns in $\mathbf{V}$ (and those in $\mathbf{U}$ as well) to have length 1. That has the effect of making differences between documents basedon their values of $v_{30}$ just as large as differences on $v_1$. The singular values in $\boldsymbol\Sigma$ tell us how to weight each column based how much variance it captures in the original TF-IDF matrix. Without this weighting, each dimension would contribute equally to distance calculations during clustering, even though some components may be far more informative than others. By using $\mathbf{V}\boldsymbol\Sigma$, our clustering algorithm will more accurately group documents based on their underlying thematic content.
 
-First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and $R^2$. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding SSE, we can visualize how much the clustering improves as $k$ increases. A plot of SSE versus $k$ typically shows a steep drop initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data.
+R has a built-in `kmeans()` function in the default `stats` package that will do all the work for us. First, we need to decide on how many clusters we should use. The code below explores the relationship between the number of clusters, $k$, and $R^2$. This is a key part of the "elbow method," a common strategy for selecting an appropriate number of clusters. By running k-means repeatedly with increasing values of $k$ (from 1 to 40 in this case), and recording the corresponding $R^2$, we can visualize how much the clustering improves as $k$ increases. A plot of $R^2$ versus $k$ typically shows a steep increase initially and then levels off. The "elbow" point, where the rate of improvement sharply slows, is often a good choice for the number of clusters. It represents a balance between underfitting and overfitting the structure in the data. Another common method is to consider more and more clusters until $R^2$ reaches 0.80 (or 0.90).
+
 ```{r}
-#| fig-cap: Relationship between $k$ and the within cluster sum of squares
+#| fig-cap: Relationship between $k$ and $R^2$
 #| label: fig-kvsse
 design <- data.frame(k=1:40, R2=NA)
 for(i in 2:nrow(design))
 {
-  km <- kmeans(oisSVD$v[,1:7], 
+  # multiply by the singular values to incorporate the importance of each 
+  km <- kmeans(oisSVD$v[,1:7] %*% diag(oisSVD$d[1:7]), 
                centers = design$k[i], 
                nstart = 5)
   design$R2[i] <- ifelse(i==1, 1, 
@@ -676,13 +690,16 @@ kSelect <- design |>
 ```
 In @fig-kvsse I have marked where the $R^2$ reaches 80\%. That happens when we set $k$ to `r kSelect`. With $k$ set to `r kSelect`, the clustering captures 80\% of the variation in the first seven right singular vectors.
 ```{r}
-# run kmeans on first 7 right singular vectors
+# run kmeans on first 10 right singular vectors (scaled by Sigma)
 #   clusters similar documents
 set.seed(20250325)
-oisKmeans <- kmeans(oisSVD$v[,1:7], 
+oisKmeans <- kmeans(oisSVD$v[,1:10] %*% diag(oisSVD$d[1:10]), 
                     centers = kSelect,
                     nstart = 5) # try 5 random starting points
+```
 
+Let's add the cluster label to our original OIS data frame so we can see if themes are identifiable from their incident descriptions.
+```{r}
 # add the cluster labels to the dataset
 ois$cluster <- oisKmeans$cluster
 ois |>
@@ -710,26 +727,36 @@ hovertext <- as.matrix(oisTFIDF) |>
   apply(1, paste, collapse=", ") |> 
   data.frame(terms = _) |>
   cbind(size = oisKmeans$size,
-        cluster = 1:kSelect)
+        cluster = 1:kSelect) |>
+  arrange(desc(size))
 ```
 
-Let's examine the top 10 terms for the larges three clusters.
+Let's examine the top 10 terms for these clusters.
 ```{r}
-hovertext |> arrange(desc(size)) |> head(3)
+hovertext |>
+  kable("html", 
+        escape = FALSE, 
+        col.names = c("Top Terms", "Size", "Cluster")) |>
+  kable_styling(full_width = FALSE, 
+                position = "left", 
+                bootstrap_options = c("striped", "hover"))
 ```
-Perhaps the first two are variations on the typical officer-involved shooting involving an offender, possibly armed (cluster \#5). Cluster \#4 clearly seems to be shootings of dogs, commonly pit pulls, near a residence.
+
+The first row describes the largest cluster with `r hovertext$size[1]` documents (Cluster \#`r hovertext$cluster[1]`). It describes shootings involving a car (driver, passenger, door). The second largest cluster (Cluster \#`r hovertext$cluster[2]`) seems to describe a prototypical officer-involved shooting involving an offender, a marked police vehicle, and some mention of charges. Clusters \#`r hovertext$cluster[3]` and \#`r hovertext$cluster[4]` are the SWAT (Special Weapons and Tactics) incidents. Cluster \#`r hovertext$cluster[5]` clearly seems to be shootings of dogs, commonly pit bulls. You can pick up other themes in the remaining clusters such as knife attacks and the involvement of plainclothes police officers.
 
 Let's plot these out based on the values of each document's first two right singular vectors ($v_1$ and $v_2$). I will color them based on their clustering and add the top 10 terms as hovertext so we have some idea about the themes. Explore the clusters in the plot and see if you can extra some of those themes.
 ```{r}
 #| label: fig-clusteredDocuments
-#| caption: Plot of document by first two right singular vectors, colored by cluster
+#| fig-cap: Plot of document by first two right singular vectors, colored by cluster
 plot_ly(
   x = oisSVD$v[,1],
   y = oisSVD$v[,2],
   type = "scatter",
   mode = "markers",
   color = ois$cluster,
-  text = hovertext$terms[ois$cluster], 
+  hoverinfo = "text", # don't show the coordinates, only hoverinfo
+  text = hovertext$terms[ois$cluster] |>
+    gsub(", ", "\n", x=_), 
   marker = list(size = 6)
 ) |>
   layout(
@@ -740,3 +767,60 @@ plot_ly(
 ```
 
 
+# Document classification
+
+We can now explore whether the text in the officer-involved shooting narratives helps us predict whether the subject was fatally shot in the incident. We will base our predictions directly on the DTM, the word frequency count in the text. I will use `glmnet()` to fit an L1 regularized logistic regression model, a logistic regression model with a penalty on the sum of the absolute values of the coefficients. The intention is that this will select out those particular terms that signal a fatal shooting.
+```{r}
+#| label: fittingLasso
+#| cache: true
+# Fit logistic regression with L1 penalty
+set.seed(20250329)
+oisLasso <- cv.glmnet(as.matrix(oisDTM), 
+                      ois$fatal, 
+                      family = "binomial",
+                      alpha = 1,
+                      nfolds = 10)
+```
+
+@tbl-lassocoef shows the terms with the largest coefficients.
+```{r}
+#| tbl-cap: "Top 5 terms  with the largest coefficients"
+#| label: tbl-lassocoef
+coef(oisLasso, s = "lambda.min") |>
+  as.matrix() |>
+  as.data.frame() |>
+  tibble::rownames_to_column("Term") |>
+  arrange(desc(s1)) |>
+  slice_head(n=10) |>
+  kable("html", 
+        digits = 2, 
+        col.names = c("Term", "LASSO Coefficient")) %>%
+  kable_styling(full_width = FALSE, 
+                bootstrap_options = c("striped", "hover"), 
+                position = "left")
+```
+Quite sensibly we see terms associated with the subject being "pronounced deceased" and is variations. Only `r -1 + coef(oisLasso, s = "lambda.min") |> sign() |> abs() |> sum()`$ terms have non-zero coefficients.
+
+Let's see how it performs in terms of misclassification. I will use 10-fold cross-validation to get out-of-fold predicted probabilities for each document.
+```{r}
+set.seed(20250329)
+iFold <- rep(1:10, length.out=nrow(ois)) |> sample()
+oofPred <- rep(NA, nrow(ois))
+
+for (i in 1:10) 
+{
+  fit <- cv.glmnet(oisDTM[iFold!=i,], 
+                   ois$fatal[iFold!=i], 
+                   family = "binomial", 
+                   alpha = 1,
+                   nfolds = 10)
+  oofPred[iFold==i] <- predict(fit, 
+                               newx = oisDTM[iFold==i,],
+                               s = "lambda.min", 
+                               type = "response")
+}
+
+# Let's use a 0.25 probability cut-off (about 28% are fatal)
+table(oofPred>0.25, ois$fatal)
+```
+Overall predictive performance seems reasonably good. There is a lot of information in the terms to separate most fatal incidents from the non-fatal ones.
