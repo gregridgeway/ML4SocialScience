@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-03-31">
+
+<title>Introduction to Linear Algebra</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="L06-linear-algebra_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L06-linear-algebra_files/libs/quarto-html/quarto.js"></script>
+<script src="L06-linear-algebra_files/libs/quarto-html/popper.min.js"></script>
+<script src="L06-linear-algebra_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L06-linear-algebra_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L06-linear-algebra_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L06-linear-algebra_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L06-linear-algebra_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L06-linear-algebra_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L06-linear-algebra_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L06-linear-algebra_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L06-linear-algebra_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#linear-models" id="toc-linear-models" class="nav-link active" data-scroll-target="#linear-models"><span class="header-section-number">1</span> Linear models</a></li>
+  <li><a href="#matrix-multiplication" id="toc-matrix-multiplication" class="nav-link" data-scroll-target="#matrix-multiplication"><span class="header-section-number">2</span> Matrix multiplication</a>
+  <ul class="collapse">
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">2.1</span> Exercises</a></li>
+  <li><a href="#linear-model-with-matrix-notation" id="toc-linear-model-with-matrix-notation" class="nav-link" data-scroll-target="#linear-model-with-matrix-notation"><span class="header-section-number">2.2</span> Linear model with matrix notation</a></li>
+  </ul></li>
+  <li><a href="#matrix-derivatives" id="toc-matrix-derivatives" class="nav-link" data-scroll-target="#matrix-derivatives"><span class="header-section-number">3</span> Matrix derivatives</a></li>
+  <li><a href="#matrix-inverse" id="toc-matrix-inverse" class="nav-link" data-scroll-target="#matrix-inverse"><span class="header-section-number">4</span> Matrix inverse</a>
+  <ul class="collapse">
+  <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise"><span class="header-section-number">4.1</span> Exercise</a></li>
+  <li><a href="#example" id="toc-example" class="nav-link" data-scroll-target="#example"><span class="header-section-number">4.2</span> Example</a></li>
+  </ul></li>
+  <li><a href="#regularization-and-ridge-regression" id="toc-regularization-and-ridge-regression" class="nav-link" data-scroll-target="#regularization-and-ridge-regression"><span class="header-section-number">5</span> Regularization and ridge regression</a>
+  <ul class="collapse">
+  <li><a href="#demonstration-of-ridge-regression" id="toc-demonstration-of-ridge-regression" class="nav-link" data-scroll-target="#demonstration-of-ridge-regression"><span class="header-section-number">5.1</span> Demonstration of ridge regression</a></li>
+  </ul></li>
+  <li><a href="#multivariate-taylor-series-and-gradient-descent" id="toc-multivariate-taylor-series-and-gradient-descent" class="nav-link" data-scroll-target="#multivariate-taylor-series-and-gradient-descent"><span class="header-section-number">6</span> Multivariate Taylor series and gradient descent</a>
+  <ul class="collapse">
+  <li><a href="#example-1" id="toc-example-1" class="nav-link" data-scroll-target="#example-1"><span class="header-section-number">6.1</span> Example</a></li>
+  <li><a href="#logistic-regression-log-likelihood" id="toc-logistic-regression-log-likelihood" class="nav-link" data-scroll-target="#logistic-regression-log-likelihood"><span class="header-section-number">6.2</span> Logistic regression log likelihood</a></li>
+  <li><a href="#newton-raphson-optimization" id="toc-newton-raphson-optimization" class="nav-link" data-scroll-target="#newton-raphson-optimization"><span class="header-section-number">6.3</span> Newton-Raphson optimization</a></li>
+  <li><a href="#logistic-regression-gradient-and-hessian" id="toc-logistic-regression-gradient-and-hessian" class="nav-link" data-scroll-target="#logistic-regression-gradient-and-hessian"><span class="header-section-number">6.4</span> Logistic regression gradient and Hessian</a></li>
+  </ul></li>
+  <li><a href="#iteratively-reweighted-least-squares-irls" id="toc-iteratively-reweighted-least-squares-irls" class="nav-link" data-scroll-target="#iteratively-reweighted-least-squares-irls"><span class="header-section-number">7</span> Iteratively Reweighted Least Squares (IRLS)</a>
+  <ul class="collapse">
+  <li><a href="#irls-r-example" id="toc-irls-r-example" class="nav-link" data-scroll-target="#irls-r-example"><span class="header-section-number">7.1</span> IRLS R example</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L06-linear-algebra.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Introduction to Linear Algebra</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 31, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- In terminal -->
+<!-- quarto render L6-linear-algebra.qmd -->
+<!-- quarto render L6-linear-algebra.qmd --cache-refresh  -->
+<!-- git commit L6* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+<section id="linear-models" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Linear models</h1>
+<p>Many models involve linear combinations of terms. For example, we already saw that the naïve Bayes classifier is the sum of weights of evidence. More generally, a naïve Bayes classifier has the form of a linear combination like <span class="math display">\[
+    f(\mathbf{x})=\beta_0+h_1(\mathbf{x})+h_2(\mathbf{x})+\ldots+h_d(\mathbf{x})
+\]</span> Even decision trees can be written in this form. <span class="math display">\[
+    f(\mathbf{x})=\beta_1I(\mathrm{age}&lt;16)I(\mathrm{SES}&gt;2)+\beta_2I(\mathrm{age}&lt;16)I(\mathrm{SES}\leq 2) + \beta_3I(\mathrm{age}\geq 16)
+\]</span> The classic linear model is <span class="math display">\[
+    f(\mathbf{x})=\beta_0+\beta_1x_1+\beta_2x_2+\ldots+\beta_dx_d
+\]</span> This is probably the most widely used model ever.</p>
+<p>It gets tiresome to write this equation out each time. This is where linear algebra becomes handy. Let <span class="math display">\[
+\begin{split}
+    \beta&amp;=      \begin{bmatrix}
+           \beta_0 \\
+           \beta_1 \\
+           \vdots \\
+           \beta_d
+         \end{bmatrix} \\
+    \mathbf{x}&amp;=      \begin{bmatrix}
+           1 \\
+           x_1 \\
+           \vdots \\
+           x_d
+         \end{bmatrix}
+\end{split}
+\]</span> These are column vectors, stacking all the <span class="math inline">\(\beta_j\)</span>s on top of each other to form <span class="math inline">\(\beta\)</span> and stacking all the features of a single observation, the <span class="math inline">\(x_j\)</span>s, to form <span class="math inline">\(\mathbf{x}\)</span>. By default, all vectors are assumed to be column vectors (1 column, multiple rows). Both <span class="math inline">\(\beta\)</span> and <span class="math inline">\(\mathbf{x}\)</span> here are <span class="math inline">\((d+1)\times 1\)</span> matrices.</p>
+<p>The transpose operator flips rows and columns. <span class="math display">\[
+\begin{split}
+    \beta' = \beta^T = \begin{bmatrix}
+           \beta_0 &amp; \beta_1 &amp; \cdots &amp; \beta_d
+         \end{bmatrix}
+\end{split}
+\]</span></p>
+</section>
+<section id="matrix-multiplication" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Matrix multiplication</h1>
+<p>Two matrices, <span class="math inline">\(\mathbf{A}\)</span> and <span class="math inline">\(\mathbf{B}\)</span>, can be multiplied if the number of columns in <span class="math inline">\(\mathbf{A}\)</span> equals the number of rows in <span class="math inline">\(\mathbf{B}\)</span>. Matrix multiplication proceeds by summing the products of each row of <span class="math inline">\(\mathbf{A}\)</span> with each column in <span class="math inline">\(\mathbf{B}\)</span>. We will work across the rows of <span class="math inline">\(\mathbf{A}\)</span> and down the columns of <span class="math inline">\(\mathbf{B}\)</span>.</p>
+<p><span class="math display">\[
+\begin{split}
+\hspace{-1in}
+    \begin{bmatrix}
+       1 &amp; 2 \\
+       3 &amp; 4 \\
+       5 &amp; 6       
+    \end{bmatrix}
+    \begin{bmatrix}
+       -9 &amp; -8  \\
+       -7 &amp; -6
+    \end{bmatrix} &amp;=
+    \begin{bmatrix}
+       1\times -9 + 2\times -7 &amp;  1\times -8 + 2\times -6 \\
+       3\times -9 + 4\times -7 &amp;  3\times -8 + 4\times -6 \\
+       5\times -9 + 6\times -7 &amp;  5\times -8 + 6\times -6
+    \end{bmatrix}\\
+    &amp;=
+    \begin{bmatrix}
+-23 &amp; -20 \\
+-55 &amp; -48 \\
+-87 &amp; -76
+    \end{bmatrix}
+\end{split}
+\]</span></p>
+<p>We always use computers for matrix operations. In R, the <code>%*%</code> operator means matrix multiplication.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">6</span>))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">9</span>,<span class="sc">-</span><span class="dv">8</span>),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="sc">-</span><span class="dv">7</span>,<span class="sc">-</span><span class="dv">6</span>))</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%*%</span> B</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]
+[1,]  -23  -20
+[2,]  -55  -48
+[3,]  -87  -76</code></pre>
+</div>
+</div>
+<section id="exercises" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="exercises"><span class="header-section-number">2.1</span> Exercises</h2>
+<p>Compute <span class="math inline">\(\mathbf{A}\mathbf{B}\)</span> for the following. First try by hand, then check your answers using R.</p>
+<ol type="1">
+<li><p><span class="math display">\[\mathbf{A}=
+    \begin{bmatrix}
+    -1 &amp;  1  \\
+     1 &amp; -1         
+    \end{bmatrix}, \;
+    \mathbf{B}=
+    \begin{bmatrix}
+    2 &amp; 0 \\
+    1 &amp; 6
+    \end{bmatrix}
+\]</span></p></li>
+<li><p><span class="math display">\[\mathbf{A}=
+     \begin{bmatrix}
+     2 &amp; 0 \\
+     1 &amp; 6
+     \end{bmatrix}, \;
+     \mathbf{B}=
+     \begin{bmatrix}
+     -1 &amp;  1  \\
+      1 &amp; -1         
+     \end{bmatrix}
+     \]</span></p></li>
+<li><p><span class="math display">\[\mathbf{A}=
+    \begin{bmatrix}
+    1 &amp; 0 &amp; 0 \\
+    0 &amp; 1 &amp; 0 \\
+    0 &amp; 0 &amp; 1
+    \end{bmatrix}, \;
+    \mathbf{B}=
+    \begin{bmatrix}
+    3 &amp; 1 \\
+    2 &amp; 1 \\
+    1 &amp; 3
+    \end{bmatrix}\]</span></p></li>
+<li><p><span class="math display">\[\mathbf{A}=
+    \begin{bmatrix}
+    1 &amp; 2 &amp; 3
+    \end{bmatrix}, \hspace{0.1in}
+    \mathbf{B}=
+    \begin{bmatrix}
+    1 \\
+    2 \\
+    3
+    \end{bmatrix}
+\]</span></p></li>
+</ol>
+<p>Here is R code for creating the matrices and multiplying then.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">0</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">6</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%*%</span> B</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]
+[1,]   -1    6
+[2,]    1   -6</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">0</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">6</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%*%</span> B</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]
+[1,]   -2    2
+[2,]    5   -5</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="dv">1</span>,<span class="dv">3</span>) <span class="co"># diagonal, or</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">2</span>,<span class="dv">1</span>),<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%*%</span> B</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]
+[1,]    3    1
+[2,]    2    1
+[3,]    1    3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">ncol=</span><span class="dv">3</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">t</span>(A)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%*%</span> B</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1]
+[1,]   14</code></pre>
+</div>
+</div>
+<p>Some things to note from these exercises:</p>
+<ol type="1">
+<li><p>Matrix multiplication does not commute, <span class="math inline">\(\mathbf{AB}\neq\mathbf{BA}\)</span></p></li>
+<li><p>The matrix with 1s on the diagonal and 0s everywhere else is the <em>identity matrix</em>, the matrix equivalent of multiplying by 1. Often denoted as <span class="math inline">\(\mathbf{I}\)</span></p></li>
+<li><p>If you multiply a column vector by its transpose, it is the same as computing the sum of the squares of the elements, <span class="math inline">\(\mathbf{a}'\mathbf{a}=\sum a_i^2\)</span>.</p></li>
+</ol>
+</section>
+<section id="linear-model-with-matrix-notation" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="linear-model-with-matrix-notation"><span class="header-section-number">2.2</span> Linear model with matrix notation</h2>
+<p>We can now rewrite the long linear combination of features compactly. <span class="math display">\[
+\begin{split}
+    \beta' &amp;= \begin{bmatrix}
+           \beta_0 &amp; \beta_1 &amp; \cdots &amp; \beta_d
+         \end{bmatrix} \\
+    \mathbf{x}'&amp;=      \begin{bmatrix}
+           1 &amp; x_1 &amp; \cdots &amp; x_d
+         \end{bmatrix} \\
+    \beta'\mathbf{x} &amp;= \beta_0+\beta_1x_1+\beta_2x_2+\ldots+\beta_dx_d
+\end{split}
+\]</span></p>
+<p>We are going to work through how to select <span class="math inline">\(\beta\)</span> to minimize squared error, <span class="math display">\[
+   J(\beta)= \sum_{i=1}^n (y_i-\beta'\mathbf{x}_i)^2
+\]</span> where <span class="math inline">\(\mathbf{x}_i\)</span> is a column vector containing all the features for observation <span class="math inline">\(i\)</span>. Instead of having <span class="math inline">\(n\)</span> separate vectors <span class="math inline">\(\mathbf{x}_i\)</span>, stack them all into one matrix, <span class="math inline">\(\mathbf{X}\)</span>. <span class="math display">\[
+    \mathbf{X} = \begin{bmatrix}
+       1 &amp; x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1d} \\        
+       1 &amp; x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2d} \\        
+       1 &amp; x_{31} &amp; x_{32} &amp; \cdots &amp; x_{3d} \\        
+       &amp; &amp; \vdots \\
+       1 &amp; x_{n1} &amp; x_{n2} &amp; \cdots &amp; x_{nd} \\        
+    \end{bmatrix}
+\]</span> In this way <span class="math inline">\(\mathbf{X}\beta\)</span> is <span class="math display">\[
+    \mathbf{X}\beta = \begin{bmatrix}
+       1 &amp; x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1d} \\        
+       1 &amp; x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2d} \\        
+       1 &amp; x_{31} &amp; x_{32} &amp; \cdots &amp; x_{3d} \\        
+       &amp; &amp; \vdots \\
+       1 &amp; x_{n1} &amp; x_{n2} &amp; \cdots &amp; x_{nd} \\        
+    \end{bmatrix}
+    \begin{bmatrix}
+       \beta_0 \\ \beta_1 \\ \vdots \\ \beta_d
+    \end{bmatrix}
+    = \begin{bmatrix}
+       \beta'\mathbf{x}_1 \\
+       \beta'\mathbf{x}_2 \\
+       \vdots \\
+       \beta'\mathbf{x}_n
+    \end{bmatrix}
+\]</span> So <span class="math inline">\(\mathbf{X}\beta\)</span> is a compact way of writing all of the predicted values for every observation in the dataset.</p>
+<p>We can let <span class="math display">\[
+    \mathbf{y} = \begin{bmatrix}
+       y_1 \\
+       y_2 \\
+       \vdots \\
+       y_n        
+    \end{bmatrix}
+\]</span> Then the differences between the actual and predicted values are <span class="math display">\[
+    \mathbf{y} -\mathbf{X}\beta = \begin{bmatrix}
+       y_1 \\ y_2 \\ \vdots \\ y_n        
+    \end{bmatrix} -
+    \begin{bmatrix}
+       \beta'\mathbf{x}_1 \\
+       \beta'\mathbf{x}_2 \\
+       \vdots \\
+       \beta'\mathbf{x}_n
+    \end{bmatrix} =
+    \begin{bmatrix}
+       y_1-\beta'\mathbf{x}_1 \\
+       y_2-\beta'\mathbf{x}_2 \\
+       \vdots \\
+       y_n-\beta'\mathbf{x}_n
+    \end{bmatrix}
+\]</span> Remember in one of the exercises above you saw that <span class="math display">\[
+\begin{bmatrix}
+1 &amp; 2 &amp; 3
+\end{bmatrix}
+\begin{bmatrix}
+1 \\
+2 \\
+3
+\end{bmatrix} = 1^2+2^2+3^2
+\]</span> More generally <span class="math display">\[
+\mathbf{a}'\mathbf{a} = \sum_{i=1}^n a_i^2
+\]</span> That means we can rewrite the sum of squared error as <span class="math display">\[
+    J(\beta)=(\mathbf{y} -\mathbf{X}\beta)'(\mathbf{y} -\mathbf{X}\beta)
+\]</span></p>
+<p>To multiply this out we need some additional properties of the matrix transpose.</p>
+<ol type="1">
+<li><p><span class="math inline">\((\mathbf{a}-\mathbf{b})'=\mathbf{a}'-\mathbf{b}'\)</span></p></li>
+<li><p><span class="math inline">\((\mathbf{AB})'=\mathbf{B}'\mathbf{A}'\)</span></p></li>
+</ol>
+<p>Using these properties we can write <span class="math display">\[
+\begin{split}
+J(\beta) &amp;=     (\mathbf{y} -\mathbf{X}\beta)'(\mathbf{y} -\mathbf{X}\beta)\\
+      &amp;= (\mathbf{y}' - (\mathbf{X}\beta)')(\mathbf{y} -\mathbf{X}\beta) \\
+      &amp;= (\mathbf{y}' - \beta'\mathbf{X}')(\mathbf{y} -\mathbf{X}\beta) \\
+      &amp;= \mathbf{y}'(\mathbf{y} -\mathbf{X}\beta) - \beta'\mathbf{X}'(\mathbf{y} -\mathbf{X}\beta) \\
+      &amp;= \mathbf{y}'\mathbf{y} - \mathbf{y}'\mathbf{X}\beta - \beta'\mathbf{X}'\mathbf{y} + \beta'\mathbf{X}'\mathbf{X}\beta \\
+      &amp;= \mathbf{y}'\mathbf{y} - \mathbf{y}'\mathbf{X}\beta - (\beta'\mathbf{X}'\mathbf{y})' + \beta'\mathbf{X}'\mathbf{X}\beta \\
+      &amp;= \mathbf{y}'\mathbf{y} - \mathbf{y}'\mathbf{X}\beta - \mathbf{y}'\mathbf{X}\beta + \beta'\mathbf{X}'\mathbf{X}\beta \\
+      &amp;= \mathbf{y}'\mathbf{y} - 2\mathbf{y}'\mathbf{X}\beta + \beta'\mathbf{X}'\mathbf{X}\beta
+\end{split}
+\]</span></p>
+<p>Now we would like to find the value <span class="math inline">\(\beta'=\begin{bmatrix}\beta_0 &amp; \beta_1 &amp; \cdots &amp; \beta_d\end{bmatrix}\)</span> that minimizes <span class="math inline">\(J(\beta)\)</span>. We need to solve <span class="math inline">\(J'(\beta)=0\)</span>.</p>
+</section>
+</section>
+<section id="matrix-derivatives" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Matrix derivatives</h1>
+<p><span class="math display">\[
+\begin{split}
+    \frac{\partial}{\partial\mathbf{x}} \mathbf{A} &amp;= \mathbf{0} \\
+    \frac{\partial}{\partial\mathbf{x}} \mathbf{A}\mathbf{x} &amp;= \mathbf{A}' \\
+    \frac{\partial}{\partial\mathbf{x}} \mathbf{x}'\mathbf{A} &amp;= \mathbf{A} \\
+    \frac{\partial}{\partial\mathbf{x}} \mathbf{x}'\mathbf{A}\mathbf{x} &amp;= (\mathbf{A}+\mathbf{A}')\mathbf{x} \\
+    \frac{\partial}{\partial\mathbf{x}} \mathbf{x}'\mathbf{A}\mathbf{x} &amp;= 2\mathbf{A}\mathbf{x}, \;\mbox{ if $\mathbf{A}$ is symmetric}
+\end{split}
+\]</span></p>
+<p><strong>Example 1</strong>. Let’s walk through what it means for <span class="math inline">\(\frac{\partial}{\partial\mathbf{x}} \mathbf{A}\mathbf{x} = \mathbf{A}'\)</span>. Let <span class="math inline">\(\mathbf{A}=\begin{bmatrix} 1 &amp; 2 &amp; 3 \end{bmatrix}\)</span> and we will set <span class="math inline">\(\mathbf{x}=\begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}\)</span></p>
+<p><span class="math display">\[
+\begin{split}
+\frac{\partial}{\partial\mathbf{x}} \mathbf{A}\mathbf{x}
+  &amp;= \frac{\partial}{\partial\mathbf{x}} \begin{bmatrix} 1 &amp; 2 &amp; 3 \end{bmatrix}\begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix} \\
+  &amp;= \frac{\partial}{\partial\mathbf{x}} x_1 + 2x_2 + 3x_3  \\
+  &amp;= \begin{bmatrix} \frac{\partial}{\partial x_1} x_1 + 2x_2 + 3x_3 \\
+  \frac{\partial}{\partial x_2} x_1 + 2x_2 + 3x_3 \\
+  \frac{\partial}{\partial x_3} x_1 + 2x_2 + 3x_3\end{bmatrix} \\
+  &amp;= \begin{bmatrix} 1 \\ 2 \\ 3 \end{bmatrix} \\
+  &amp;= \mathbf{A}'
+\end{split}
+\]</span></p>
+<p><strong>Example 2</strong>. Let’s work through an example of <span class="math inline">\(\frac{\partial}{\partial\mathbf{x}} \mathbf{x}'\mathbf{A}\mathbf{x}\)</span> to see that this works. <span class="math display">\[
+\begin{split}
+\frac{\partial}{\partial\mathbf{x}}
+    \begin{bmatrix}
+        x_1 &amp; x_2 &amp; x_3
+    \end{bmatrix}
+    \begin{bmatrix}
+        3 &amp; 1 &amp; 0\\
+        2 &amp; 1 &amp; 3\\
+        1 &amp; 3 &amp; 1\\
+    \end{bmatrix}
+    \begin{bmatrix}
+        x_1 \\ x_2 \\ x_3
+    \end{bmatrix} \hspace{-2in}\\
+&amp;=
+\frac{\partial}{\partial\mathbf{x}}
+    \begin{bmatrix}
+        x_1 &amp; x_2 &amp; x_3
+    \end{bmatrix}
+    \begin{bmatrix}
+        3x_1+x_2 \\ 2x_1+x_2+3x_3 \\ x_1+3x_2+x_3
+    \end{bmatrix} \\
+&amp;=
+\frac{\partial}{\partial\mathbf{x}}
+    \begin{bmatrix}
+    3x_1^2+x_1x_2 + 2x_1x_2+x_2^2+3x_2x_3 + x_1x_3+3x_2x_3+x_3^2
+    \end{bmatrix}\\
+&amp;=
+    \begin{bmatrix}
+    6x_1+x_2+2x_2+x_3 \\
+    x_1+2x_1+2x_2+3x_3 +3x_3\\
+    3x_2+x_1+3x_2+2x_3
+    \end{bmatrix}\\
+&amp;=
+    \begin{bmatrix}
+    6x_1+3x_2+x_3 \\
+    3x_1+2x_2+6x_3\\
+    x_1+6x_2+2x_3
+    \end{bmatrix}\\
+&amp;=
+    \begin{bmatrix}
+    6 &amp; 3 &amp; 1 \\
+    3 &amp; 2 &amp; 6 \\
+    1 &amp; 6 &amp; 2
+    \end{bmatrix}
+        \begin{bmatrix}
+        x_1 \\ x_2 \\ x_3
+    \end{bmatrix}
+    \\
+&amp;= \left(
+\begin{bmatrix}
+        3 &amp; 1 &amp; 0\\
+        2 &amp; 1 &amp; 3\\
+        1 &amp; 3 &amp; 1\\
+    \end{bmatrix}+
+    \begin{bmatrix}
+        3 &amp; 2 &amp; 1\\
+        1 &amp; 1 &amp; 3\\
+        0 &amp; 3 &amp; 1\\
+    \end{bmatrix}\right)
+        \begin{bmatrix}
+        x_1 \\ x_2 \\ x_3
+    \end{bmatrix} \\
+&amp;= (\mathbf{A}+\mathbf{A}')\mathbf{x}
+\end{split}
+\]</span></p>
+<p>We can now apply these properties to <span class="math inline">\(J(\beta)\)</span>. <span class="math display">\[
+\begin{split}
+    \frac{\partial}{\partial\beta} J(\beta) &amp;=   \frac{\partial}{\partial\beta} \mathbf{y}'\mathbf{y} - 2\mathbf{y}'\mathbf{X}\beta + \beta'\mathbf{X}'\mathbf{X}\beta \\
+    &amp;= -(2\mathbf{y}'\mathbf{X})' + (\mathbf{X}'\mathbf{X}+(\mathbf{X}'\mathbf{X})')\beta \\
+    &amp;= -2\mathbf{X}'\mathbf{y} + (\mathbf{X}'\mathbf{X}+\mathbf{X}'\mathbf{X})\beta \\
+    &amp;= -2\mathbf{X}'\mathbf{y} + 2\mathbf{X}'\mathbf{X}\beta
+\end{split}
+\]</span> Now find <span class="math inline">\(\hat\beta\)</span> so that <span class="math inline">\(J(\hat\beta)=0\)</span>. <span class="math display">\[
+\begin{split}
+    -2\mathbf{X}'\mathbf{y} + 2\mathbf{X}'\mathbf{X}\hat\beta &amp;= 0 \\
+    \mathbf{X}'\mathbf{X}\hat\beta &amp;= \mathbf{X}'\mathbf{y}
+\end{split}
+\]</span> Now it seems like we need to “divide” both sides by <span class="math inline">\(\mathbf{X}'\mathbf{X}\)</span>.</p>
+</section>
+<section id="matrix-inverse" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Matrix inverse</h1>
+<p>The inverse of a matrix, <span class="math inline">\(\mathbf{A}\)</span>, is the matrix that when multiplied with <span class="math inline">\(\mathbf{A}\)</span> yields the identity matrix <span class="math inline">\(I\)</span>. That is, <span class="math display">\[
+    A^{-1}A=I
+\]</span></p>
+<section id="exercise" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="exercise"><span class="header-section-number">4.1</span> Exercise</h2>
+<p>If <span class="math inline">\(A=\begin{bmatrix} 2 &amp; 0 \\ 1 &amp; 6 \end{bmatrix}\)</span>, show that <span class="math inline">\(\mathbf{A}^{-1}=\begin{bmatrix} \frac{1}{2} &amp; 0 \\ -\frac{1}{12} &amp; \frac{1}{6} \end{bmatrix}\)</span> by multiplying these two together.</p>
+<p>First try to do this by hand. Then you can use R to confirm. R computes the inverse of a matrix using <code>solve()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>    A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">0</span>), <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">6</span>))</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">solve</span>(A)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            [,1]      [,2]
+[1,]  0.50000000 0.0000000
+[2,] -0.08333333 0.1666667</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>    <span class="co"># confirm it's an inverse</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    A <span class="sc">%*%</span> <span class="fu">solve</span>(A)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2]
+[1,]    1    0
+[2,]    0    1</code></pre>
+</div>
+</div>
+<p>While we know that division by 0 is a problem, for matrices there are many situations for which there is no inverse. Specifically, if one row (or column) can be written as a linear combination of other rows (or columns), then there is no inverse. There are some generalizations of inverses for these cases.</p>
+<p>Now we can finish solving <span class="math display">\[
+\begin{split}
+    \mathbf{X}'\mathbf{X}\hat\beta &amp;= \mathbf{X}'\mathbf{y} \\
+    (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{X}\hat\beta &amp;= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y} \\
+    \hat\beta &amp;= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}
+\end{split}
+\]</span> This is the classic solution to the least squares estimation problem. Some variants of this solution were known to the ancient Chinese and in the Arab world. A clear description of the problem and solution arrived with Legendre in 1805, but the matrix representation we use today probably did not appear until the early 1900s. In the last 100 years, this equation and its variations have driven a lot of scientific efforts.</p>
+</section>
+<section id="example" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="example"><span class="header-section-number">4.2</span> Example</h2>
+<p>Let’s use the prediction of age at death from the aspartic acid ratio example to test out our estimator for <span class="math inline">\(\hat\beta\)</span>. First, let’s use <code>lm()</code> to see what R’s built in regression function produces.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>dAge <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">ratio=</span><span class="fu">c</span>(<span class="fl">0.040</span>,<span class="fl">0.070</span>,<span class="fl">0.070</span>,<span class="fl">0.075</span>,<span class="fl">0.080</span>,<span class="fl">0.085</span>,<span class="fl">0.105</span>,<span class="fl">0.110</span>,<span class="fl">0.115</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                           <span class="fl">0.130</span>,<span class="fl">0.140</span>,<span class="fl">0.150</span>,<span class="fl">0.160</span>,<span class="fl">0.165</span>,<span class="fl">0.170</span>),</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">age=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">16</span>,<span class="dv">10</span>,<span class="dv">18</span>,<span class="dv">19</span>,<span class="dv">16</span>,<span class="dv">21</span>,<span class="dv">21</span>,<span class="dv">25</span>,<span class="dv">26</span>,<span class="dv">28</span>,<span class="dv">34</span>,<span class="dv">39</span>,<span class="dv">40</span>))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = age ~ ratio, data = dAge)
+
+Coefficients:
+(Intercept)        ratio  
+     -9.378      273.680  </code></pre>
+</div>
+</div>
+<p>Now let’s assemble our design matrix <span class="math inline">\(\mathbf{X}\)</span> from our dataset. We need to <code>cbind()</code> a column of 1s with the column containing the ratio data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, dAge<span class="sc">$</span>ratio)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      [,1]  [,2]
+ [1,]    1 0.040
+ [2,]    1 0.070
+ [3,]    1 0.070
+ [4,]    1 0.075
+ [5,]    1 0.080
+ [6,]    1 0.085
+ [7,]    1 0.105
+ [8,]    1 0.110
+ [9,]    1 0.115
+[10,]    1 0.130
+[11,]    1 0.140
+[12,]    1 0.150
+[13,]    1 0.160
+[14,]    1 0.165
+[15,]    1 0.170</code></pre>
+</div>
+</div>
+<p>Then let’s set <code>y</code> to be our outcome vector</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> dAge<span class="sc">$</span>age</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>y</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]  0  2 16 10 18 19 16 21 21 25 26 28 34 39 40</code></pre>
+</div>
+</div>
+<p>Finally, let’s use R to compute <span class="math inline">\((\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}\)</span>. Remember that <code>t()</code> is for matrix transpose and <code>solve()</code> computes the matrix inverse.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute (X'X)^-1X'y</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>betaHat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           [,1]
+[1,]  -9.378437
+[2,] 273.679616</code></pre>
+</div>
+</div>
+<p>Excellent! It produces the same estimate for <span class="math inline">\(\hat\beta\)</span> as the <code>lm()</code> function.</p>
+<p>Want to go down the rabbit hole and learn about all the gory details about how R fits ordinary least squares? Visit this <a href="https://madrury.github.io/jekyll/update/statistics/2016/07/20/lm-in-R.html">deep dive</a>.</p>
+</section>
+</section>
+<section id="regularization-and-ridge-regression" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Regularization and ridge regression</h1>
+<p>We started with a very general functional form for the predictive model <span class="math display">\[
+    f(\mathbf{x})=\beta_0+h_1(\mathbf{x})+h_2(\mathbf{x})+\ldots+h_d(\mathbf{x})
+\]</span> Even if <span class="math inline">\(\mathbf{x}\)</span> is univariate, we can let the <span class="math inline">\(h_j(x)\)</span> be more complex functions of <span class="math inline">\(x\)</span>, polynomials, for example. <span class="math display">\[
+    f(x)=\beta_0+\beta_1x+\beta_2 x^2+\beta_3 x^3 + \ldots + \beta_d x^d
+\]</span> If we let <span class="math inline">\(d\)</span> get too large relative to the number of observations, then eventually there are multiple polynomials that can completely connect the dots. The predictive model can also be wildly fluctuating. Regularization is a key strategy to prevent this.</p>
+<p>The simplest regularization is simply to limit the size of <span class="math inline">\(d\)</span>. Regularization basically limits the capacity of the model to fit complex shapes. At the extreme end, limiting <span class="math inline">\(d=1\)</span> results in the familiar linear model. However, what if there really needs to be an <span class="math inline">\(x^4\)</span> term but an <span class="math inline">\(x^2\)</span> term is less important.</p>
+<p>Ridge regression proposes changing the objective function to be <span class="math display">\[
+   J(\beta)= \sum_{i=1}^n (y_i-\beta'\mathbf{x}_i)^2 + \lambda\sum_{j=1}^d \beta_j^2
+\]</span> This says that we should evaluate <span class="math inline">\(\beta\)</span> by how small it makes the sum of squared error, but penalize the model if doing so requires very large values for <span class="math inline">\(\beta\)</span>. The penalty is sometimes called a “ridge” penalty or an <span class="math inline">\(L_2\)</span> penalty. If we set <span class="math inline">\(\lambda\)</span> to be a very large number, then this <span class="math inline">\(J\)</span> will be very large if there are any non-zero <span class="math inline">\(\beta_j\)</span>. There is always a <span class="math inline">\(\lambda\)</span> large enough to make exist a unique <span class="math inline">\(\beta\)</span> that minimizes <span class="math inline">\(J\)</span>.</p>
+<p>Let us use our linear algebra skills to find a solution for the optimal <span class="math inline">\(\beta\)</span> for a fixed value of <span class="math inline">\(\lambda\)</span>. <span class="math display">\[
+\begin{split}
+    \frac{\partial}{\partial\beta}\,J(\beta) &amp;=
+    \frac{\partial}{\partial\beta}\,\left(\sum_{i=1}^n (y_i-\beta'\mathbf{x}_i)^2 + \lambda\sum_{j=1}^d \beta_j^2\right) \\
+    &amp;=
+    \frac{\partial}{\partial\beta}\,\left(\mathbf{y}'\mathbf{y} - 2\mathbf{y}'\mathbf{X}\beta + \beta'\mathbf{X}'\mathbf{X}\beta +\lambda\beta'\beta\right) \\
+    &amp;=
+    \frac{\partial}{\partial\beta}\,\left(\mathbf{y}'\mathbf{y} - 2\mathbf{y}'\mathbf{X}\beta + \beta'\mathbf{X}'\mathbf{X}\beta +\lambda\beta'\mathbf{I}\beta\right) \\
+    &amp;=
+    \frac{\partial}{\partial\beta}\,\left(\mathbf{y}'\mathbf{y} - 2\mathbf{y}'\mathbf{X}\beta + \beta'(\mathbf{X}'\mathbf{X} +\lambda\mathbf{I})\beta\right) \\
+    &amp;=
+    - 2\mathbf{X}'\mathbf{y} + 2(\mathbf{X}'\mathbf{X}+\lambda\mathbf{I})\beta  \\
+    \hat\beta_\mathrm{ridge} &amp;= (\mathbf{X}'\mathbf{X}+\lambda\mathbf{I})^{-1}\mathbf{X}'\mathbf{y}
+\end{split}
+\]</span> The squared penalty on the <span class="math inline">\(\beta_j\)</span>s has the effect of adding <span class="math inline">\(\lambda\)</span> to the diagonal of the <span class="math inline">\(\mathbf{X}'\mathbf{X}\)</span> matrix (this is where the term ridge regression comes from). Even if <span class="math inline">\(\mathbf{X}'\mathbf{X}\)</span> does not have an inverse, there is some value of <span class="math inline">\(\lambda\)</span> that will make <span class="math inline">\(\mathbf{X}'\mathbf{X}+\lambda\mathbf{I}\)</span> invertible.</p>
+<p>Regularization plays a major role in machine learning. It will take different forms depending on the machine learning method. For decision trees we controlled the number of terminal nodes. For linear models we can select the degree of the polynomial or set a ridge penalty to shrink the capacity of the method to capture complex patterns.</p>
+<section id="demonstration-of-ridge-regression" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="demonstration-of-ridge-regression"><span class="header-section-number">5.1</span> Demonstration of ridge regression</h2>
+<p>Here let’s simulate some data with a little bit of curvature in the relationship between <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240225</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="at">length.out=</span><span class="dv">40</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">sin</span>(<span class="dv">6</span><span class="sc">*</span>x) <span class="sc">+</span> <span class="fu">rnorm</span>(<span class="fu">length</span>(x),<span class="dv">0</span>,<span class="fl">0.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s use least squares to fit a 10-degree polynomial to this pattern. I also threw in a square root term too. This means that we will estimate 12 coefficients to fit to these 40 observations. The function <code>I()</code> in the <code>model.matrix()</code> call below is an “inhibitor” function in R. It prevents R from interpreting formula terms in any other way than just basic math operations. This is necessary because <code>^</code> has a special meaning in R formulas.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">model.matrix</span>(<span class="sc">~</span>x<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">2</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">3</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">4</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">5</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">6</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">7</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">8</span>)<span class="sc">+</span><span class="fu">I</span>(x<span class="sc">^</span><span class="dv">9</span>)<span class="sc">+</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">I</span>(x<span class="sc">^</span><span class="dv">10</span>)<span class="sc">+</span><span class="fu">sqrt</span>(x), </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data=</span><span class="fu">data.frame</span>(x))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>yHat <span class="ot">&lt;-</span> X <span class="sc">%*%</span> betaHat</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x,y)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, yHat, <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-polynomialFit" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-polynomialFit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-polynomialFit-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-polynomialFit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Polynomial model fit using OLS without any coefficient penalty
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The resulting fit is not bad, but there is a weird bend at the far right. Also weird is the magnitude of some of the coefficients, with some exceeding 1,000,000.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>betaHat</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     [,1]
+(Intercept) -4.284778e-02
+x            6.222010e+01
+I(x^2)      -1.104704e+03
+I(x^3)       1.377847e+04
+I(x^4)      -9.347079e+04
+I(x^5)       3.650949e+05
+I(x^6)      -8.647856e+05
+I(x^7)       1.263112e+06
+I(x^8)      -1.111730e+06
+I(x^9)       5.405930e+05
+I(x^10)     -1.115453e+05
+sqrt(x)     -5.879676e+00</code></pre>
+</div>
+</div>
+<p>Let’s try a little ridge regression. I’ll plot the originally estimated curve in <span style="color:#E69F00;">orange</span>, in <span style="color:#009E73;">teal green</span> will be a curve with a tiny <span class="math inline">\(\lambda\)</span> of 0.0001, <span style="color:#0072B2;">blue</span> will have a <span class="math inline">\(\lambda\)</span> of 0.05, and in black will be a curve with <span class="math inline">\(\lambda\)</span> set very large at 1000. Note that I have zeroed out the squared penalty on <span class="math inline">\(\beta_0\)</span> so that the squared penalty only applies to the coefficients on terms with <span class="math inline">\(x\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x,y)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># the identity matrix... but with a 0 in the top left to avoid a</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   penalty on beta0</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>matI <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="fu">rep</span>(<span class="dv">1</span>,<span class="fu">ncol</span>(X)<span class="sc">-</span><span class="dv">1</span>)))</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X <span class="sc">+</span> lambda<span class="sc">*</span>matI) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>yHat <span class="ot">&lt;-</span> X <span class="sc">%*%</span> betaHat</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, yHat, <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.0001</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X <span class="sc">+</span> lambda<span class="sc">*</span>matI) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>yHat <span class="ot">&lt;-</span> X <span class="sc">%*%</span> betaHat</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, yHat, <span class="at">col=</span><span class="st">"#009E73"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X <span class="sc">+</span> lambda<span class="sc">*</span>matI) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>yHat <span class="ot">&lt;-</span> X <span class="sc">%*%</span> betaHat</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, yHat, <span class="at">col=</span><span class="st">"#0072B2"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>betaHat <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X <span class="sc">+</span> lambda<span class="sc">*</span>matI) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>yHat <span class="ot">&lt;-</span> X <span class="sc">%*%</span> betaHat</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x, yHat, <span class="at">col=</span><span class="st">"black"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>, <span class="fl">2.2</span>, </span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>       <span class="at">legend =</span> <span class="fu">c</span>(<span class="fu">bquote</span>(lambda <span class="sc">==</span> <span class="dv">0</span>), </span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">bquote</span>(lambda <span class="sc">==</span> .(<span class="fu">sprintf</span>(<span class="st">"%.4f"</span>, <span class="fl">0.0001</span>))), </span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">bquote</span>(lambda <span class="sc">==</span> <span class="fl">0.05</span>), </span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">bquote</span>(lambda <span class="sc">==</span> <span class="dv">1000</span>)), </span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span><span class="fu">c</span>(<span class="st">"#E69F00"</span>,<span class="st">"#009E73"</span>,<span class="st">"#0072B2"</span>,<span class="st">"black"</span>),</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-polynomialsRidge" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-polynomialsRidge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-polynomialsRidge-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-polynomialsRidge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Polynomial model fits with increasing ridge penalty
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>As the ridge penalty increases we get a smoother fit, but too much of a penalty will result in a flat, horizontal line near <span class="math inline">\(y=0\)</span>.</p>
+<p>We can trace out what happens to the coefficients as we increase <span class="math inline">\(\lambda\)</span>. The following plot follows the paths of the <span class="math inline">\(\beta\)</span>s as I change <span class="math inline">\(\lambda\)</span> from 0.0001 to 0.1. I’ve run the generation of the <span class="math inline">\(\lambda\)</span>s on the square root scale so that we get more <span class="math inline">\(\lambda\)</span>s near 0.0001 and fewer near 0.1.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>lambda <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">sqrt</span>(<span class="fl">0.0001</span>),<span class="fu">sqrt</span>(<span class="fl">0.1</span>), <span class="at">length=</span><span class="dv">30</span>); lambda <span class="ot">&lt;-</span> lambda<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>betas <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">nrow=</span><span class="fu">length</span>(betaHat), <span class="at">ncol=</span><span class="fu">length</span>(lambda))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(lambda))</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  betas[,i] <span class="ot">&lt;-</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> X <span class="sc">+</span> lambda[i]<span class="sc">*</span>matI) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> y</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lambda,lambda, </span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylim=</span><span class="fu">range</span>(betas), </span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="fu">expression</span>(beta),</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="fu">expression</span>(lambda),</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"n"</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>color_palette <span class="ot">&lt;-</span> viridis<span class="sc">::</span><span class="fu">cividis</span>(<span class="dv">11</span>)</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(betas))</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(lambda, betas[i,], </span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">col=</span>color_palette[i],</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-polynomialsRidgeCoefTrace" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-polynomialsRidgeCoefTrace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-polynomialsRidgeCoefTrace-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-polynomialsRidgeCoefTrace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Coefficient paths with increasing ridge penalty
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In general, you can see that the coefficients are getting squeezed closer to 0 as <span class="math inline">\(\lambda\)</span> increases. Eventually with a large enough value for <span class="math inline">\(\lambda\)</span>, they will all get squeezed to 0. In this example, just a modest amount of penalizing the coefficients results in a smoother, more stable fit to the data.</p>
+</section>
+</section>
+<section id="multivariate-taylor-series-and-gradient-descent" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Multivariate Taylor series and gradient descent</h1>
+<p>The sum of squared error is a quadratic function of <span class="math inline">\(\beta\)</span>. That made it easy to produce a simple formula for <span class="math inline">\(\hat\beta\)</span>. Most functionals, <span class="math inline">\(J\)</span>, do not have such a simple form.</p>
+<p>In univariate calculus you learned about Taylor series. <span class="math display">\[
+    J(x) = J(x_0) + J'(x_0)(x-x_0) + \frac{1}{2}J''(x_0)(x-x_0)^2 + \ldots
+\]</span></p>
+<p>We are going to ignore the <span class="math inline">\(\ldots\)</span> at the end and assume that our <span class="math inline">\(J\)</span> can be well approximated by a quadratic. If we want to optimize this then we can compute <span class="math inline">\(\frac{dJ}{dx}=0\)</span>, using our quadratic approximation. <span class="math display">\[
+\begin{split}
+    \frac{d}{dx} J(x) &amp;= J'(x_0) + J''(x_0)(x-x_0) \\
+    \hat x &amp;\leftarrow x_0-\frac{J'(x_0)}{J''(x_0)}
+\end{split}
+\]</span></p>
+<p>This is “Newton’s method.”</p>
+<section id="example-1" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="example-1"><span class="header-section-number">6.1</span> Example</h2>
+<p>Find <span class="math inline">\(p\)</span> to optimize <span id="eq-univariatepnewton"><span class="math display">\[
+\begin{split}
+    J(p) &amp;= x\log(p)+(n-x)\log(1-p)  \\
+    J'(p) &amp;= \frac{x}{p} - \frac{n-x}{1-p} \\
+    J''(p) &amp;= -\frac{x}{p^2} - \frac{n-x}{(1-p)^2} \\
+    \hat p &amp;\leftarrow \hat p - \frac{\frac{x}{\hat p} - \frac{n-x}{1-\hat p}}{-\frac{x}{\hat p^2} - \frac{n-x}{(1-\hat p)^2}}
+\end{split}
+\tag{1}\]</span></span></p>
+<p>If <span class="math inline">\(x=10\)</span>, <span class="math inline">\(n=30\)</span>, and we initially guess <span class="math inline">\(\hat p=0.1\)</span>, then we get the sequence {0.1759036, 0.268295, 0.3246771, 0.3332151, 0.3333333}.</p>
+<p>This is a little bit of overkill because we can set <span class="math inline">\(J'(p)=0\)</span> and solve that <span class="math inline">\(\hat p=\frac{x}{n}\)</span>. Or if we start the last line of (<a href="#eq-univariatepnewton" class="quarto-xref">1</a>) at <span class="math inline">\(\hat p =\frac{1}{2}\)</span>, then you will get <span class="math inline">\(\hat p=\frac{x}{n}\)</span> on the first iteration. The equation in the first line of (<a href="#eq-univariatepnewton" class="quarto-xref">1</a>) is the log likelihood function for estimating a binomial proportion, naturally optimized when you count the total number of “successes,” <span class="math inline">\(x\)</span>, out of <span class="math inline">\(n\)</span> trials.</p>
+</section>
+<section id="logistic-regression-log-likelihood" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="logistic-regression-log-likelihood"><span class="header-section-number">6.2</span> Logistic regression log likelihood</h2>
+<p>We observe data of the form <span class="math inline">\((\mathbf{x}_1,y_1), \ldots, (\mathbf{x}_n,y_n)\)</span>, where <span class="math inline">\(y_i \in \{0,1\}\)</span>. We assume <span class="math inline">\(y_i \sim \mathrm{Bern}(p_i)\)</span> where, shortly, we will connect <span class="math inline">\(p_i\)</span> to depend on <span class="math inline">\(\mathbf{x}_i\)</span>.</p>
+<p>The probability of observing a specific sequence of <span class="math inline">\(y_i\)</span>s is <span class="math display">\[
+\prod_{i=1}^n p_i^{y_i}(1-p_i)^{1-y_i}
+\]</span></p>
+<p>On the log scale <span id="eq-LLp"><span class="math display">\[
+\begin{split}
+\log\prod_{i=1}^n p_i^{y_i}(1-p_i)^{1-y_i} &amp;=
+\sum_{i=1}^n y_i\log p_i + (1-y_i)\log(1-p_i) \\
+&amp;= \sum_{i=1}^n y_i(\log p_i -\log(1-p_i)) + \log(1-p_i) \\
+&amp;= \sum_{i=1}^n y_i\log\frac{p_i}{1-p_i} + \log(1-p_i)
+\end{split}
+\tag{2}\]</span></span></p>
+<p>The log-likelihood has the <span class="math inline">\(y_i\)</span> multiplied by the log odds. This is the primary reason we model the probability of an outcome on the log odds scale. The log odds function is known as the “canonical link function” for logistic regression. Logistic regression assumes that <span class="math display">\[
+\log\frac{p_i}{1-p_i} = \beta'\mathbf{x}_i
+\]</span></p>
+<p>We will also need the inverse of the log odds, called the inverse logit function, the standard logistic function, or the sigmoid function. <span class="math display">\[
+p_i = \frac{1}{1+e^{-\beta'\mathbf{x}_i}}
+\]</span></p>
+<p>Substituting into the last line of (<a href="#eq-LLp" class="quarto-xref">2</a>) we get <span class="math display">\[
+\begin{split}
+\ell(\beta) &amp;= \sum_{i=1}^n y_i\beta'\mathbf{x}_i + \log\left(1-\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n y_i\beta'\mathbf{x}_i + \log\left(\frac{e^{-\beta'\mathbf{x}_i}}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n y_i\beta'\mathbf{x}_i + \log\left(\frac{e^{-\beta'\mathbf{x}_i}}{1+e^{-\beta'\mathbf{x}_i}}\frac{e^{\beta'\mathbf{x}_i}}{e^{\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n y_i\beta'\mathbf{x}_i + \log\left(\frac{1}{1+e^{\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n y_i\beta'\mathbf{x}_i - \log\left(1+e^{\beta'\mathbf{x}_i}\right)
+\end{split}
+\]</span></p>
+<p>There is no closed form solution to <span class="math inline">\(\ell'(\beta)=0\)</span>. Instead, we need a numerical method for finding the <span class="math inline">\(\hat\beta\)</span> that maximizes <span class="math inline">\(\ell(\beta)\)</span>.</p>
+</section>
+<section id="newton-raphson-optimization" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="newton-raphson-optimization"><span class="header-section-number">6.3</span> Newton-Raphson optimization</h2>
+<p>We previously saw that we can use the Taylor series expansion of <span class="math inline">\(J(\beta)\)</span> to approximate it and use Newton’s method to optimize it. <span id="eq-Taylor"><span class="math display">\[
+J(\beta) \approx J(b) + J'(b)(\beta-b) + \frac{1}{2}J''(b)(\beta-b)^2
+\tag{3}\]</span></span></p>
+<p>If this approximation is good, that is, <span class="math inline">\(J(\beta)\)</span> is well approximated by a parabola, then we can find the <span class="math inline">\(\beta\)</span> to maximize <span class="math inline">\(J(\beta)\)</span>. Take a derivative of (<a href="#eq-Taylor" class="quarto-xref">3</a>) with respect to <span class="math inline">\(\beta\)</span> and set it equal to 0. <span id="eq-newton1"><span class="math display">\[
+\begin{split}
+J'(\beta) &amp;\approx J'(b)+J''(b)(\beta-b) \\
+J'(\hat\beta) &amp;= 0 \\
+J'(b)+J''(b)(\hat\beta-b)  &amp;= 0 \\
+\hat\beta &amp;= b - \frac{J'(b)}{J''(b)}
+\end{split}
+\tag{4}\]</span></span> If we initiate <span class="math inline">\(b\)</span> as a guess for the <span class="math inline">\(\beta\)</span> that maximizes <span class="math inline">\(J(\beta)\)</span>, then (<a href="#eq-newton1" class="quarto-xref">4</a>) will produce a better guess for <span class="math inline">\(\hat\beta\)</span>… typically. We can iterate (<a href="#eq-newton1" class="quarto-xref">4</a>) several times until convergence to give us the maximizer of <span class="math inline">\(J(\beta)\)</span>.</p>
+<p>The multivariate Taylor expansion gives a generalization of this approach. <span class="math display">\[
+\begin{split}
+J(\boldsymbol\beta) &amp;\approx J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'
+\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix}  + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'
+\begin{bmatrix} \frac{\partial^2 J}{\partial\beta_0^2} &amp; \cdots &amp; \frac{\partial^2 J}{\partial\beta_0\partial\beta_d} \\
+\vdots &amp; \vdots &amp; \vdots \\
+\frac{\partial^2 J}{\partial\beta_0\partial\beta_d} &amp; \cdots &amp; \frac{\partial^2 J}{\partial\beta_d^2} \end{bmatrix}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= J(\mathbf{b}) + (\boldsymbol\beta-\mathbf{b})'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= J(\mathbf{b}) + \boldsymbol\beta'\mathbf{G}-\mathbf{b}'\mathbf{G} + \frac{1}{2}(\boldsymbol\beta-\mathbf{b})'\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+\frac{\partial}{\partial\beta} J(\boldsymbol\beta) &amp;= 0 + \mathbf{G} - 0 + \frac{1}{2}\cdot 2\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+&amp;= G+\mathbf{H}(\boldsymbol\beta-\mathbf{b}) \\
+0 &amp;= G+\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) \\
+-\mathbf{H}(\boldsymbol{\hat\beta}-\mathbf{b}) &amp;= G \\
+\boldsymbol{\hat\beta}-\mathbf{b} &amp;= -\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &amp;= \mathbf{b}-\mathbf{H}^{-1}G \\
+\boldsymbol{\hat\beta} &amp;\leftarrow \boldsymbol{\hat\beta} - \mathbf{H}^{-1}\mathbf{G}\\
+\end{split}
+\]</span></p>
+<p>Where <span class="math inline">\(\mathbf{G}\)</span> is a vector of first derivatives (that could be written as <span class="math inline">\(\nabla J\)</span>), the score function, and <span class="math inline">\(\mathbf{H}\)</span> is the matrix of second derivatives (could be written as <span class="math inline">\(\nabla^2 J\)</span>), the Hessian or the negative Fisher information.</p>
+</section>
+<section id="logistic-regression-gradient-and-hessian" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="logistic-regression-gradient-and-hessian"><span class="header-section-number">6.4</span> Logistic regression gradient and Hessian</h2>
+<p>The first derivative, or gradient or “score function”, is <span class="math display">\[
+\begin{split}
+\frac{\partial}{\partial\beta} \ell(\beta) &amp;= \frac{\partial}{\partial\beta}\sum_{i=1}^n y_i\beta'\mathbf{x}_i - \log\left(1+e^{\beta'\mathbf{x}_i}\right) \\
+&amp;= \sum_{i=1}^n y_i\mathbf{x}_i - \frac{e^{\beta'\mathbf{x}_i}}{1+e^{\beta'\mathbf{x}_i}}\mathbf{x}_i \\
+&amp;= \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{e^{\beta'\mathbf{x}_i}}{1+e^{\beta'\mathbf{x}_i}}\frac{e^{-\beta'\mathbf{x}_i}}{e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n \mathbf{x}_i(y_i - p_i) \\
+&amp;= \mathbf{X}'(\mathbf{y}-\mathbf{p})
+\end{split}
+\]</span></p>
+<p>The matrix of second derivatives, or Hessian matrix, is <span class="math display">\[
+\begin{split}
+\frac{\partial^2}{\partial\beta\,\partial\beta'} \ell(\beta)&amp;= \frac{\partial}{\partial\beta} \sum_{i=1}^n \mathbf{x}_i\left(y_i - \frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= \sum_{i=1}^n -\mathbf{x}_i \frac{\partial}{\partial\beta} (1+e^{-\beta'\mathbf{x}_i})^{-1} \\
+&amp;= \sum_{i=1}^n \mathbf{x}_i\frac{1}{(1+e^{-\beta'\mathbf{x}_i})^2}e^{-\beta'\mathbf{x}_i}(-\mathbf{x}_i') \\
+&amp;= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\frac{e^{-\beta'\mathbf{x}_i}}{1+e^{-\beta'\mathbf{x}_i}} \\
+&amp;= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\left(1-\frac{1}{1+e^{-\beta'\mathbf{x}_i}}\right) \\
+&amp;= -\sum_{i=1}^n \mathbf{x}_i\mathbf{x}_i'p_i(1-p_i) \\
+&amp;= -\mathbf{X}'\mathbf{W}\mathbf{X}
+\end{split}
+\]</span> where <span class="math inline">\(\mathbf{W}\)</span> is an <span class="math inline">\(n \times n\)</span> diagonal matrix with <span class="math inline">\(p_i(1-p_i)\)</span> on the diagonal.</p>
+</section>
+</section>
+<section id="iteratively-reweighted-least-squares-irls" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Iteratively Reweighted Least Squares (IRLS)</h1>
+<p>Applying Newton-Raphson to the logistic regression score and Hessian yields <span id="eq-newtonraphsonbeta"><span class="math display">\[
+\begin{split}
+\hat\beta &amp;\leftarrow \hat\beta - (-\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'(\mathbf{y}-\mathbf{p}) \\
+&amp;= \hat\beta + (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'(\mathbf{y}-\mathbf{p})
+\end{split}
+\tag{5}\]</span></span></p>
+<p>Recall that when fitting an ordinary least squares regression, the least squares estimate of <span class="math inline">\(\hat\beta=(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}\)</span>. Relatedly, if you are trying to fit a <strong>weighted</strong> least squares model to find the <span class="math inline">\(\hat\beta\)</span> to minimize <span class="math display">\[
+\sum_{i=1}^n w_i(y_i-\beta'\mathbf{x}_i)^2
+\]</span></p>
+<p>then the solution is <span class="math inline">\(\hat\beta=(\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}\mathbf{y}\)</span> where <span class="math inline">\(W\)</span> is a diagonal matrix with <span class="math inline">\(w_i\)</span> on the diagonal. (<a href="#eq-newtonraphsonbeta" class="quarto-xref">5</a>) appears to be similar. With a little work we can rewrite (<a href="#eq-newtonraphsonbeta" class="quarto-xref">5</a>) as a weighted least squares solution. <span class="math display">\[
+\begin{split}
+\hat\beta &amp;\leftarrow \hat\beta + (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'(\mathbf{y}-\mathbf{p}) \\
+&amp;= (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}\mathbf{X}\hat\beta + (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'(\mathbf{y}-\mathbf{p}) \\
+&amp;= (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'(\mathbf{W}\mathbf{X}\hat\beta + \mathbf{y}-\mathbf{p}) \\
+&amp;= (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}(\mathbf{X}\hat\beta + \mathbf{W}^{-1}(\mathbf{y}-\mathbf{p}))\\
+&amp;= (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}\mathbf{z}
+\end{split}
+\]</span></p>
+<p>where <span class="math inline">\(z_i=\hat\beta'\mathbf{x}_i +\frac{y_i-p_i}{p_i(1-p_i)}\)</span> and is called the “working response.”</p>
+<p>The Iteratively Reweighted Least Squares (IRLS) algorithm initiates <span class="math inline">\(\hat\beta\)</span> to some reasonable guess (like all coefficients are 0 except for the intercept), computes <span class="math inline">\(p_i=\frac{1}{1+e^{-\hat\beta'\mathbf{x}_i}}\)</span>, sets weights to <span class="math inline">\(w_i=p_i(1-p_i)\)</span>, computes the working response <span class="math inline">\(z_i\)</span>, and then runs a standard weighted least squares procedures to obtain a better estimate of <span class="math inline">\(\hat\beta\)</span>. Then IRLS recomputes <span class="math inline">\(p_i\)</span>, <span class="math inline">\(w_i\)</span>, and <span class="math inline">\(z_i\)</span> and repeats the process until convergences. Typically, IRLS converges in 3-4 iterations.</p>
+<section id="irls-r-example" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="irls-r-example"><span class="header-section-number">7.1</span> IRLS R example</h2>
+<p>Let’s start by simulating some data where <span class="math inline">\(\beta=\begin{bmatrix} -1 &amp; 1 &amp; -1\end{bmatrix}\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240217</span>)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="dv">1</span>, <span class="fu">matrix</span>(<span class="fu">runif</span>(n<span class="sc">*</span><span class="dv">2</span>), <span class="at">ncol=</span><span class="dv">2</span>))</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>X <span class="sc">%*%</span> beta)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Normally we would just run <code>glm()</code> with <code>family=binomial</code> to use R’s built in logistic regression estimation. Let’s run that now to see what we should get for <span class="math inline">\(\hat\beta\)</span>. Note that the <code>-1</code> in the model formula tells R not to include an intercept term because I have already included a column of 1s in <code>X</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>glm1 <span class="ot">&lt;-</span> <span class="fu">glm</span>(y<span class="sc">~-</span><span class="dv">1</span><span class="sc">+</span>X, <span class="at">family =</span> binomial)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>glm1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:  glm(formula = y ~ -1 + X, family = binomial)
+
+Coefficients:
+    X1      X2      X3  
+-1.044   1.087  -1.020  
+
+Degrees of Freedom: 10000 Total (i.e. Null);  9997 Residual
+Null Deviance:      13860 
+Residual Deviance: 11430    AIC: 11440</code></pre>
+</div>
+</div>
+<p>Next let’s try to visualize what the 2D surface of the log-likelihood function looks like in the neighborhood of <span class="math inline">\(\hat\beta\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>logitLL <span class="ot">&lt;-</span> <span class="cf">function</span>(beta, X0, y0)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>   Xbeta <span class="ot">&lt;-</span> X0 <span class="sc">%*%</span> beta</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">return</span>( <span class="fu">as.numeric</span>( y0 <span class="sc">%*%</span> Xbeta <span class="sc">-</span> <span class="fu">sum</span>(<span class="fu">log</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(Xbeta))) ))</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> <span class="fu">coef</span>(glm1)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>bGrid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">beta0=</span>beta0[<span class="dv">1</span>],</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">beta1=</span>beta0[<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">3</span>,<span class="at">length=</span><span class="dv">201</span>),</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">beta2=</span>beta0[<span class="dv">3</span>] <span class="sc">+</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="dv">3</span>,<span class="at">length=</span><span class="dv">201</span>))</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>bGrid<span class="sc">$</span>LL <span class="ot">&lt;-</span> <span class="fu">apply</span>(bGrid[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>], <span class="dv">1</span>, logitLL, <span class="at">X0=</span>X, <span class="at">y0=</span>y)</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>plotLL <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">x=</span>beta0[<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="dv">2</span>,<span class="at">length=</span><span class="dv">201</span>),</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">y=</span>beta0[<span class="dv">3</span>] <span class="sc">+</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="dv">2</span>,<span class="at">length=</span><span class="dv">201</span>),</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>               <span class="at">z=</span><span class="fu">matrix</span>(bGrid<span class="sc">$</span>LL, <span class="at">nrow=</span><span class="dv">201</span>))</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a><span class="fu">contour</span>(<span class="at">x=</span>plotLL,</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels=</span><span class="fu">c</span>(<span class="fu">pretty</span>(bGrid<span class="sc">$</span>LL, <span class="dv">15</span>), <span class="fu">floor</span>(<span class="fu">max</span>(bGrid<span class="sc">$</span>LL))))</span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">coef</span>(glm1)[<span class="dv">2</span>],<span class="fu">coef</span>(glm1)[<span class="dv">3</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-contourPlotLLsurface" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-contourPlotLLsurface-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-contourPlotLLsurface-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-contourPlotLLsurface-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Contour plot of the logistic log-likelihood function in the neighborhood of the maximum likelihood estimate
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Now let’s assume we did not have access to R’s <code>glm()</code> and use our own Newton-Raphson algorithm to optimize the logistic regression log-likelihood. The orange dot is our current guess <span class="math inline">\(\hat\beta=\begin{bmatrix}0 &amp; 0 &amp; 0\end{bmatrix}\)</span> and the orange line shows where the gradient is telling us we should head.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># starting value intercept only</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">log</span>(<span class="fu">mean</span>(y)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span><span class="fu">mean</span>(y))), <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">contour</span>(<span class="at">x=</span>plotLL,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels=</span><span class="fu">c</span>(<span class="fu">pretty</span>(bGrid<span class="sc">$</span>LL, <span class="dv">15</span>), <span class="fu">floor</span>(<span class="fu">max</span>(bGrid<span class="sc">$</span>LL))))</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(beta0[<span class="dv">2</span>], beta0[<span class="dv">3</span>], <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">pch=</span><span class="dv">16</span>, <span class="at">cex=</span><span class="fl">1.5</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">coef</span>(glm1)[<span class="dv">2</span>], <span class="fu">coef</span>(glm1)[<span class="dv">3</span>])</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a><span class="co"># (X'WX)^-1 X'(y-p) is the direction where Newton-Raphson tells us we should move</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>X <span class="sc">%*%</span> beta0)))</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>betaNew <span class="ot">&lt;-</span> beta0 <span class="sc">+</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">diag</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> (y<span class="sc">-</span>p)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(beta0[<span class="dv">2</span>],betaNew[<span class="dv">2</span>]), <span class="fu">c</span>(beta0[<span class="dv">3</span>],betaNew[<span class="dv">3</span>]), <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> betaNew</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-contourPlotLLsurface2" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-contourPlotLLsurface2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-contourPlotLLsurface2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-contourPlotLLsurface2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Contour plot of the logistic log-likelihood function showing the first IRLS iteration
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In one step we get very close to the maximum. A second step will get us to the top.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">contour</span>(<span class="at">x=</span>plotLL,</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels=</span><span class="fu">c</span>(<span class="fu">pretty</span>(bGrid<span class="sc">$</span>LL, <span class="dv">15</span>), <span class="fu">floor</span>(<span class="fu">max</span>(bGrid<span class="sc">$</span>LL))))</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(beta0[<span class="dv">2</span>], beta0[<span class="dv">3</span>], <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">pch=</span><span class="dv">16</span>, <span class="at">cex=</span><span class="fl">1.5</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(<span class="fu">coef</span>(glm1)[<span class="dv">2</span>],<span class="fu">coef</span>(glm1)[<span class="dv">3</span>])</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># (X'WX)^-1 X'(y-p) is the direction where Newton-Raphson tells us we should move</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>X <span class="sc">%*%</span> beta0)))</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>betaNew <span class="ot">&lt;-</span> beta0 <span class="sc">+</span> <span class="fu">solve</span>(<span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">diag</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">%*%</span> X) <span class="sc">%*%</span> <span class="fu">t</span>(X) <span class="sc">%*%</span> (y<span class="sc">-</span>p)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(beta0[<span class="dv">2</span>],betaNew[<span class="dv">2</span>]), <span class="fu">c</span>(beta0[<span class="dv">3</span>],betaNew[<span class="dv">3</span>]), <span class="at">col=</span><span class="st">"#E69F00"</span>, <span class="at">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> betaNew</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-contourPlotLLsurface3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-contourPlotLLsurface3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L06-linear-algebra_files/figure-html/fig-contourPlotLLsurface3-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-contourPlotLLsurface3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Contour plot of the logistic log-likelihood function showing the second IRLS iteration
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>After two steps our Newton-Raphson gets us essentially to where <code>glm()</code> would get us.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(beta0, <span class="fu">coef</span>(glm1))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        [,1]      [,2]
+X1 -1.043583 -1.044113
+X2  1.085888  1.086881
+X3 -1.019002 -1.019929</code></pre>
+</div>
+</div>
+<p>I showed that we can rewrite the Newton-Raphson algorithm as a weighted least squares problem. Let’s test our own version of IRLS.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># IRLS</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="co"># starting value</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>beta0 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">log</span>(<span class="fu">mean</span>(y)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span><span class="fu">mean</span>(y))), <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>X <span class="sc">%*%</span> beta0)))</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  z <span class="ot">&lt;-</span> X <span class="sc">%*%</span> beta0 <span class="sc">+</span> (y<span class="sc">-</span>p)<span class="sc">/</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p))</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>  beta0 <span class="ot">&lt;-</span> <span class="fu">coef</span>(<span class="fu">lm</span>(z<span class="sc">~-</span><span class="dv">1</span><span class="sc">+</span>X, <span class="at">weights =</span> w))</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(beta0)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        X1         X2         X3 
+-1.0020325  1.0501040 -0.9854366 
+       X1        X2        X3 
+-1.043583  1.085888 -1.019002 
+       X1        X2        X3 
+-1.044113  1.086880 -1.019929 
+       X1        X2        X3 
+-1.044113  1.086881 -1.019929 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compare with `glm()`</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(beta0, <span class="fu">coef</span>(glm1))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       beta0          
+X1 -1.044113 -1.044113
+X2  1.086881  1.086881
+X3 -1.019929 -1.019929</code></pre>
+</div>
+</div>
+<p>The negative Hessian matrix is called the Fisher information matrix. Its inverse turns out to equal the variance-covariance matrix of the parameters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fisher information, -X'WX</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">diag</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">%*%</span> X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          [,1]      [,2]     [,3]
+[1,] 1928.1009 1044.0486 888.1389
+[2,] 1044.0486  720.4256 485.6353
+[3,]  888.1389  485.6353 565.8811</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># inverse of Fisher information</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>( <span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">diag</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">%*%</span> X )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             [,1]         [,2]         [,3]
+[1,]  0.003668802 -0.003405379 -0.002835638
+[2,] -0.003405379  0.006454061 -0.000194159
+[3,] -0.002835638 -0.000194159  0.006384257</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compare with the variance-covariance matrix from glm()</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vcov</span>(glm1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             X1            X2            X3
+X1  0.003668802 -0.0034053781 -0.0028356373
+X2 -0.003405378  0.0064540606 -0.0001941591
+X3 -0.002835637 -0.0001941591  0.0063842564</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract the diagonals and compute the square root</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">solve</span>( <span class="fu">t</span>(X) <span class="sc">%*%</span> <span class="fu">diag</span>(p<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>p)) <span class="sc">%*%</span> X ) <span class="sc">|&gt;</span> <span class="fu">diag</span>() <span class="sc">|&gt;</span> <span class="fu">sqrt</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06057064 0.08033717 0.07990155</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compare with the standard errors form glm()</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glm1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = y ~ -1 + X, family = binomial)
+
+Coefficients:
+   Estimate Std. Error z value Pr(&gt;|z|)    
+X1 -1.04411    0.06057  -17.24   &lt;2e-16 ***
+X2  1.08688    0.08034   13.53   &lt;2e-16 ***
+X3 -1.01993    0.07990  -12.77   &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 13863  on 10000  degrees of freedom
+Residual deviance: 11430  on  9997  degrees of freedom
+AIC: 11436
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+<p>Almost all statistical methods use a process of optimizing the likelihood as shown here. All of the generalized linear models (e.g.&nbsp;Poisson regression, negative binomial models, Cox/proportional hazards models) specifically use the IRLS algorithm. A broad range of statistical methodology involves developing a likelihood function that plausibly characterizes the process that generated the data and then devising an efficient optimization method for extracting parameter estimates and standard error estimates.</p>
+</section>
+</section>
+<section id="summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
+<p>This covers the foundational concepts of linear algebra and their role in modeling and analysis. Linear algebra is an entire branch of mathematics and here we just covered the basic operations (addition, subtraction, multiplication, and inverse) as well as matrix derivatives, which are not that different from the simple derivatives from univariate calculus.</p>
+<p>Many predictive models, such as the naïve Bayes classifier, trees, and decision trees can be reformulated into linear forms, demonstrating the flexibility of linear algebra in simplifying complex structures. Once we can characterize our machine learning goals with matrix algebra, a range of computational tools become available to us.</p>
+<p>We reformulated ridge regression as a matrix algebra problem and saw how we can fit flexible models without overfitting. Placing a penalty on the size of <span class="math inline">\(\sum \beta_j^2\)</span> prevents any one coefficient from getting too large. This kind of “regularization” is a key concept in machine learning, indexing the complexity of the model by a single value. Here it is <span class="math inline">\(\lambda\)</span> but for knn it was <span class="math inline">\(k\)</span>, the number of neighbors.</p>
+<p>While OLS has a closed form matrix algebra solution, other important models, like logistic regression, do not. However, the multivariate version of Taylor series allowed us to squeeze the logistic regression problem into a weighted OLS problem.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
