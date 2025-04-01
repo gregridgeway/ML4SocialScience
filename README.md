@@ -9,7 +9,7 @@ Table of contents
     -   Example: Predict dropout risk from the NELS88 data
     -   Spam example
 4. [Differential calculus review](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L04-calculus-review.html)
-5. [Classification and regression trees](https://raw.githack.com/gregridgeway/ML4SocialScience/main/0L5-trees.html)
+5. [Classification and regression trees](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L05-trees.html)
 6. [Linear algebra](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L06-linear-algebra.html)
     -   Basic matrix operations, including matrix derivatives
     -   Ordinary least squares and ridge regression
