@@ -362,10 +362,7 @@ Returning to the forensic window glass dataset, I am going to load the dataset a
 
 ```{r}
 #| label: loadGlass
-dGlass <- read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/glass/glass.data",
-                  header=FALSE,
-                  col.names = c("ID","RI","Na","Mg","Al","Si",
-                                "K","Ca","Ba","Fe","type")) |>
+dGlass <- read.csv("data/glass.csv") |>
 # make a new variable that is a linear combination of others
   mutate(MgAl = Mg+Al,
          window = as.numeric(type==1))
