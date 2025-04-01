@@ -1,0 +1,714 @@
+---
+title: "Singular value decomposition"
+author:
+- affiliation: University of Pennsylvania
+  email: gridge@upenn.edu
+  name: Greg Ridgeway
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+format:
+  html:
+    theme: 
+      dark: darkly
+      light: default
+    toc: true
+    html-math-method: mathjax
+  pdf:
+    toc: true
+execute:
+  dev: "ragg_png"
+prefer-html: true
+number-sections: true
+editor_options: 
+  chunk_output_type: console
+bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
+---
+
+<!-- In terminal -->
+<!-- quarto render L7-svd.qmd -->
+<!-- quarto render L7-svd.qmd --cache-refresh  -->
+
+Note to Mac users: You will need to have [XQuartz](https://www.xquartz.org/) installed if you want to run the code in these notes.
+
+# Introduction
+
+Singular value decomposition (SVD) is a linear algebra technique for factoring a matrix with wide-ranging applications in data science and machine learning.
+
+With natural numbers (1, 2, 3, ...) we can find different ways of factoring them. For example, 24 can be factored as $1\times 24$, $2\times 12$, $3\times 8$, and $4\times 6$. We can also factor a matrix in multiple ways and some factorizations are more useful than others.
+
+The SVD of a $m\times n$ matrix $\mathbf{A}$ is
+
+$$\mathbf{A}=\mathbf{U}\Sigma\mathbf{V}'$$ {#eq-SVDdefinition}
+
+where $\mathbf{U}$ is an $m\times m$ square matrix, $\Sigma$ is an $m\times n$ rectangular diagonal matrix (every element is 0 except those on the diagonal starting from the $\sigma_{11}$ element), and $\mathbf{V}$ is an $n\times n$ square matrix. The three matrices, $\mathbf{U}$ , $\Sigma$, and $\mathbf{V}$, are constrained to have special properties. The columns of $\mathbf{U}$ and $\mathbf{V}$ have length 1 in the sense that
+
+$$
+\sqrt{\sum_{i=1}^m u_{ij}^2}=1 \; \mathrm{and} \; \sqrt{\sum_{i=1}^n v_{ij}^2}=1
+$$ Also for any column $i$ and columns $j$, where $i\neq j$, the dot product of the two columns is 0, $\mathbf{u}_i'\mathbf{u}_j=0$ and $\mathbf{v}_i'\mathbf{v}_j=0$. Together, these two facts mean
+
+$$
+\mathbf{U}'\mathbf{U}=\mathbf{I}\;\mathrm{and}\;\mathbf{V}'\mathbf{V}=\mathbf{I}
+$$
+
+Lastly, $\Sigma$ only has positive values on the diagonal arranged in decreasing order and 0s in all other entries.
+
+Let's start with an example. Let
+
+$$
+\mathbf{A}=\begin{bmatrix} 1&4\\ 2&5\\ 3&6 \end{bmatrix}
+$$
+
+In R we can use the built-in function `svd()` to compute the SVD of $\mathbf{A}$.
+
+```{r}
+A <- cbind(1:3,4:6)
+Asvd <- svd(A)
+Asvd
+```
+
+This output means that 
+$$
+\begin{bmatrix}
+ 1 & 4 \\ 
+ 2 & 5 \\ 
+ 3 & 6 \\ 
+ \end{bmatrix} = 
+ \begin{bmatrix}
+ -0.429 & 0.806 \\ 
+ -0.566 & 0.112 \\ 
+ -0.704 & -0.581 \\ 
+ \end{bmatrix}
+ \begin{bmatrix}
+ 9.508 & 0.000 \\ 
+ 0.000 & 0.773 \\ 
+ \end{bmatrix}
+ \begin{bmatrix}
+ -0.386 & -0.922 \\ 
+ -0.922 & 0.386 \\ 
+ \end{bmatrix}' 
+$$ {#eq-SVDexample1}
+
+We can verify this in R
+
+```{r}
+with(Asvd, u %*% diag(d) %*% t(v))
+```
+
+Earlier I indicated that $\mathbf{U}$ should be an $m\times m$ matrix ($3\times 3$ in this case), but here R gave us a $3\times 2$ matrix. This is because the third column would be all 0s. The same goes for $\Sigma$. You might have expected a $3\times 3$ matrix here, but the third element would again be 0, so `svd()` simplifies the results for us. This is often referred to as the "compact SVD".
+
+The "singular values" are those that run down the diagonal of $\Sigma$ and are placed in descending order. Notice how the $\sigma_{11}$ element is much larger than the second singular value in $\sigma_{22}$. That implies that the first column of $\mathbf{U}$ and the first column of $\mathbf{V}$ are the most important.
+
+Partially multiplying out these matrices shows an equivalent form 
+$$
+\begin{split}
+\mathbf{A}&= \sigma_{11}u_{\cdot 1}v_{\cdot 1}' +
+            \sigma_{22}u_{\cdot 2}v_{\cdot 2}'\\
+&=9.508 \begin{bmatrix}
+ -0.429 \\ 
+ -0.566 \\ 
+ -0.704 \\ 
+ \end{bmatrix} \begin{bmatrix}
+ -0.386 & -0.922
+ \end{bmatrix} +
+ 0.773 \begin{bmatrix}
+ 0.806 \\ 
+ 0.112 \\ 
+ -0.581 \\ 
+ \end{bmatrix} \begin{bmatrix}
+ -0.922 & 0.386 
+ \end{bmatrix} \\
+&= 9.508\begin{bmatrix}
+ 0.166 & 0.395 \\ 
+ 0.219 & 0.522 \\ 
+ 0.272 & 0.649 \\ 
+ \end{bmatrix} +
+ 0.773\begin{bmatrix}
+ -0.743 & 0.311 \\ 
+ -0.104 & 0.043 \\ 
+ 0.536 & -0.225 \\ 
+ \end{bmatrix} 
+\end{split}
+$$ {#eq-SVDexample2} 
+
+We can verify this in R
+```{r}
+with(Asvd, d[1]*u[,1]%*%t(v[,1]) + d[2]*u[,2]%*%t(v[,2]))
+```
+
+Note that in ([-@eq-SVDexample2]) the first singular value is 12 times larger than the second singular value. This means that the first columns of $\mathbf{U}$ and $\mathbf{V}$ are much more important in reconstructing $\mathbf{A}$ from the SVD components. In fact, this is what makes the SVD so useful. We can take a matrix and focus on the components associated with just the largest singular values and ignore the rest. What happens if we were to ignore the term associated with the 0.773 singular value? We still get a reasonable approximation to $\mathbf{A}$.
+
+$$
+\mathbf{A}\approx 9.508\begin{bmatrix}
+ 0.166 & 0.395 \\ 
+ 0.219 & 0.522 \\ 
+ 0.272 & 0.649 \\ 
+ \end{bmatrix} =
+ \begin{bmatrix}
+ 1.575 & 3.759 \\ 
+ 2.080 & 4.966 \\ 
+ 2.586 & 6.174 \\ 
+ \end{bmatrix}
+$$ {#eq-SVDexample3}
+
+If you notice, the second column is a multiple of the first column (by a factor of 2.388). By using just the first singular vectors we can compress the information in $\mathbf{A}$. More precisely, there is no other matrix where one column is a multiple of the other (a matrix of "rank 1") that matches $\mathbf{A}$ as closely as this one as measured with the sum of the squared differences between their elements. This is known as the [Eckart--Young--Mirsky theorem](https://en.wikipedia.org/wiki/Low-rank_approximation), (re)discovered in 1936.
+
+This property of the SVD, that it decomposes a large matrix into more compact representations, is what makes the SVD valuable in machine learning. We can take complicated objects like sound, images, video, and documents, convert them into a matrix form, and extract the most important features. Rather than needing to handcode specific features (does the sound hit a particular frequency often? does the text include a particular word?, does the photo have a green dot at a specific spot?), the SVD will tell you what the most important features are and place them in descending order of importance. We can use those features for prediction, classification, and clustering. Recommendation systems (Netflix, Amazon, Goodreads) and classifiers (facial recognition, Shazam) use variations on this idea to make their predictions.
+
+We will work through two image problems. First, we will work with a single image to learn what SVD does with it and how well it can compress the image. Then we will work with a collection of face emojis to see if we can classify them into "positive" and "non-positive" groups.
+
+# SVD of an image
+
+I was once told that, for some reason, students are interested in pets. For that reason, I will use Stewart, our pandemic parrot, a blue-crowned conure, as our example image. The `imager` package includes functionality for importing, manipulating, and displaying PNG, JPEG, and BMP files (other formats are possible but require other software). I will load a picture of Stewart, rotate it 90 degrees clockwise so Stewart is upright, and display the picture.
+
+```{r}
+#| label: fig-stewartOriginal
+#| fig-cap: "Stewart the Pandemic Parrot"
+#| fig-width: 4
+#| fig-height: 5
+#| dev: "png"
+#| dpi: 200
+stewart <- 
+  imager::load.image("data/stewart.jpg") |>
+  imager::imrotate(90)
+par(mai=c(1,1,0.1,0.1))
+plot(stewart, ylim=c(4000,0), xlim=c(0,3000))
+```
+
+Make note of the coordinate system. The point (1,1) is in the top left corner of the image.
+
+The `stewart` image object is a 4-dimensional array.
+
+```{r}
+dim(stewart)
+```
+
+It is `r nrow(stewart)` pixels wide, `r ncol(stewart)` pixels tall, includes only 1 frame (not a video with multiple frames), and 3 color channels (red, green, and blue). We can separate out each of these red, green, and blue layers to see them separately. Mixing the three images shown in @fig-stewartRGB will reproduce the original Stewart.
+
+```{r}
+#| label: fig-stewartRGB
+#| fig-cap: "Stewart shown in each of the three color channels"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(1,3), mai=rep(0.1,4))
+stewartTemp <- stewart
+stewartTemp[,,,2:3] <- 0
+plot(stewartTemp, axes=FALSE)
+stewartTemp <- stewart
+stewartTemp[,,,c(1,3)] <- 0
+plot(stewartTemp, axes=FALSE)
+stewartTemp <- stewart
+stewartTemp[,,,1:2] <- 0
+plot(stewartTemp, axes=FALSE)
+```
+
+We will work through a color image in a moment, but to simplify let's start with a grayscale version of Stewart. This will convert the image to a single $3024\times 4032$ matrix with values ranging from 0 to 1, with 0 indicating black and 1 indicating white.
+
+```{r}
+#| label: fig-stewartGray
+#| fig-cap: "Stewart shown in grayscale"
+#| dev: "png"
+#| dpi: 200
+#| fig-width: 4
+#| fig-height: 5
+par(mai=c(0.1,0.1,0.1,0.1))
+
+stewartGray <- imager::grayscale(stewart)
+plot(stewartGray, axes=FALSE)
+```
+
+We can peek at the top left corner to see what this looks like.
+
+```{r}
+stewartGray[1:5,1:5,,]
+```
+
+These are the $5\times 5$ set of pixels in the upper left corner of the image indicating a mildly dark gray in that region.
+
+Time to throw SVD at this matrix to see if we can approximate this image with some lower rank matrices. Here I am using the `fastSVD` function from the `bootSVD` package because... well... it is fast. In addition, it allows the user to not return the full set of singular vectors/values to obtain a smaller result. Here I ask for only the largest 100 singular values.
+
+```{r}
+#| cache: TRUE
+#| label: codeSVDStewartGreyscale
+# limit computation to just 100 singular values
+stewSVD <- bootSVD::fastSVD(stewartGray[,,1,1], nv=100)
+```
+
+Let's explore what we have in `stewSVD` by checking the dimensions of $\mathbf{U}$, $\Sigma$, and $\mathbf{V}$.
+
+```{r}
+dim(stewSVD$u)
+length(stewSVD$d)
+dim(stewSVD$v)
+```
+
+So $\mathbf{U}$ is a $`r nrow(stewSVD$u)`\times`r ncol(stewSVD$u)`$ matrix and $\mathbf{V}$ is a $`r nrow(stewSVD$v)`\times`r ncol(stewSVD$v)`$ matrix, limited to `r ncol(stewSVD$v)` columns by the `nv=100` argument when we ran `fastSVD`. `stewSVD$d` stores just the diagonal elements of $\Sigma$ with R reporting that there are `r length(stewSVD$d)` singular values computed. Let's explore the singular values graphically.
+
+```{r}
+#| label: fig-singularvalues
+#| fig-cap: "Distribution of the singular values"
+par(mfrow=c(1,2))
+options(scipen=1000)
+plot(stewSVD$d, type="l", log="y", 
+     xlab="Singular value order",ylab="Singular values")
+
+plot(100*cumsum(stewSVD$d)/sum(stewSVD$d), 
+     type="l", 
+     ylim=c(0,100),
+     xlab="Singular value order",ylab="Cumulative % of singular value sum")
+abline(h=0.9)
+```
+
+The left plot in @fig-singularvalues shows that the largest singular values are very large (note that the y-axis on in the log scale). The largest is `r round(max(stewSVD$d),1)` and there are `r sum(stewSVD$d>100)` singular values that exceed 100. Then the singular values decrease rather quickly with the smallest singular values near 0. The right plot in @fig-singularvalues shows the cumulative percentage of the total sum of the singular values. That is, the sum of all the singular values is `r sum(stewSVD$d) |> round(1) |> format(scientific=FALSE)`. The first `r sum(cumsum(stewSVD$d)/sum(stewSVD$d)<0.9)` singular values sum to 90% of this total. This has a direct interpretation in terms of the variance explained in the original image. The first `r sum(cumsum(stewSVD$d)/sum(stewSVD$d)<0.9)` singular vectors explain 90% of the variance in the values. Perfectly reconstructing the image requires all of the singular vectors, but we can nearly reconstruct it with many fewer. This is what image compression aims to do.
+
+Let's check some other properties. The sum of squares of every column in $\mathbf{U}$ and $\mathbf{V}$ should be 1 and the dot product of two different columns should be 0. Let's check with a few columns.
+
+```{r}
+sum(stewSVD$u[,1]^2)
+sum(stewSVD$u[,100]^2)
+sum(stewSVD$u[,123] * stewSVD$u[,1234])
+```
+
+You can run similar checks for `stewSVD$v`. More generally, $\mathbf{U}'\mathbf{U}=\mathbf{I}$, $\mathbf{U}\mathbf{U}'=\mathbf{I}$, $\mathbf{V}'\mathbf{V}=\mathbf{I}$, and $\mathbf{V}\mathbf{V}'=\mathbf{I}$. I use `zapsmall()` so that values like 0.99999999 and 1e-17 are rounded to 1 and 0.
+
+```{r}
+t(stewSVD$u[,1:10]) %*% stewSVD$u[,1:10] |> zapsmall()
+stewSVD$u[1:10,] %*% t(stewSVD$u[1:10,]) |> zapsmall()
+```
+
+All the properties that we expect of the SVD appear to hold. Now let's see if it can really reconstruct the image of Stewart with few singular vectors (or at least much less that 3024).
+
+Let's start by looking at what Stewart looks like with just one singular value.
+
+```{r}
+#| label: fig-stew1SV
+#| fig-cap: "Stewart with one singular value"
+#| dev: "png"
+#| dpi: 200
+#| fig-width: 4
+#| fig-height: 5
+par(mai=c(0.1,0.1,0.1,0.1))
+a <- stewSVD$d[1] * stewSVD$u[,1] %*% t(stewSVD$v[,1])
+a |> 
+  imager::as.cimg() |>
+  plot(axes=FALSE)
+```
+
+@fig-stew1SV does not look like much. It really only captures the idea that the top half of the image is dark and the lower half is light.
+
+```{r}
+#| label: fig-stewSV
+#| fig-cap: "Stewarts with different rank reconstructions (2, 10, 20, 50, 100, and 3024)"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(2,3), mai=rep(0.1,4))
+for(numSV in c(2,10,20,50,100))
+{
+  a <- stewSVD$u[,1:numSV] %*% 
+          diag(stewSVD$d[1:numSV]) %*% 
+          t(stewSVD$v[,1:numSV])
+  a |>
+    imager::as.cimg() |>
+    plot(axes=FALSE, 
+         main=paste(numSV,"singular vectors"))
+}
+plot(stewartGray, axes=FALSE, main="Original")
+```
+
+@fig-stewSV shows just how much image information is in those first few singular vectors. Two singular vectors are definitely not enough. By 10 singular vectors you can already tell that there is a bird like shape in the picture. You really do not need more than 20 to know that there is bird perched on a container with flowers. The image based on 100 singular vectors is hard to distinguish from the original.
+
+## Stewart in color
+
+To compress a color image of Stewart we can either apply SVD separately on each color channel or merge them into a single matrix and apply one SVD. We are going to do the latter. This allows SVD to share information across the color channels.
+
+```{r}
+#| cache: true
+#| label: fig-stewColor
+#| fig-cap: "Stewart in color, 100 singular vectors"
+#| dev: "png"
+#| dpi: 200
+#| fig-width: 4
+#| fig-height: 5
+stewartTemp <- stewart
+# put the colors side by side
+a <- cbind(stewart[,,,1], stewart[,,,2], stewart[,,,3])
+# This SVD can take about 2 minutes
+stewSVD <- bootSVD::fastSVD(a, 100)
+
+# reconstruct Stewart in color using 100 singular values
+numSV <- 100
+a <- stewSVD$u[,1:numSV] %*% 
+        diag(stewSVD$d[1:numSV]) %*% 
+        t(stewSVD$v[,1:numSV])
+# put them back into their RGB format
+stewartTemp[,,,1] <- a[,1:4032 + 0*4032]
+stewartTemp[,,,2] <- a[,1:4032 + 1*4032]
+stewartTemp[,,,3] <- a[,1:4032 + 2*4032]
+
+par(mai=c(0.1,0.1,0.1,0.1))
+stewartTemp |>
+  imager::as.cimg() |>
+  plot(axes=FALSE)
+```
+
+# Building an emoji classifier
+
+In the previous section we explored working with a single image stored as a matrix. In practice we are going to have a collection of sounds, images, videos, or documents. We most likely will want to either make some kind of prediction about them or cluster them into groups.
+
+For some practice applying the SVD, I will acquire a dataset of 91 face emojis, label them as either "positive" or "not positive", and then build a classifier on each emoji's right singular vectors to see if we can separate the positive from non-positive face emojis. I use the emojis because 1) the images are not very large and 2) we can visualize what the SVD is doing.
+
+To acquire the emojis I ran the following R script. This code downloads all the face emojis from "grinning face" to "angry face with horns".
+
+```{r}
+#| eval: false
+x <- "grinning-face"
+y <- 885
+
+urlRoot <- "https://s3.amazonaws.com/pix.iemoji.com/images/emoji/apple/ios-12/256/"
+repeat
+{
+  download.file(paste0(urlRoot,x,".png"), 
+                paste0("data/emojis/",x,".png"), mode="wb")
+  
+  if(x=="angry-face-with-horns") break
+
+  # get the link to the next emoji
+  a <- scan(paste0("https://www.iemoji.com/view/emoji/",y,"/smileys-people/", x),
+            sep="\n", what="")
+  b <- grep("customNextBtn", a, value = TRUE) |>
+          gsub('.*href="/view/emoji/([^"]*)".*', "\\1", x=_)
+  x <- gsub("^.*/", "", b)
+  y <- gsub("/.*", "", b)
+}
+```
+
+I then went and looked at each of the 91 emojis and rated them as being either positive ($y=1$) or not positive ($y=0$). You may disagree on my labelings and you are welcome to change them or, even better, create your own characteristic to predict. Note that many of the emojis that I labeled non-positive are simply neutral. To label the emojis I ran the following R code that displays an emoji, waits for me to enter 0 or 1, and then moves on to the next emoji.
+
+<!-- No need to actually run this here. I load in the y labels next -->
+```{r}
+#| eval: false
+a <- list.files("data/emojis/", full.names = TRUE)
+y <- rep(NA, length(a))
+for(i in 1:length(a))
+{
+  plot(imager::load.image(a[[i]]), axes=FALSE)
+  y[i] <- as.numeric(readline())
+}
+```
+
+<!-- This loads in the y labels I created by hand -->
+```{r}
+#| echo: false
+load("data/emojis.RData")
+```
+
+We are ready to read in all the emojis and store them in a data matrix.
+
+```{r}
+a <- list.files("data/emojis/", full.names = TRUE)
+nEmoji <- length(a)
+# emojis are 256 tall x 256 wide x 3 colors
+# X will be about 200,000 x 91
+X <- matrix(0, nrow=256*256*3, ncol=nEmoji)
+for(i in 1:nEmoji)
+{
+  b <- imager::load.image(a[i])
+  # as.numeric() turns 3D array into single long column
+  #   goes down red channel columns, then green, then blue
+  X[,i] <- as.numeric(b)
+}
+```
+
+First let's see how big this data matrix `X` is.
+
+```{r}
+dim(X)
+```
+
+We have 91 emojis each stored in their own columns. Each emoji is has $256\times 256=65,536$ pixels with 3 color channels each for a total of 196,608 values.
+
+To display an emoji from one of the columns, say column 19, we can convert `X[,19]` back into a 3D array of dimensions 256, 256, 1 (single frame/not video), 3, and use `as.cimg()` to make R understand that it's an emoji.
+
+```{r}
+#| label: fig-exampleEmoji
+#| fig-cap: "Example emoji stored in column 19 of `X`"
+#| dev: "png"
+#| dpi: 200
+X[,19] |>
+  array(dim=c(256,256,1,3)) |>
+  imager::as.cimg() |>
+  plot(axes=FALSE)
+```
+
+These are the ones I have labeled as "positive" emojis.
+
+```{r}
+#| label: fig-positiveEmojis
+#| fig-cap: "All emojis labeled positive"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(6,6), mai=rep(0.1,4))
+for(i in which(y==1))
+{
+  X[,i] |>
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    plot(axes=FALSE)
+}
+```
+
+And here are all the emojis that I have labeled as "not positive".
+
+```{r}
+#| label: fig-notpositiveEmojis
+#| fig-cap: "All emojis labeled non-positive"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(8,7), mai=rep(0.1,4))
+for(i in which(y==0))
+{
+  X[,i] |>
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    plot(axes=FALSE)
+}
+```
+
+Now let's apply the SVD to `X` and inspect the size of the resulting $\mathbf{U}$ and $\mathbf{V}$ components of the SVD.
+
+```{r}
+# 2 seconds
+svdEmoji <- bootSVD::fastSVD(X)
+dim(svdEmoji$u)
+dim(svdEmoji$v)
+```
+
+The columns of `u` contain the "eigenemojis". "eigen" is a German prefix for "characteristic". These are the foundational ingredients in creating any of the 91 face emojis. You can create any of the emojis shown in @fig-positiveEmojis and @fig-notpositiveEmojis with a linear combination of the 91 eigenemojis in `u`. Row $i$ of $\Sigma\mathbf{V}'$ gives us the exact coefficients needed to mix the columns of $\mathbf{U}$ to reconstruct emoji $i$. As with the image of Stewart, there are few important left singular vectors and several that are not very important. @fig-svEmojis plots the singular values, showing a pattern similar to the one we saw for Stewart in @fig-singularvalues.
+
+```{r}
+#| label: fig-svEmojis
+#| fig-cap: "Plot of the singular values"
+plot(svdEmoji$d, log="y", type="l", ylab="Singular values")
+```
+
+Let's take a look at these so-called eigenemojis. Note that I multiply the $\mathbf{U}_{\cdot j}$ by -1 to reverse the colors so they look more familiar. The SVD factorization does not change if the signs on $\mathbf{U}$ and $\mathbf{V}$ are changed, $\mathbf{U}\Sigma\mathbf{V}'=(-\mathbf{U})\Sigma(-\mathbf{V}')$.
+
+```{r}
+#| label: fig-eigenEmojis
+#| fig-cap: "The first six eigenemojis"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(2,3), mai=rep(0.1,4))
+for(j in 1:6) 
+  -svdEmoji$u[,j] |>
+     array(dim=c(256,256,1,3)) |>
+     imager::as.cimg() |>
+     plot(axes=FALSE)
+```
+
+The first eigenemoji in the top left, captures the most important foundational feature of these emojis, a generally round shape with some eye and mouth structure. The next five begin to capture other features that show up in multiple emojis like horns, teeth, different shades, tongues, and bigger eyes.
+
+To reconstruct an emoji, we need to know how to mix the 91 eigenemojis together. $\Sigma\mathbf{V}_{i\cdot}'$ tells us how much of each eigenemoji to add to the mixture to get emoji $i$ created. For emoji 19 that mixture is
+
+```{r}
+diag(svdEmoji$d) %*% svdEmoji$v[19,] |>
+  as.numeric() |> 
+  round(1)
+```
+
+So if we literally multiply the first column of `svdEmoji$u` by `r with(svdEmoji, round(d[1] * v[19,1],1))` and add it to the second column of `svdEmoji$u` multiplied by `r with(svdEmoji, round(d[2] * v[19,2],1))` and so on, then we can rebuild emoji 19.
+
+```{r}
+#| label: fig-emoji19reconstructed
+#| fig-cap: "Emoji 19 reconstructed"
+#| dev: "png"
+#| dpi: 200
+A <- svdEmoji$u %*% diag(svdEmoji$d) %*% svdEmoji$v[19,]
+A |>
+  array(dim=c(256,256,1,3)) |>
+  imager::as.cimg() |>
+  plot(axes=FALSE)
+```
+
+But do we really need all of the singular vectors to construct emoji 19? We can see in @fig-svEmojis that only the first 15 or so singular values are large and the last singular values are quite small. Do a few singular vectors carry a lot of the information about the emoji shape and color?
+
+```{r}
+#| fig-width: 7
+#| fig-height: 2
+#| label: fig-emoji19reducedSVs
+#| fig-cap: "Emoji 19 reconstructed with fewer singular vectors"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(1,4), mai=rep(0.1,4))
+for(numSV in c(50,15,10,5)) 
+{
+  A <- svdEmoji$u[,1:numSV] %*% 
+          diag(svdEmoji$d[1:numSV]) %*% 
+          svdEmoji$v[19,1:numSV]
+  A |> 
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    plot(main=paste(numSV,"singular vectors"), 
+         axes=FALSE)
+}
+```
+
+With 50 singular vectors the emoji looks almost the same as when we used all 91 (@fig-emoji19reconstructed). With 15 singular vectors, the emoji is still clearly the scream emoji, but with some light noisy features added. With 10 singular vectors the scream emoji is still evident. Maybe when we are down to only 5 singular vectors it becomes difficult to tell what emoji this is. This implies that with only 15 numbers we can pretty much determine which emoji those few numbers describe. We do not need to know the color value of all 65,536 pixels, but only 15 numbers.
+
+Those 15 numbers are stored in the first 15 columns of $\mathbf{V}$. We can find two emojis that are "closest" to each other by finding the two rows of $\mathbf{V}$ that are most similar.
+
+Let's start by just plotting out the emojis based on the first two right singular vectors.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+#| label: fig-2DEmojiPlot
+#| fig-cap: "Similarity of emojis based on the first two right singular vectors"
+#| dev: "png"
+#| dpi: 200
+plot(0,0, xlim=c(-0.11,-0.07), ylim=c(-0.1,0.6), type="n",
+     xlab="First right singular vector",
+     ylab="Second right singular vector")
+width <- 0.0015
+aspRatio <- (par("pin")[1] / diff(par("usr")[1:2])) / 
+            (par("pin")[2] / diff(par("usr")[3:4]))
+for(i in 1:ncol(X))
+{
+  A <- X[,i] |>
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    as.raster(A)
+  A[,] <- paste0(A[,],"88") # make emojis a little transparent
+  A[A=="#FFFFFF88"] <- "#FFFFFF00" # turn white completely transparent
+  coord <- svdEmoji$v[i,1:2]
+  rasterImage(A, coord[1], coord[2], coord[1]+width, coord[2]+width*aspRatio,
+              angle=270)
+}
+```
+
+In @fig-2DEmojiPlot similar emojis are close to each other and the ones that are quite different are more distant. This is the best we can do to visualize the emojis in two dimensions, but we can compute distances between emojis using more than two right singular vectors. Let's use the first 15 to find the closest two emojis.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 2.5
+#| label: fig-closestEmojis
+#| fig-cap: "The two most similar emojis"
+#| dev: "png"
+#| dpi: 200
+D <- dist(svdEmoji$v[,1:15])
+# show the distances between the first 5 emojis
+as.matrix(D)[1:5,1:5]
+i <- which(as.matrix(D)==min(D), arr.ind=TRUE)
+# which two emojis are closest?
+i[1,]
+# show V for these two emojis
+svdEmoji$v[i[1,],1:15] |> round(2)
+par(mfrow=c(1,2), mai=c(0.1,0.1,0.5,0.1))
+for(j in i[1,]) 
+{
+  X[,j] |>
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    plot(main=paste("Emoji",j), 
+         axes=FALSE)
+}
+```
+
+This makes sense, right? Because these emojis are so similar, they use almost the same mixture of eigenemojis in their construction. Curious which ones are the farthest apart?
+
+```{r}
+#| fig-width: 7
+#| fig-height: 2.5
+#| label: fig-farEmojis
+#| fig-cap: "The two emojis farthest apart"
+#| dev: "png"
+#| dpi: 200
+i <- which(as.matrix(D)==max(D), arr.ind=TRUE)
+par(mfrow=c(1,2), mai=c(0.1,0.1,0.5,0.1))
+for(j in i[1,]) 
+{
+  X[,j] |>
+    array(dim=c(256,256,1,3)) |>
+    imager::as.cimg() |>
+    plot(main=paste("Emoji",j), axes=FALSE)
+}
+```
+
+I suppose that checks out.
+
+# Classification of positive emojis
+
+Now let's see if we can use an image's right singular vectors to predict what kind of emoji it is. Recall I had labeled each emoji as being "positive" (smiles, kisses, laughing, silly) or "not positive" (everything else). I have those 0/1 labels stored in `y`. I will create a data frame combining `y` with the first 15 right singular vectors and fit a simple logistic regression model.
+
+```{r}
+numSV <- 15
+dEmoji <- data.frame(y=y, u=svdEmoji$v[,1:numSV])
+glm1 <- glm(y~., data=dEmoji, family=binomial)
+summary(glm1)
+```
+
+The logistic regression model output suggests that the weight put on eigenemoji 8, 12, 13, and 14 appear to be most important in deciding whether an emoji is positive or non-positive. Note the sign on the coefficients. A large positive value for eigenemojis 8 and 14 means that the emoji is *more* likely to be positive. Since the coefficients on `u.12` and `u.13` are negative, large positive values on eigenemojis 12 and 13 mean that they are *less* likely to be positive.
+
+Here are those four most important eigenemojis for determining positive or non-positive.
+
+```{r}
+#| fig-width: 7
+#| fig-height: 2.5
+#| label: fig-importantEigenEmojisPositive
+#| fig-cap: "The four most important eigenemojis for predicting positivity, including their logistic regression coefficient"
+#| dev: "png"
+#| dpi: 200
+par(mfrow=c(1,4), mai=c(0.1,0.1,0.5,0.1))
+for(j in c(8,12,13,14))
+  svdEmoji$u[,j] |>
+  array(dim=c(256,256,1,3)) |>
+  imager::as.cimg() |>
+  plot(axes=FALSE, 
+       main=paste("Eigenemoji",j," Beta:",
+                  round(coef(glm1)[j+1],1))) # j+1 to account for Intercept
+```
+
+How well does the logistic regression do predicting positive emojis?
+
+```{r}
+dEmoji$yhat <- predict(glm1, type="response")
+with(dEmoji, table(actual=y, predicted=as.numeric(yhat>0.5)))
+```
+
+It makes some mistakes. In `r with(dEmoji, sum(yhat>0.5 & y==0))` cases it predicts that the emoji is positive when it is actually not positive and in `r with(dEmoji, sum(yhat<0.5 & y==1))` cases it predicts that the emoji is not positive when it actually is positive. This misclassification rate is `r with(dEmoji, mean((yhat>0.5 & y==0) | (yhat<0.5 & y==1))) |> round(2)`.
+
+From our discussion of cross-validation you know that these rates "cheat". We used the same data to estimate the model that we used to evaluate it. To fix that, let's try leave-one-out cross-validation (LOOCV).
+
+```{r}
+#| cache: true
+dEmoji$yhatLOO <- rep(0, nrow(dEmoji))
+for(i in 1:nrow(dEmoji))
+{
+  glm2 <- glm(y~., data=dEmoji[-i,], family=binomial)
+  dEmoji$yhatLOO[i] <- predict(glm2, newdata=dEmoji[i,], type="response")
+}
+with(dEmoji, table(y,yhatLOO>0.5))
+```
+
+Now we have a more proper calculation of the misclassification rate. The LOOCV misclassification rate is `r with(dEmoji, mean((yhatLOO>0.5 & y==0) | (yhatLOO<0.5 & y==1))) |> round(2)`... a little worse than we previously estimated. This is typical since LOOCV performance measures give a more honest (less biased) estimate of performance.
+
+As you build your machine learning toolbox, you will be able to use more flexible methods to get better predictive performance.
+
+# Summary
+
+We have explored the principles and applications of Singular Value Decomposition (SVD), a fundamental linear algebra technique. By decomposing a matrix into three components ($\mathbf{U}$, $\Sigma$, $\mathbf{V}$), SVD creates a compact representation of complicated data. We saw how SVD can compress images and convert images to a few numbers to allow us to build an image classifier.
+
+1. **SVD**:
+   - The SVD of a matrix $\mathbf{A}$ is expressed as $\mathbf{U} \Sigma \mathbf{V}'$
+   - $\mathbf{U}'\mathbf{U}=\mathbf{I}$, $\mathbf{V}'\mathbf{V}=\mathbf{I}$, and $\Sigma$ is a diagonal matrix
+   - SVD orders the singular values by size (importance), giving us a way to compress data by using only the largest singular values
+
+2. **Image Compression**:
+   - We compressed an image of "Stewart the Pandemic Parrot" to illustrate SVD-based compression
+   - By retaining only the most significant singular values, the image is approximated with high accuracy while reducing its storage requirements
+
+3. **Emoji Classification**:
+   - We used SVD to compress a dataset of face emojis to classify them into "positive" and "non-positive" categories
+   - The right singular vectors of the emoji matrices serve as features for classification
+   - The example highlights SVD’s capability to extract meaningful features from complex datasets
+
+4. **Practical Applications**:
+   - Beyond images, SVD is widely used in text analysis (e.g., Latent Semantic Analysis), recommendation systems, and signal processing

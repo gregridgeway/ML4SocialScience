@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-03-30">
+
+<title>L1 Probability Review</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="L01-probability-review_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L01-probability-review_files/libs/quarto-html/quarto.js"></script>
+<script src="L01-probability-review_files/libs/quarto-html/popper.min.js"></script>
+<script src="L01-probability-review_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L01-probability-review_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L01-probability-review_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L01-probability-review_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L01-probability-review_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L01-probability-review_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L01-probability-review_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#sample-space-and-events" id="toc-sample-space-and-events" class="nav-link active" data-scroll-target="#sample-space-and-events"><span class="header-section-number">1</span> Sample space and events</a></li>
+  <li><a href="#what-is-probability" id="toc-what-is-probability" class="nav-link" data-scroll-target="#what-is-probability"><span class="header-section-number">2</span> What is probability?</a>
+  <ul class="collapse">
+  <li><a href="#axioms-of-probability" id="toc-axioms-of-probability" class="nav-link" data-scroll-target="#axioms-of-probability"><span class="header-section-number">2.1</span> Axioms of probability</a></li>
+  <li><a href="#additional-useful-properties" id="toc-additional-useful-properties" class="nav-link" data-scroll-target="#additional-useful-properties"><span class="header-section-number">2.2</span> Additional useful properties</a></li>
+  </ul></li>
+  <li><a href="#conditional-probability" id="toc-conditional-probability" class="nav-link" data-scroll-target="#conditional-probability"><span class="header-section-number">3</span> Conditional probability</a>
+  <ul class="collapse">
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">3.1</span> Exercises</a></li>
+  <li><a href="#randomized-response-design" id="toc-randomized-response-design" class="nav-link" data-scroll-target="#randomized-response-design"><span class="header-section-number">3.2</span> Randomized response design</a></li>
+  </ul></li>
+  <li><a href="#bayes-theorem" id="toc-bayes-theorem" class="nav-link" data-scroll-target="#bayes-theorem"><span class="header-section-number">4</span> Bayes’ Theorem</a>
+  <ul class="collapse">
+  <li><a href="#example-1.-elisa-test" id="toc-example-1.-elisa-test" class="nav-link" data-scroll-target="#example-1.-elisa-test"><span class="header-section-number">4.1</span> Example 1. ELISA test</a></li>
+  <li><a href="#exercise-1-are-older-parolees-risky" id="toc-exercise-1-are-older-parolees-risky" class="nav-link" data-scroll-target="#exercise-1-are-older-parolees-risky"><span class="header-section-number">4.2</span> Exercise 1: Are older parolees risky?</a></li>
+  <li><a href="#exercise-2-how-did-uncle-basil-die" id="toc-exercise-2-how-did-uncle-basil-die" class="nav-link" data-scroll-target="#exercise-2-how-did-uncle-basil-die"><span class="header-section-number">4.3</span> Exercise 2: How did Uncle Basil die?</a></li>
+  <li><a href="#exercise-3-beyond-a-reasonable-doubt" id="toc-exercise-3-beyond-a-reasonable-doubt" class="nav-link" data-scroll-target="#exercise-3-beyond-a-reasonable-doubt"><span class="header-section-number">4.4</span> Exercise 3: Beyond a reasonable doubt?</a></li>
+  <li><a href="#exercise-4-vampires-ghosts-and-lies" id="toc-exercise-4-vampires-ghosts-and-lies" class="nav-link" data-scroll-target="#exercise-4-vampires-ghosts-and-lies"><span class="header-section-number">4.5</span> Exercise 4: Vampires, ghosts, and lies</a></li>
+  </ul></li>
+  <li><a href="#prediction" id="toc-prediction" class="nav-link" data-scroll-target="#prediction"><span class="header-section-number">5</span> Prediction</a></li>
+  <li><a href="#random-variables-expected-value-variance" id="toc-random-variables-expected-value-variance" class="nav-link" data-scroll-target="#random-variables-expected-value-variance"><span class="header-section-number">6</span> Random variables, expected value, variance</a>
+  <ul class="collapse">
+  <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples"><span class="header-section-number">6.1</span> Examples:</a></li>
+  <li><a href="#properties-of-expected-value" id="toc-properties-of-expected-value" class="nav-link" data-scroll-target="#properties-of-expected-value"><span class="header-section-number">6.2</span> Properties of expected value</a></li>
+  <li><a href="#monte-carlo-estimation-of-integrals" id="toc-monte-carlo-estimation-of-integrals" class="nav-link" data-scroll-target="#monte-carlo-estimation-of-integrals"><span class="header-section-number">6.3</span> Monte Carlo estimation of integrals</a></li>
+  <li><a href="#variance" id="toc-variance" class="nav-link" data-scroll-target="#variance"><span class="header-section-number">6.4</span> Variance</a></li>
+  </ul></li>
+  <li><a href="#final-notes" id="toc-final-notes" class="nav-link" data-scroll-target="#final-notes"><span class="header-section-number">7</span> Final notes</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L01-probability-review.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">L1 Probability Review</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 30, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- In terminal -->
+<!-- quarto render L1-probability-review.qmd -->
+<!-- git commit L1-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+<section id="sample-space-and-events" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Sample space and events</h1>
+<p><strong>Sample space</strong> is the set of all possible outcomes from a random process.</p>
+<ul>
+<li><span class="math inline">\(S=\{\mbox{dropout}, \mbox{graduate}\}\)</span>, simplified high school outcome</li>
+<li><span class="math inline">\(S=\{0,1,2,3,\ldots\}\)</span>, number of workplace injuries</li>
+<li><span class="math inline">\(S=[0, 130]\)</span>, age… or collision speed</li>
+<li><span class="math inline">\(S=\{\mbox{nothing}, \mbox{restrain}, \mbox{strike}, \mbox{baton/taser/OC spray}, \mbox{firearm}\}\)</span>, ordered use-of-force</li>
+</ul>
+<p>An <strong>event</strong> is a subset of the sample space</p>
+<ul>
+<li><span class="math inline">\(A=\{\mbox{graduate}\}\)</span></li>
+<li><span class="math inline">\(A=\{0,1,2\}\)</span></li>
+<li><span class="math inline">\(A=[16, 25]\)</span></li>
+<li><span class="math inline">\(A=\{\mbox{nothing}, \mbox{restrain}\}\)</span></li>
+</ul>
+</section>
+<section id="what-is-probability" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> What is probability?</h1>
+<p>Frequentist definition: The probability of an <strong>event</strong> is the <strong>fraction</strong> of times it is expected to happen when the basic <strong>process</strong> is done <strong>over and over</strong> under the <strong>same conditions</strong>.</p>
+<p>Subjectivist definition: Probability is an individual’s <strong>belief</strong> expressed as a measure of uncertainty.</p>
+<p>What is the probability that the Phillies win next year’s World Series? The frequentist would have to think about next year’s World Series as being part of a larger sequence of games, perhaps depending on a complex set of factors (e.g.&nbsp;weather, injuries, opponents). Subjectivists are comfortable simply expressing their belief as a probability.</p>
+<p>Example: Let <span class="math inline">\(X\)</span> be the number of cities in the world with more than 1 million people that start with the letter M. What is the probability that <span class="math inline">\(X\geq 20\)</span>? Frequentists will say that this has to be 0 or 1 since this is not a repeatable experiment. However, after reading this question you probably are already formulating an estimate of how sure you are that there are more than 20 such cities. You might be so certain that you would be willing to bet someone real money on whether <span class="math inline">\(X \geq 20\)</span> or not. de Finetti in 1937 defined subjective probability as essentially the price that you are willing to pay for a lottery ticket that yields 1 unit of money if the event occurs and nothing otherwise.</p>
+<section id="axioms-of-probability" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="axioms-of-probability"><span class="header-section-number">2.1</span> Axioms of probability</h2>
+<p>Let <span class="math inline">\(A\)</span> be an event in a sample space <span class="math inline">\(S\)</span>.</p>
+<ol type="1">
+<li><span class="math inline">\(P(A) \geq 0\)</span>, probability cannot be negative</li>
+<li><span class="math inline">\(P(S) = 1\)</span>, some event in the sample space will happen</li>
+<li>If <span class="math inline">\(A_1 \cap A_2 = \emptyset\)</span>, then <span class="math inline">\(P(A_1 \cup A_2) = P(A_1)+P(A_2)\)</span>, probabilities for mutual exclusive events are additive</li>
+</ol>
+<p>Note: <span class="math inline">\(\cup\)</span> is like “or”, <span class="math inline">\(\cap\)</span> is like “and”</p>
+</section>
+<section id="additional-useful-properties" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="additional-useful-properties"><span class="header-section-number">2.2</span> Additional useful properties</h2>
+<ol type="1">
+<li><span class="math inline">\(P(A_1 \cup A_2) = P(A_1)+P(A_2)-P(A_1 \cap A_2)\)</span></li>
+<li><span class="math inline">\(P(\bar A) = 1-P(A)\)</span>, where <span class="math inline">\(\bar A\)</span> means “not <span class="math inline">\(A\)</span>”</li>
+<li>If <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> are independent, then <span class="math inline">\(P(A \cap B) = P(A)P(B)\)</span></li>
+</ol>
+<p>Two events are <strong>independent</strong> if the chances for the second event are the same regardless of how the first event turns out. Otherwise, the two events are <strong>dependent</strong>.</p>
+</section>
+</section>
+<section id="conditional-probability" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Conditional probability</h1>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Conditional probability
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-condprob"><span class="math display">\[
+P(A|B)=\frac{P(A \cap B)}{P(B)}
+\tag{1}\]</span></span></p>
+</div>
+</div>
+<p>The conditional probability <span class="math inline">\(P(A|B)\)</span> is the probability that the event <span class="math inline">\(A\)</span> occurs given that <span class="math inline">\(B\)</span> occurs. Often we will be interested in computing conditional probabilities like <span class="math display">\[
+P(Y=1|x_1,x_2,\ldots,x_d)
+\]</span> the probability that <span class="math inline">\(Y=1\)</span> given a set of case features, <span class="math inline">\(\mathbf{x}\)</span>.</p>
+<p>Sometimes, for example when we study the naïve Bayes classifier, we will be interested in <span class="math inline">\(P(x_j|Y=1)\)</span>. Pay attention to which events are on which side of the vertical bar.</p>
+<p>It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The “prosecutor’s fallacy” is to give <span class="math inline">\(P(\mathrm{evidence}|\mathrm{innocence})\)</span> but interpret it as <span class="math inline">\(P(\mathrm{innocence}|\mathrm{evidence})\)</span>. In Philadelphia the District Attorney correctly claimed that of those arrested for illegal gun possession, very few of them go on to shoot someone (<span class="math inline">\(P(\mathrm{shoot}|\mathrm{VUFA\,arrest})\)</span> is small), but the police department argued that almost all the shooters have been previously arrested for illegal gun possession (<span class="math inline">\(P(\mathrm{VUFA\,arrest}|\mathrm{shooter})\)</span> is large). Both are correct statements, but essentially they are arguing about which probability is more important for public safety.</p>
+<p>Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know <span class="math display">\[
+P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})
+\]</span> but Dershowitz gave <span class="math display">\[
+P(\mathrm{murdered\,by\,batterer}|\mathrm{battered})=\frac{1}{2500}
+\]</span> The useful probability, <span class="math inline">\(P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})\)</span>, turns out to be 0.29.</p>
+<section id="exercises" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="exercises"><span class="header-section-number">3.1</span> Exercises</h2>
+<div>
+<table data-quarto-postprocess="true" class="table">
+<caption>Probability of cheating on taxes and mom’s birthday month</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th colspan="2" style="text-align: center;">Mom's birthday</th>
+</tr>
+<tr class="odd">
+<th></th>
+<th style="text-align: right;">Jan-Mar</th>
+<th style="text-align: right;">Apr-Dec</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tax cheat</td>
+<td style="text-align: right;">0.025</td>
+<td style="text-align: right;">0.075</td>
+</tr>
+<tr class="even">
+<td>not tax cheat</td>
+<td style="text-align: right;">0.225</td>
+<td style="text-align: right;">0.675</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<p><span class="math inline">\(S=\{(\mbox{Jan-Mar},\mbox{cheat}), (\mbox{Jan-Mar},\mbox{no cheat}), (\mbox{Apr-Dec},\mbox{cheat}), (\mbox{Apr-Dec},\mbox{no cheat})\}\)</span>.</p>
+<p>Let <span class="math inline">\(A=\mbox{tax cheat}\)</span> and <span class="math inline">\(B=\mbox{Jan-Mar birthday}\)</span>. Compute the following</p>
+<ol type="1">
+<li><span class="math inline">\(P(S)\)</span></li>
+<li><span class="math inline">\(P(A)\)</span></li>
+<li><span class="math inline">\(P(\bar A)\)</span></li>
+<li><span class="math inline">\(P(B)\)</span></li>
+<li><span class="math inline">\(\frac{P(A)}{1-P(A)}\)</span> (odds of A)</li>
+<li><span class="math inline">\(P(A|B)\)</span></li>
+<li><span class="math inline">\(P(A|\bar B)\)</span></li>
+<li><span class="math inline">\(\frac{P(A|B)}{P(A|\bar B)}\)</span> (risk ratio)</li>
+<li><span class="math inline">\(\frac{\frac{P(A|B)}{1-P(A|B)}}{\frac{P(A|\bar B)}{1-P(A|\bar B)}}\)</span> (odds ratio)</li>
+<li><span class="math inline">\(\log \frac{\frac{P(A|B)}{1-P(A|B)}}{\frac{P(A|\bar B)}{1-P(A|\bar B)}}\)</span> (log odds ratio)</li>
+</ol>
+</section>
+<section id="randomized-response-design" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="randomized-response-design"><span class="header-section-number">3.2</span> Randomized response design</h2>
+<p>Assume we do not know the probability that a randomly selected person cheats on their taxes. Let <span class="math inline">\(p=P(\mbox{tax cheat})\)</span>.</p>
+<div>
+<table data-quarto-postprocess="true" class="table">
+<caption>Probability of cheating on taxes and mom’s birthday month</caption>
+<thead>
+<tr class="header">
+<th></th>
+<th colspan="2" style="text-align: center;">Mom's birthday</th>
+</tr>
+<tr class="odd">
+<th></th>
+<th style="text-align: right;">Jan-Mar</th>
+<th style="text-align: right;">Apr-Dec</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>tax cheat</td>
+<td style="text-align: right;"><span class="math inline">\(0.25p\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.75p\)</span></td>
+</tr>
+<tr class="even">
+<td>not tax cheat</td>
+<td style="text-align: right;"><span class="math inline">\(0.25(1-p)\)</span></td>
+<td style="text-align: right;"><span class="math inline">\(0.75(1-p)\)</span></td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+<p>If we ask a large number of people “Say ‘yes’ if you cheat on your taxes <em>or</em> your mom’s birthday in January, February, or March,” what fraction would say “yes”?</p>
+<p><span class="math display">\[
+\begin{split}
+P(A \cup B) &amp;= P(A) + P(B) - P(A \cap B) \\
+&amp;= (0.25p+0.75p) + (0.25p+0.25(1-p)) - 0.25p \\
+&amp;=  p + 0.25p + 0.25 - 0.25p - 0.25p \\
+&amp;=  0.25 + 0.75p
+\end{split}
+\]</span></p>
+<p>If you surveyed 10,000 people with this question and 34% said “yes,” what would be your best guess for <span class="math inline">\(p\)</span>, the probability that someone cheats on their taxes?</p>
+</section>
+</section>
+<section id="bayes-theorem" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Bayes’ Theorem</h1>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Bayes’ Theorem
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-BayesTheorem"><span class="math display">\[
+P(B|A)=\frac{P(A|B)P(B)}{P(A)}
+\tag{2}\]</span></span></p>
+</div>
+</div>
+<p>Note that in order to compute <span class="math inline">\(P(A)\)</span> we often have to sum over all the options for <span class="math inline">\(B\)</span>, for example</p>
+<p><span class="math display">\[
+\begin{split}
+    P(A) &amp;= P(A \cap B)+P(A \cap \bar B) \\
+         &amp;= P(A|B)P(B)+P(A|\bar B)P(\bar B)
+\end{split}
+\]</span></p>
+<section id="example-1.-elisa-test" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="example-1.-elisa-test"><span class="header-section-number">4.1</span> Example 1. ELISA test</h2>
+<p>The ELISA test was introduced in the mid-1980s to screen blood for the AIDS virus. It detects antibodies, substances that the body produces when the virus is present.</p>
+<ul>
+<li>When antibodies are present, ELISA is positive with probability 0.98 and negative with probability 0.02</li>
+<li>When blood is not contaminated with antibodies, ELISA gives a positive result with probability about 0.07 and a negative result with probability 0.93</li>
+<li>Suppose that 1% of a large population carry the AIDS antibody in their blood</li>
+</ul>
+<p>What is the probability that someone who tests positive actually has antibodies?</p>
+<p><span class="math display">\[
+\begin{split}
+    P(\mbox{AB}|\mbox{ELISA+}) \hspace{-1in} \\
+    &amp;= \frac{P(\mbox{ELISA+}|\mbox{AB})P(\mbox{AB})}{P(\mbox{ELISA+})} \\
+    &amp;= \frac{0.98\times 0.01}
+               {P(\mbox{ELISA+}|\mbox{AB})P(\mbox{AB}) +
+                P(\mbox{ELISA+}|\mbox{no AB})P(\mbox{no AB})} \\
+    &amp;= \frac{0.98\times 0.01}{0.98\times 0.01 + 0.07\times 0.99} \\
+    &amp;= 0.124
+\end{split}
+\]</span></p>
+</section>
+<section id="exercise-1-are-older-parolees-risky" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="exercise-1-are-older-parolees-risky"><span class="header-section-number">4.2</span> Exercise 1: Are older parolees risky?</h2>
+<p>A report noted that in 2002, 0.8% of those rearrested within one year of release on parole were 50 years or older. Advocates of sentencing reform suggested that this statistic indicates that releasing prisoners age 50 and older could alleviate prison overcrowding without risking harm to the public.</p>
+<p>50% of parolees released in 2002 were rearrested within one year.</p>
+<p>1% of those released on parole in 2002 were 50 or older</p>
+<p>Compute the probability of rearrest within one year for a parolee aged 50 or older who was released in 2002. What do you think of the proposed prisoner release program given the 0.8% statistic?</p>
+</section>
+<section id="exercise-2-how-did-uncle-basil-die" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="exercise-2-how-did-uncle-basil-die"><span class="header-section-number">4.3</span> Exercise 2: How did Uncle Basil die?</h2>
+<p>Bart is trying to kill Uncle Basil for money. Knowing Uncle Basil likes dessert, Bart puts</p>
+<ul>
+<li>rat poison in the cherries flambé (fatal 60% of the time)</li>
+<li>cyanide in the chocolate mousse (fatal 90% of the time)</li>
+</ul>
+<p>Uncle Basil eats cherries 50% of the time, chocolate mousse 40% of the time, and something else 10% of the time.</p>
+<p>If Uncle Basil dies, what’s the probability that it was the mousse that killed him?</p>
+</section>
+<section id="exercise-3-beyond-a-reasonable-doubt" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="exercise-3-beyond-a-reasonable-doubt"><span class="header-section-number">4.4</span> Exercise 3: Beyond a reasonable doubt?</h2>
+<p>Police recover a knife at the murder scene on the Orient Express. There are 13 passengers on the train suspected of the murder and police believe that each of these 13 have the same chance of being the murderer.</p>
+<p>A bloody fingerprint lifted from the knife used as the murder weapon best matches Mrs.&nbsp;Hubbard. However, forensic examiners note that the match is not perfect and calculate that there is a 0.008 probability of a fingerprint match even if Mrs.&nbsp;Hubbard was innocent.</p>
+<p>What is the probability that Mrs.&nbsp;Hubbard is the murderer?</p>
+<p>In 1769, William Blackstone said “It is better that ten guilty escape than one innocent suffer.” Blackstone’s Ratio convicts those with probability of guilt greater than or equal to <span class="math inline">\(10/(10+1) = 0.909\)</span>. Would you convict Mrs.&nbsp;Hubbard based on the evidence?</p>
+<p>Ben Franklin in 1785 said, “It is better 100 guilty Persons should escape than that one innocent Person should suffer,” equivalent to convicting when the probability of guilt exceeds 100/(100+1). Using Franklin’s Ratio, would you still convict Mrs.&nbsp;Hubbard?</p>
+</section>
+<section id="exercise-4-vampires-ghosts-and-lies" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="exercise-4-vampires-ghosts-and-lies"><span class="header-section-number">4.5</span> Exercise 4: Vampires, ghosts, and lies</h2>
+<p>In a small village in Transylvania 15% of the population are vampires, 20% are ghosts, and 65% are ordinary people.</p>
+<p>Vampires never tell the truth, ghosts tell the truth 37% of the time, and ordinary people tell the truth 95% of the time.</p>
+<p>It is impossible to tell apart vampires, ghosts and ordinary people by the way they look (between 6:00am and 11:59:59pm).</p>
+<p>You are introduced to a gentleman from the village. What is the probability that he did not give you his real name?</p>
+<p>Just at 11:59:59pm you realize that the gentleman lied about his name. What is the probability that your companion is a vampire or ghost?</p>
+</section>
+</section>
+<section id="prediction" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Prediction</h1>
+<p>We are almost always interested in the probability of some outcome <span class="math inline">\(Y\)</span> conditional on observing some features <span class="math inline">\(X_1, X_2, \ldots, X_d\)</span>, written as the conditional probability <span class="math inline">\(P(Y|\mathbf{x})\)</span>.</p>
+<ul>
+<li><span class="math inline">\(Y \in {0,1}\)</span>, <strong>binary classification</strong></li>
+<li><span class="math inline">\(Y\)</span> is a discrete variable with more than two possible values, <strong>multiclass classification</strong></li>
+<li><span class="math inline">\(Y\)</span> is a continuous variable, <strong>regression</strong></li>
+</ul>
+<p>We will focus on the binary classification problem for now.</p>
+<p>What if you need to make a classification decision based on <span class="math inline">\(P(Y|\mathbf{x})\)</span>? Perhaps predict that <span class="math inline">\(Y=1\)</span> whenever <span class="math inline">\(P(Y=1|\mathbf{x})&gt;0.5\)</span>. But what if, the cost of a false negative (failing to identify a case where <span class="math inline">\(Y=1\)</span>) is different from the cost of a false positive (incorrectly predicting <span class="math inline">\(Y=1\)</span>).</p>
+<p>Let’s say a false positive costs <span class="math inline">\(c\)</span> units while a false negative costs <span class="math inline">\(1\)</span> units.</p>
+<p>What is our expected cost if we label the case as a 0? <span class="math display">\[
+    0\times P(Y=0|\mathbf{x}) + 1\times P(Y=1|\mathbf{x}) = P(Y=1|\mathbf{x})
+\]</span> What is our expected cost if we label the case as a 1? <span class="math display">\[
+    c\times P(Y=0|\mathbf{x}) + 0\times P(Y=1|\mathbf{x}) = cP(Y=0|\mathbf{x})
+\]</span></p>
+<p>We should classify as a 1 if <span class="math display">\[
+\begin{split}
+    cP(Y=0|\mathbf{x}) &amp;&lt; P(Y=1|\mathbf{x}) \\
+    c(1-P(Y=1|\mathbf{x})) &amp;&lt; P(Y=1|\mathbf{x}) \\
+    c-cP(Y=1|\mathbf{x}) &amp;&lt; P(Y=1|\mathbf{x}) \\
+    c &amp;&lt; P(Y=1|\mathbf{x})+cP(Y=1|\mathbf{x}) \\
+    c &amp;&lt; (c+1)P(Y=1|\mathbf{x}) \\
+    P(Y=1|\mathbf{x}) &amp;&gt; \frac{c}{c+1}
+\end{split}
+\]</span></p>
+<p>If false positives cost nothing, then <span class="math inline">\(c=0\)</span> and we would classify everyone as a 1. If false positives cost 1 (equal to false negatives), then classify as a 1 if <span class="math inline">\(P(Y=1|\mathbf{x})&gt;\frac{1}{2}\)</span>. Whenever you see examples in which the decision boundary is <span class="math inline">\(\frac{1}{2}\)</span>, the analysts are assuming equal false positive and false negative costs. If false positives are infinitely expensive, then <span class="math inline">\(c\rightarrow\infty\)</span> and we classify as a 1 only when <span class="math inline">\(P(Y=1|\mathbf{x})=1\)</span> and all other classifications should be <span class="math inline">\(Y=0\)</span>.</p>
+</section>
+<section id="random-variables-expected-value-variance" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Random variables, expected value, variance</h1>
+<p>A random variable is a numerical summary of the outcome of a random event.</p>
+<ul>
+<li><span class="math inline">\(X=1\)</span> if the student graduates, <span class="math inline">\(X=0\)</span> if the student does not graduate</li>
+<li><span class="math inline">\(T\)</span> is the time until a parolee reoffends</li>
+<li><span class="math inline">\(Y\)</span> is total earnings within 5 years of college graduation</li>
+</ul>
+<p>We often summarize a random variable by its average or expected value. A random variable is <em>discrete</em> if it takes on a finite or countable number of values, like 0/1 outcomes, the number of times something happens, or the count of a number of items.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Expected value of discrete random variables
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-expectedvalue-discrete"><span class="math display">\[
+\mathbb{E}(Y)=\sum_{y=0}^\infty yP(Y=y)
+\tag{3}\]</span></span></p>
+</div>
+</div>
+<p>Equation (<a href="#eq-expectedvalue-discrete" class="quarto-xref">3</a>) says that the expected value is the sum over all the possible values <span class="math inline">\(Y\)</span> can have times the probability that that value of <span class="math inline">\(Y\)</span> occurs.</p>
+<section id="examples" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="examples"><span class="header-section-number">6.1</span> Examples:</h2>
+<ul>
+<li><p>Starting with the classic coin flip, if <span class="math inline">\(Y\)</span> counts the number of tails that occurs in a single coin flip, then we have <span class="math inline">\(\mathbb{E}(Y) = 0\times 0.5 + 1\times 0.5 = 0.5\)</span>. Note that the expected value does not necessarily have to equal one of the possible values of <span class="math inline">\(Y\)</span></p></li>
+<li><p>In the US, of mothers over age 40, assume that the distribution of the number of children is</p></li>
+</ul>
+<table class="table">
+<thead>
+<tr class="header">
+<th># children (<span class="math inline">\(y\)</span>)</th>
+<th style="text-align: right;">0</th>
+<th style="text-align: right;">1</th>
+<th style="text-align: right;">2</th>
+<th style="text-align: right;">3</th>
+<th style="text-align: right;">4</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(P(Y=y)\)</span></td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.19</td>
+<td style="text-align: right;">0.32</td>
+<td style="text-align: right;">0.20</td>
+<td style="text-align: right;">0.11</td>
+</tr>
+</tbody>
+</table>
+<p>The expected value of <span class="math inline">\(Y\)</span> is <span class="math display">\[
+   \mathbb{E}(Y) = 0\times 0.18 + 1\times 0.19 + 2\times 0.32 + 3\times 0.20 + 4\times 0.11 = 1.87
+\]</span></p>
+<p>For a physical understanding of the expected value, imagine a (weightless) rod of length 4 cm. Place an 18g weight at the left end, a 19g weight at the 1cm mark, a 32g weight at the 2cm mark, a 20g weight at the 3cm mark, and an 11g weight at the 4cm mark (the right end of the rod). The expected value is the point at which this rod would balance.</p>
+<p>For continuous random variables, we replace the sum with an integral.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Expected value of continuous random variables
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-expectedvalue-cont"><span class="math display">\[
+\mathbb{E}(Y)=\int_{-\infty}^\infty yp(y)\,dy
+\tag{4}\]</span></span></p>
+</div>
+</div>
+<p>(<a href="#eq-expectedvalue-cont" class="quarto-xref">4</a>) replaces the sum with an integral and the probability function <span class="math inline">\(P(Y=y)\)</span> with a probability density function, <span class="math inline">\(p(y)\)</span>. Physically, <span class="math inline">\(\mathbb{E}(Y)\)</span> is the place where the shape <span class="math inline">\(p(y)\)</span> would balance.</p>
+<p>Example:</p>
+<ul>
+<li>Let <span class="math inline">\(T\)</span> be the time to reoffense with an exponential distribution of the form <span class="math display">\[
+p(t) = \lambda e^{-\lambda t},\, t\geq 0
+\]</span> The expected value is <span class="math display">\[
+\mathbb{E}(T) = \int_0^\infty t\lambda e^{-\lambda t}\,dt = \frac{1}{\lambda}
+\]</span></li>
+</ul>
+<p>For this class, feel free to use <a href="https://www.wolframalpha.com/examples/mathematics/calculus-and-analysis">Wolfram Alpha</a> or <a href="https://www.integral-calculator.com/">Integral Calculator</a> or similar sites to help you solve any problems in this class.</p>
+</section>
+<section id="properties-of-expected-value" class="level2" data-number="6.2">
+<h2 data-number="6.2" class="anchored" data-anchor-id="properties-of-expected-value"><span class="header-section-number">6.2</span> Properties of expected value</h2>
+<p>Since the expected value is a sum or an integral, it has all the same properties of sums and integrals.</p>
+<ul>
+<li><span class="math inline">\(\mathbb{E}(aY) = a\mathbb{E}(Y)\)</span></li>
+<li><span class="math inline">\(\mathbb{E}(Y_1+Y_2) = \mathbb{E}(Y_1)+\mathbb{E}(Y_2)\)</span></li>
+</ul>
+<p>Example:</p>
+<ul>
+<li>You have two randomly selected 40-year-old mothers. What is the expected total number of children that they have? <span class="math display">\[
+\mathbb{E}(Y_1+Y_2)=\mathbb{E}(Y_1)+\mathbb{E}(Y_2)=1.87+1.87=3.74
+\]</span></li>
+</ul>
+</section>
+<section id="monte-carlo-estimation-of-integrals" class="level2" data-number="6.3">
+<h2 data-number="6.3" class="anchored" data-anchor-id="monte-carlo-estimation-of-integrals"><span class="header-section-number">6.3</span> Monte Carlo estimation of integrals</h2>
+<p>Some (most?) integrals we will encounter in machine learning are too complicated to compute in a convenient closed-form solution. Fortunately, the Law of Large Numbers tells us that we can use sample averages to approximate integrals.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Law of Large Numbers
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If <span class="math inline">\(y_1, \ldots, y_n\)</span> is a random sample from <span class="math inline">\(p(y)\)</span>, then as <span class="math inline">\(n \to \infty\)</span><br>
+<span id="eq-lawoflargenumbers"><span class="math display">\[
+\frac{1}{n}\sum_{i=1}^n g(y_i) \to \int_{-\infty}^\infty g(y)p(y)\,dy = \mathbb{E}[g(Y)].
+\tag{5}\]</span></span></p>
+</div>
+</div>
+<p>Example:</p>
+<ul>
+<li>Returning to the example with the number of children, we can write an R script to estimate the expected value.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    nChildren <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">10000</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">prob=</span><span class="fu">c</span>(<span class="fl">0.18</span>,<span class="fl">0.19</span>,<span class="fl">0.32</span>,<span class="fl">0.20</span>,<span class="fl">0.11</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(nChildren)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.8619</code></pre>
+</div>
+</div>
+</section>
+<section id="variance" class="level2" data-number="6.4">
+<h2 data-number="6.4" class="anchored" data-anchor-id="variance"><span class="header-section-number">6.4</span> Variance</h2>
+<p>The variance of a random variable describes its variability, specifically how far away from its mean it is on average as measured by squared distance.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Variance
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span id="eq-variance"><span class="math display">\[
+\mathrm{Var}(Y) = \mathbb{E}[(Y - \mathbb{E}(Y))^2]
+\tag{6}\]</span></span></p>
+</div>
+</div>
+<p>In the coming weeks we will be looking at terms like the following where <span class="math inline">\(D\)</span> represents an entire dataset, <span class="math inline">\(Y\)</span> is an outcome, and <span class="math inline">\(\mathbf{x}_0\)</span> is a set of specific case features. <span class="math inline">\(f(\mathbf{x})\)</span> is the best possible predictive model equal to <span class="math inline">\(\mathbb{E}_{D}(Y|\mathbf{x}_0)\)</span> and <span class="math inline">\(\hat f(\mathbf{x}_0)\)</span> is our machine learning method attempting to best predict <span class="math inline">\(y\)</span>. <span id="eq-noise"><span class="math display">\[
+\mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (Y-f(\mathbf{x}_0))^2
+\tag{7}\]</span></span></p>
+<p>Equation (<a href="#eq-noise" class="quarto-xref">7</a>) represents <em>noise</em>. It is the variance of <span class="math inline">\(Y\)</span> and is the part of the outcome that is simply random noise, which no possible machine learning method could hope to capture. <span id="eq-bias"><span class="math display">\[
+\mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} \left[ \left( f(\mathbf{x}_0) - \mathbb{E}_D \hat{f}(\mathbf{x}_0|D) \right)^2 \right]
+\tag{8}\]</span></span></p>
+<p>Equation (<a href="#eq-bias" class="quarto-xref">8</a>) represents <em>bias</em>, on average how far away our model, <span class="math inline">\(\hat f(\mathbf{x}|D)\)</span>, is from the best model, <span class="math inline">\(f(\mathbf{x})\)</span>. <span id="eq-var"><span class="math display">\[
+\mathbb{E}_{D,Y|\mathbf{X}=\mathbf{x}_0} (\hat f(\mathbf{x}_0|D)-\mathbb{E}_D \hat f(\mathbf{x}_0|D))^2
+\tag{9}\]</span></span></p>
+<p>Lastly, (<a href="#eq-var" class="quarto-xref">9</a>) represents <em>variance</em>, how much our predictions change from dataset to dataset. It is the variability of our machine learning approach and how sensitive it is to changes in the dataset that we use to train the machine learning method.</p>
+</section>
+</section>
+<section id="final-notes" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Final notes</h1>
+<p>Twenty-four cities start with the letter M and have more than 1 million people: Moscow (Russia), Mumbai (India), Mexico City (Mexico), Madrid (Spain), Manila (Philippines), Melbourne (Australia), Mashhad (Iran), Medellin (Columbia), Mogadishu (Somalia), Managua (Nicaragua), Manaus (Brazil), Multan (Pakistan), Medan (Indonesia), Maracaibo (Venezuela), Minsk (Belarus), Maiduguri (Nigeria), Montreal (Canada), Mecca (Saudi Arabia), Makassar (Indonesia), Munich (Germany), Milan (Italy), Montevideo (Uruguay), Maputo (Mozambique), and Monterrey (Mexico)</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
