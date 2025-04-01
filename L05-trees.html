@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-03-31">
+
+<title>Classification and regression trees</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="L05-trees_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L05-trees_files/libs/quarto-html/quarto.js"></script>
+<script src="L05-trees_files/libs/quarto-html/popper.min.js"></script>
+<script src="L05-trees_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L05-trees_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L05-trees_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L05-trees_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L05-trees_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L05-trees_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L05-trees_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L05-trees_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L05-trees_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<script src="L05-trees_files/libs/kePrint-0.0.1/kePrint.js"></script>
+
+<link href="L05-trees_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction-to-regression-trees" id="toc-introduction-to-regression-trees" class="nav-link active" data-scroll-target="#introduction-to-regression-trees"><span class="header-section-number">1</span> Introduction to regression trees</a></li>
+  <li><a href="#introduction-to-classification-trees" id="toc-introduction-to-classification-trees" class="nav-link" data-scroll-target="#introduction-to-classification-trees"><span class="header-section-number">2</span> Introduction to classification trees</a></li>
+  <li><a href="#tree-size-and-cross-validation" id="toc-tree-size-and-cross-validation" class="nav-link" data-scroll-target="#tree-size-and-cross-validation"><span class="header-section-number">3</span> Tree size and cross-validation</a>
+  <ul class="collapse">
+  <li><a href="#cross-validation" id="toc-cross-validation" class="nav-link" data-scroll-target="#cross-validation"><span class="header-section-number">3.1</span> Cross-validation</a></li>
+  </ul></li>
+  <li><a href="#analysis-of-the-age-at-death-data-using-rpart" id="toc-analysis-of-the-age-at-death-data-using-rpart" class="nav-link" data-scroll-target="#analysis-of-the-age-at-death-data-using-rpart"><span class="header-section-number">4</span> Analysis of the age at death data using <code>rpart()</code></a></li>
+  <li><a href="#analysis-of-the-glass-data---a-classification-problem" id="toc-analysis-of-the-glass-data---a-classification-problem" class="nav-link" data-scroll-target="#analysis-of-the-glass-data---a-classification-problem"><span class="header-section-number">5</span> Analysis of the glass data - a classification problem</a></li>
+  <li><a href="#other-topics" id="toc-other-topics" class="nav-link" data-scroll-target="#other-topics"><span class="header-section-number">6</span> Other topics</a></li>
+  <li><a href="#cart-on-the-nels88-data" id="toc-cart-on-the-nels88-data" class="nav-link" data-scroll-target="#cart-on-the-nels88-data"><span class="header-section-number">7</span> CART on the NELS88 data</a>
+  <ul class="collapse">
+  <li><a href="#practice-finding-the-first-split-by-hand" id="toc-practice-finding-the-first-split-by-hand" class="nav-link" data-scroll-target="#practice-finding-the-first-split-by-hand"><span class="header-section-number">7.1</span> Practice finding the first split “by hand”</a></li>
+  <li><a href="#using-rpart-to-predict-dropout" id="toc-using-rpart-to-predict-dropout" class="nav-link" data-scroll-target="#using-rpart-to-predict-dropout"><span class="header-section-number">7.2</span> Using <code>rpart</code> to predict dropout</a></li>
+  <li><a href="#using-10-fold-cross-validation-to-select-the-tree-size" id="toc-using-10-fold-cross-validation-to-select-the-tree-size" class="nav-link" data-scroll-target="#using-10-fold-cross-validation-to-select-the-tree-size"><span class="header-section-number">7.3</span> Using 10-fold cross-validation to select the tree size</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">8</span> Summary</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L05-trees.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Classification and regression trees</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 31, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- In terminal -->
+<!-- quarto render L5-trees.qmd -->
+<!-- quarto render L5-trees.qmd --cache-refresh  -->
+<section id="introduction-to-regression-trees" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Introduction to regression trees</h1>
+<p>Refer to <span class="citation" data-cites="Hast:Tibs:2001">Hastie, Tibshirani, and Friedman (<a href="#ref-Hast:Tibs:2001" role="doc-biblioref">2001</a>)</span> Chapter 9.2.</p>
+<p><strong>Predicting age at death</strong>: During aging, L-aspartic acid transforms into its D-form. Researchers obtained bone specimens from 15 human skulls with known age at death and measured the ratio of D-aspartic to L-aspartic acid.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>dAge <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">ratio=</span><span class="fu">c</span>(<span class="fl">0.040</span>,<span class="fl">0.070</span>,<span class="fl">0.070</span>,<span class="fl">0.075</span>,<span class="fl">0.080</span>,<span class="fl">0.085</span>,<span class="fl">0.105</span>,<span class="fl">0.110</span>,<span class="fl">0.115</span>,</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                           <span class="fl">0.130</span>,<span class="fl">0.140</span>,<span class="fl">0.150</span>,<span class="fl">0.160</span>,<span class="fl">0.165</span>,<span class="fl">0.170</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                   <span class="at">age=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">2</span>,<span class="dv">16</span>,<span class="dv">10</span>,<span class="dv">18</span>,<span class="dv">19</span>,<span class="dv">16</span>,<span class="dv">21</span>,<span class="dv">21</span>,<span class="dv">25</span>,<span class="dv">26</span>,<span class="dv">28</span>,<span class="dv">34</span>,<span class="dv">39</span>,<span class="dv">40</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div style="max-width: 50%; margin: auto;">
+<div>
+<table class="lightable-classic lightable-material-dark lightable-striped table" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">Ratio of D-aspartic to L-aspartic acid</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Age</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.040</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.075</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">18</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.085</td>
+<td style="text-align: right;">19</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.105</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.110</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.115</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.130</td>
+<td style="text-align: right;">25</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.140</td>
+<td style="text-align: right;">26</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.150</td>
+<td style="text-align: right;">28</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.160</td>
+<td style="text-align: right;">34</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.165</td>
+<td style="text-align: right;">39</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.170</td>
+<td style="text-align: right;">40</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>Here is a plot of the same data from the table.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge, </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"acid ratio"</span>, <span class="at">ylab=</span><span class="st">"age"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch=</span><span class="dv">19</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ratioDLacid" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ratioDLacid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ratioDLacid-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ratioDLacid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age at death
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Loss function</strong>: Let’s find a function, <span class="math inline">\(f(\mathbf{x})\)</span>, that minimizes squared error loss.</p>
+<p><span class="math display">\[
+\hat J(f) = \sum_{i=1}^N (y_i-f(\mathbf{x}_i))^2
+\]</span></p>
+<p>Consider a variation on <span class="math inline">\(k\)</span>-nearest neighbors</p>
+<ol type="1">
+<li>Rather than fix <span class="math inline">\(k\)</span>, fix the number of neighborhoods. For computational convenience fix the number of neighborhoods to two</li>
+<li>Each neighborhood does not need to have the same number of observations</li>
+<li>Define a neighborhood on a single variable</li>
+</ol>
+<p>This basically fits a piecewise constant function to the data. Partition the dataset into two groups and predict a constant within each group.</p>
+<p><strong>How to split</strong>: Let’s find a good split point on the <span class="math inline">\(x\)</span> variable “ratio”. To the left of this split point we will predict one constant value and to the right of this split point we will predict another. The next table lists all the possible places where we can split the dataset into two groups. For the left prediction, <span class="math inline">\(y_L\)</span>, we will use the average age of the observations less than the split point and for the right prediction, <span class="math inline">\(y_R\)</span>, we will use the average of the age of the observations greater than the split point.</p>
+<p>Now our squared-error loss function looks like</p>
+<p><span class="math display">\[
+\hat J(c,y_L,y_R) = \sum_{i=1}^N I(x_i\leq c)(y_i-y_L)^2 + I(x_i&gt;c)(y_i-y_R)^2.
+\]</span> We just need to find values for <span class="math inline">\(c\)</span>, <span class="math inline">\(y_L\)</span>, and <span class="math inline">\(y_R\)</span> that minimize <span class="math inline">\(\hat J(c,y_L,y_R)\)</span>.</p>
+<div id="tbl-ratioDLacidSplit1" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Choosing split points
+</figcaption>
+<div aria-describedby="tbl-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 8%">
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 20%">
+<col style="width: 21%">
+<col style="width: 18%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Ratio</th>
+<th style="text-align: right;">Age</th>
+<th style="text-align: left;">Split</th>
+<th style="text-align: right;">Left Prediction</th>
+<th style="text-align: right;">Right prediction</th>
+<th style="text-align: right;">Squared error</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.040</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.0550</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">22.5</td>
+<td style="text-align: right;">97.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.070</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.075</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.0725</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">24.08</td>
+<td style="text-align: right;">72.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.0775</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">26.09</td>
+<td style="text-align: right;">57.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.085</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.0825</td>
+<td style="text-align: right;">9.2</td>
+<td style="text-align: right;">26.9</td>
+<td style="text-align: right;">59.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.105</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.0950</td>
+<td style="text-align: right;">10.83</td>
+<td style="text-align: right;">27.78</td>
+<td style="text-align: right;">59.8</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.110</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1075</td>
+<td style="text-align: right;">11.57</td>
+<td style="text-align: right;">29.25</td>
+<td style="text-align: right;">50.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.115</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1125</td>
+<td style="text-align: right;">12.75</td>
+<td style="text-align: right;">30.43</td>
+<td style="text-align: right;">50.9</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.130</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1225</td>
+<td style="text-align: right;">13.67</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">48.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.140</td>
+<td style="text-align: right;">26</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1350</td>
+<td style="text-align: right;">14.8</td>
+<td style="text-align: right;">33.4</td>
+<td style="text-align: right;">51.8</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.150</td>
+<td style="text-align: right;">28</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1450</td>
+<td style="text-align: right;">15.82</td>
+<td style="text-align: right;">35.25</td>
+<td style="text-align: right;">54.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.160</td>
+<td style="text-align: right;">34</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1550</td>
+<td style="text-align: right;">16.83</td>
+<td style="text-align: right;">37.67</td>
+<td style="text-align: right;">59.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">0.165</td>
+<td style="text-align: right;">39</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1625</td>
+<td style="text-align: right;">18.15</td>
+<td style="text-align: right;">39.5</td>
+<td style="text-align: right;">76.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">0.170</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: left;">ratio <span class="math inline">\(\leq\)</span> 0.1675</td>
+<td style="text-align: right;">19.64</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">102.9</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Which split point should we choose?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge, <span class="at">pch=</span><span class="dv">19</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.04</span>,<span class="fl">0.1225</span>),<span class="fu">c</span>(<span class="fl">13.67</span>,<span class="fl">13.67</span>))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.1225</span>,<span class="fl">0.17</span>),<span class="fu">c</span>(<span class="dv">32</span>,<span class="dv">32</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ratioDLacidSplit1" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ratioDLacidSplit1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ratioDLacidSplit1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Best single split regression tree using ratio to predict age
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Equivalently we can look at this as a regression tree. In R, <code>rpart</code>, recursive partitioning, implements the trademarked CART algorithm.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-treeRatioDLacidSplit2" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRatioDLacidSplit2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRatioDLacidSplit2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRatioDLacidSplit2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Best single split regression tree using ratio to predict age
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>What should we do next? Recursive split the nodes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge, <span class="at">pch=</span><span class="dv">19</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.04</span>,<span class="fl">0.0775</span>),<span class="fu">c</span>(<span class="dv">7</span>,<span class="dv">7</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.0775</span>,<span class="fl">0.1225</span>),<span class="fu">c</span>(<span class="dv">19</span>,<span class="dv">19</span>))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.1225</span>,<span class="fl">0.155</span>),<span class="fu">c</span>(<span class="fl">26.33</span>,<span class="fl">26.33</span>))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.155</span>,<span class="fl">0.17</span>),<span class="fu">c</span>(<span class="fl">37.67</span>,<span class="fl">37.67</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ratioDLacidSplit3Plot" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ratioDLacidSplit3Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ratioDLacidSplit3Plot-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ratioDLacidSplit3Plot-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Best depth 2 tree partition of ratio to predict age (plot)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-treeRatioDLacidSplit3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRatioDLacidSplit3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRatioDLacidSplit3-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRatioDLacidSplit3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Best depth 2 tree partition of ratio to predict age (decision tree)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="introduction-to-classification-trees" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Introduction to classification trees</h1>
+<p>At crime scenes investigators need to determine whether glass fragments came from a window, eyeglasses, wine glass, or some other source. In this example we want to discriminate between window glass and other types of glass based on the samples’ refractive index and sodium concentration.</p>
+<p>Where should we split? The first table shows the data sorted by refractive index and the second table shows the same data sorted on sodium concentration.</p>
+<div style="max-width: 50%; margin: auto;">
+<div id="tbl-glassSortRI" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-glassSortRI-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Refractive index, sodium concentration, and window glass (sorted by refractive index)
+</figcaption>
+<div aria-describedby="tbl-glassSortRI-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Refractive index (sorted)</th>
+<th style="text-align: right;">Na %</th>
+<th style="text-align: right;">Window glass</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1.51590</td>
+<td style="text-align: right;">13.24</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51613</td>
+<td style="text-align: right;">13.88</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.51673</td>
+<td style="text-align: right;">13.30</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51786</td>
+<td style="text-align: right;">12.73</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.51811</td>
+<td style="text-align: right;">12.96</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51829</td>
+<td style="text-align: right;">14.46</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.52058</td>
+<td style="text-align: right;">12.85</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.52152</td>
+<td style="text-align: right;">13.12</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.52171</td>
+<td style="text-align: right;">11.56</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.52369</td>
+<td style="text-align: right;">13.44</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</div>
+<div style="max-width: 50%; margin: auto;">
+<div id="tbl-glassSortNA" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-glassSortNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Refractive index, sodium concentration, and window glass (sorted by sodium concentration)
+</figcaption>
+<div aria-describedby="tbl-glassSortNA-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Refractive index</th>
+<th style="text-align: right;">Na % (sorted)</th>
+<th style="text-align: right;">Window glass</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1.52171</td>
+<td style="text-align: right;">11.56</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51786</td>
+<td style="text-align: right;">12.73</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.52058</td>
+<td style="text-align: right;">12.85</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51811</td>
+<td style="text-align: right;">12.96</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.52152</td>
+<td style="text-align: right;">13.12</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51590</td>
+<td style="text-align: right;">13.24</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.51673</td>
+<td style="text-align: right;">13.30</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.52369</td>
+<td style="text-align: right;">13.44</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">1.51613</td>
+<td style="text-align: right;">13.88</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1.51829</td>
+<td style="text-align: right;">14.46</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</div>
+<p>The best split on refractive index is between 1.51811 and 1.51829, giving a misclassification rate of 2/10. The best split on sodium concentration is between 13.30 and 13.44, which also gives a misclassification rate of 2/10. Splitting on either refractive index or on sodium concentration gives the identical misclassification rate. In both cases we have two misclassified observations. The most common way to break such ties is to go with the split that results in more pure nodes. Splitting on sodium concentration peels off three observations that are not window glass, creating a pure non-window glass group. Note that this is not the only possible choice, just a common one.</p>
+<p>Here is the best two-split classification tree. It first separates the three non-window glass with high sodium. Then among the low sodium concentration samples, it peels off the four windows with low refractive index.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dGlass <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">ri=</span><span class="fu">c</span>(<span class="fl">1.52171</span>,<span class="fl">1.51786</span>,<span class="fl">1.52058</span>,<span class="fl">1.51811</span>,<span class="fl">1.52152</span>,<span class="fl">1.51590</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                          <span class="fl">1.51673</span>,<span class="fl">1.52369</span>,<span class="fl">1.51613</span>,<span class="fl">1.51829</span>),</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                     <span class="at">na=</span><span class="fu">c</span>(<span class="fl">11.56</span>,<span class="fl">12.73</span>,<span class="fl">12.85</span>,<span class="fl">12.96</span>,<span class="fl">13.12</span>,<span class="fl">13.24</span>,<span class="fl">13.30</span>,<span class="fl">13.44</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>                          <span class="fl">13.88</span>,<span class="fl">14.46</span>),</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">window=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(na<span class="sc">~</span>ri, <span class="at">data=</span>dGlass, <span class="at">pch=</span><span class="fu">as.character</span>(dGlass<span class="sc">$</span>window),</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Refractive index"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Na concentration"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">par</span>()<span class="sc">$</span>usr</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rect</span>(   a[<span class="dv">1</span>], <span class="fl">13.37</span>, a[<span class="dv">2</span>],  a[<span class="dv">4</span>], <span class="at">col=</span><span class="st">"lightblue"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rect</span>(<span class="fl">1.51934</span>,  a[<span class="dv">3</span>], a[<span class="dv">2</span>], <span class="fl">13.37</span>, <span class="at">col=</span><span class="st">"lightblue"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(dGlass<span class="sc">$</span>ri, dGlass<span class="sc">$</span>na, <span class="fu">as.character</span>(dGlass<span class="sc">$</span>window))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ratioDLacidSplit3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ratioDLacidSplit3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ratioDLacidSplit3-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ratioDLacidSplit3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Best two split classification tree using sodium concentration and refractive index to predict window glass (2D plot)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-treeRINa3" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRINa3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRINa3-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRINa3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Best two split classification tree using sodium concentration and refractive index to predict window glass (decision tree)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="tree-size-and-cross-validation" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Tree size and cross-validation</h1>
+<p>We can continue to recursively partition the data until every observation is predicted as best as possible. Though, perhaps fitting the data perfectly is not ideal. This tree has 13 terminal nodes. Perhaps that is too many nodes. Why?</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-treeRatioDLacidSplitMax" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRatioDLacidSplitMax-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRatioDLacidSplitMax-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRatioDLacidSplitMax-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Very deep regression tree predicting age as best as possible
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>This tree has two terminal nodes. Perhaps that is too few.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-treeRatioDLacidSplit2v1" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRatioDLacidSplit2v1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRatioDLacidSplit2v1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRatioDLacidSplit2v1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Tree partition of ratio to predict age with a single split
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="cross-validation" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="cross-validation"><span class="header-section-number">3.1</span> Cross-validation</h2>
+<p>Cross-validation is the standard way for optimizing the choice for tuning parameters in machine learning methods. For knn, the tuning parameter was the number of neighbors. For classification and regression trees, the tuning parameter is the number of splits (or number of terminal nodes). Perhaps we might consider leave-one-out cross-validation as we did for knn.</p>
+<ol type="1">
+<li>Leave out the first observation.</li>
+<li>Fit a tree using the other observations with two terminal nodes, and predict for the left out observation.</li>
+<li>Recursively split so the tree now has three terminal nodes and predict for the left out observation.</li>
+<li>Recursively split so the tree now has four terminal nodes and predict for the left out observation.</li>
+<li>And carry on in this fashion until observation 1 has predictions from all sized trees.</li>
+</ol>
+<p>Now put the first observation back in the dataset and remove the second one. Repeat the process. This leave-one-out procedure simulates what would happen in reality, fitting a tree to a fixed dataset and then having to predict for a future observation.</p>
+<p>When the dataset is small, LOOCV is feasible, but it quickly becomes too much computational effort for large datasets. For large datasets, the most common approach is to use 10-fold cross validation. Rather than holding out 1 observation at a time, 10-fold cross-validation holds out 10% of the data at a time and uses the remaining 90% of the data for learning the tree.</p>
+<ol type="1">
+<li>Randomly assign every observation a number between 1 and 10. For example, <code>mydata$fold &lt;- rep(1:10, length.out=nrow(mydata)) |&gt; sample()</code></li>
+<li>Hold out all observations with <code>fold==1</code></li>
+<li>Fit a tree with two terminal nodes using the other observations (<code>filter(mydata, fold!=1)</code>), and predict for the left out observations (<code>predict(mytree, newdata=filter(mydata,fold==1))</code>)</li>
+<li>Recursively split so the tree now has three terminal nodes and predict for all the held out observations</li>
+<li>Recursively split so the tree now has four terminal nodes and predict for all the held out observations</li>
+<li>Carry on in this fashion until all observations in fold 1 have predictions from all sized trees.</li>
+</ol>
+<p>Repeat steps 2-6 for fold=2, …, 10. In this way, all observations have predictions from trees that did not use those observations in the learning process. This is more efficient than LOOCV in that we only had to fit 10 trees rather than <span class="math inline">\(n\)</span> trees.</p>
+</section>
+</section>
+<section id="analysis-of-the-age-at-death-data-using-rpart" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Analysis of the age at death data using <code>rpart()</code></h1>
+<p>Let’s revisit the problem of predicting age at death.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio, <span class="at">data=</span>dAge,</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"acid ratio"</span>, <span class="at">ylab=</span><span class="st">"age"</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch=</span><span class="dv">19</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ratioDLacid2" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ratioDLacid2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ratioDLacid2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ratioDLacid2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: Scatterplot of the Ratio of D-aspartic to L-aspartic acid and age at death
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In this section we will use <code>rpart()</code> to fit a regression tree. <code>rpart()</code> has a parameter <code>xval</code> that you can set to the number of folds to use for cross-validation. Here I have set <code>xval=15</code>. Since the dataset has 15 observations, this is equivalent to LOOCV. <code>method="anova"</code> tells <code>rpart()</code> that this is a regression problem. <code>minsplit=2</code> and <code>minbucket=1</code> tells <code>rpart()</code> that it should try to split any node that has at least two observations and that every terminal node should have at least 1 observation. This is the minimum possible. The complexity parameter, <code>cp</code>, tells <code>rpart()</code> to only consider</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load the rpart library</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rpart)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># show all the rpart commands</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#    library(help="rpart")</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># search for commands with the phrase "rpart"</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#    help.search('rpart')</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># fit the tree perfectly to the data</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># minimum obs to split is 2, min obs in node = 1, </span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co"># complexity parameter = 0 --&gt; do not penalize size of tree</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(age<span class="sc">~</span>ratio,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>dAge,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>               <span class="at">cp=</span><span class="dv">0</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>               <span class="at">xval=</span><span class="dv">15</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>               <span class="at">minsplit=</span><span class="dv">2</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>               <span class="at">minbucket=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree1, <span class="at">uniform=</span><span class="cn">TRUE</span>, <span class="at">compress=</span><span class="cn">TRUE</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ageRatioPerfectFit" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ageRatioPerfectFit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-ageRatioPerfectFit-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ageRatioPerfectFit-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: Decision tree perfectly fit to the data
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The figure below shows the LOOCV estimate of prediction error, which seems to be minimized with a tree with five terminal nodes (axis at the top of the graph). I have also printed out the table with the details. Note that the table counts the number of splits rather than the number of terminal nodes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compare complexity parameter to leave-one-out cross-validated error</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcp</span>(tree1)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">printcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Regression tree:
+rpart(formula = age ~ ratio, data = dAge, method = "anova", cp = 0, 
+    xval = 15, minsplit = 2, minbucket = 1)
+
+Variables actually used in tree construction:
+[1] ratio
+
+Root node error: 1930/15 = 128.67
+
+n= 15 
+
+           CP nsplit rel error  xerror    xstd
+1  0.62694301      0  1.000000 1.14796 0.35668
+2  0.16580311      1  0.373057 0.55008 0.13547
+3  0.09982729      2  0.207254 0.49964 0.16449
+4  0.03385147      3  0.107427 0.29321 0.13030
+5  0.01044905      4  0.073575 0.26903 0.12294
+6  0.00690846      5  0.063126 0.30841 0.14135
+7  0.00215889      6  0.056218 0.29543 0.14297
+8  0.00034542      8  0.051900 0.28529 0.13292
+9  0.00025907      9  0.051554 0.28212 0.13233
+10 0.00000000     12  0.050777 0.27824 0.13256</code></pre>
+</div>
+<div class="cell-output-display">
+<div id="fig-loocvAgeRatio" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-loocvAgeRatio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-loocvAgeRatio-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-loocvAgeRatio-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Leave-one-out cross-validated error by complexity parameter and number of terminal nodes
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Here I’ll display the tree fit to the entire dataset, using the LOOCV estimated optimal number of terminal nodes.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a little function to extract the best value for cp</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>bestCP <span class="ot">&lt;-</span> <span class="cf">function</span>(myTree)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  cpTable <span class="ot">&lt;-</span> myTree<span class="sc">$</span>cptable</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  i <span class="ot">&lt;-</span> <span class="fu">which.min</span>(cpTable[,<span class="st">"xerror"</span>])</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>( cpTable[i,<span class="st">"CP"</span>] )</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># "prune" the tree to the optimal size</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>treeFinal <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1, <span class="at">cp=</span><span class="fu">bestCP</span>(tree1))</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co"># predict using the tree</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co"># generate a sequence, of length 200, over the range of the acid ratio</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(dAge<span class="sc">$</span>ratio), <span class="fu">max</span>(dAge<span class="sc">$</span>ratio), <span class="at">length.out=</span><span class="dv">200</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a><span class="co"># predict age for the 200 ratios</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">predict</span>(treeFinal, <span class="at">newdata=</span><span class="fu">data.frame</span>(<span class="at">ratio=</span>x))</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the actual data</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(age<span class="sc">~</span>ratio,</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">data=</span>dAge,</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"ratio"</span>, <span class="at">ylab=</span><span class="st">"age"</span>, <span class="at">pch=</span><span class="dv">16</span>)</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="co"># draw lines for the fitted tree</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(x,y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-optimalTreeRatioAge" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-optimalTreeRatioAge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-optimalTreeRatioAge-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-optimalTreeRatioAge-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: Decision tree with the number of terminal nodes optimized with cross-validation
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="analysis-of-the-glass-data---a-classification-problem" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Analysis of the glass data - a classification problem</h1>
+<p>Note here that I reset <code>minsplit=20</code> and <code>minbucket=7</code>, their default values. Like this <code>rpart()</code> will not consider splitting a node unless there are at least 20 observations in it and each subsequent node must have at least 7 observations. Also note that I have set <code>method="class"</code>. This changes the loss function from least squares to misclassification rate. Misclassification costs default to equal costs, so the threshold for predicting window glass is <span class="math inline">\(p&gt;0.5\)</span>.</p>
+<p>This time we will use the full glass dataset from the UCI machine learning archive. The glass type variable <code>type</code> can take on seven different values for seven different types of glass. While the CART algorithm can be used for multiclass classification problems, for simplicity we will just try to identify glass of type 1, float-processed building window glass (the most typical window glass made by pouring molten glass on to molten tin…, by the way, four companies make almost all of the world’s glass). Here is the full list of the</p>
+<ol type="1">
+<li>building windows, float processed</li>
+<li>building windows, non-float processed</li>
+<li>vehicle windows, float processed</li>
+<li>vehicle windows, non-float processed (none in this database)</li>
+<li>containers</li>
+<li>tableware</li>
+<li>headlamps</li>
+</ol>
+<p>If you want to do the full multiclass classification, make sure that <code>type</code> is a factor variable and set <code>method="class"</code>. I will make a new variable <code>window</code> as a 0/1 indicator of float processed building window glass. Then I will fit the classification tree and try to use cross-validation to estimate the optimal tree size.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dGlass <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/glass.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># create 0/1 outcome for float</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">window =</span> <span class="fu">as.numeric</span>(type<span class="sc">==</span><span class="dv">1</span>))</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(window<span class="sc">~</span>RI<span class="sc">+</span>Na,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>dGlass,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"class"</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>               <span class="at">cp=</span><span class="fl">0.0</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">minsplit=</span><span class="dv">20</span>, <span class="co"># default</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">minbucket=</span><span class="dv">7</span>) <span class="co"># default</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-cvGlass" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cvGlass-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-cvGlass-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cvGlass-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;14: Cross-validated error of glass classification by complexity parameter and tree size
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>And let’s also take a look at the raw numbers themselves.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">printcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Classification tree:
+rpart(formula = window ~ RI + Na, data = dGlass, method = "class", 
+    cp = 0, minsplit = 20, minbucket = 7)
+
+Variables actually used in tree construction:
+[1] Na RI
+
+Root node error: 70/214 = 0.3271
+
+n= 214 
+
+         CP nsplit rel error  xerror     xstd
+1 0.1857143      0   1.00000 1.00000 0.098045
+2 0.0428571      2   0.62857 0.68571 0.087171
+3 0.0238095      3   0.58571 0.75714 0.090208
+4 0.0071429      9   0.42857 0.64286 0.085162
+5 0.0000000     11   0.41429 0.67143 0.086517</code></pre>
+</div>
+</div>
+<p>The optimal tree size appears to have complexity parameter equal to 0.0071429. We use <code>prune()</code> to reduce the tree to this optimal size.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>treeFinal <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>                   <span class="at">cp=</span><span class="fu">bestCP</span>(tree1))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(treeFinal, <span class="at">uniform=</span><span class="cn">TRUE</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(treeFinal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-finalGlassTree" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-finalGlassTree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-finalGlassTree-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-finalGlassTree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;15: Optimal classification tree for predicting building window glass
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Now let’s try running it one more time including all of the glass features in the analysis.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(window<span class="sc">~</span>RI<span class="sc">+</span>Na<span class="sc">+</span>Mg<span class="sc">+</span>Al<span class="sc">+</span>Si<span class="sc">+</span>K<span class="sc">+</span>Ca<span class="sc">+</span>Ba<span class="sc">+</span>Fe,</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>dGlass,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"class"</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">cp=</span><span class="fl">0.0</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">minsplit=</span><span class="dv">20</span>,</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">minbucket=</span><span class="dv">7</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-cvGlassAllFeatures" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cvGlassAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-cvGlassAllFeatures-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cvGlassAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;16: Cross-validated error of glass classification using all available features by complexity parameter and tree size
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">printcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Classification tree:
+rpart(formula = window ~ RI + Na + Mg + Al + Si + K + Ca + Ba + 
+    Fe, data = dGlass, method = "class", cp = 0, minsplit = 20, 
+    minbucket = 7)
+
+Variables actually used in tree construction:
+[1] Al Ca Fe Mg Na RI
+
+Root node error: 70/214 = 0.3271
+
+n= 214 
+
+         CP nsplit rel error  xerror     xstd
+1 0.1928571      0   1.00000 1.00000 0.098045
+2 0.1142857      2   0.61429 0.82857 0.092891
+3 0.0857143      3   0.50000 0.62857 0.084459
+4 0.0428571      4   0.41429 0.62857 0.084459
+5 0.0142857      5   0.37143 0.61429 0.083739
+6 0.0071429      7   0.34286 0.62857 0.084459
+7 0.0000000      9   0.32857 0.62857 0.084459</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>treeFinal <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1, <span class="at">cp=</span><span class="fu">bestCP</span>(tree1))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(treeFinal, <span class="at">uniform=</span><span class="cn">TRUE</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(treeFinal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-finalGlassTreeAllFeatures" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-finalGlassTreeAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-finalGlassTreeAllFeatures-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-finalGlassTreeAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;17: Optimal classification tree using all available features for predicting building window glass
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="other-topics" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Other topics</h1>
+<ol type="1">
+<li><p>Missing data. Some tree algorithms allow for a third branch for missing values (like having a separate branch for each of age&lt;16, age <span class="math inline">\(\geq\)</span> 16, age missing). Other tree implementations weight missing observations by what fraction of cases go to a left branch and what fraction go to the right branch.</p></li>
+<li><p>Splits where the variable is ordinal. For ordinal variables (like education), tree algorithms simply search among all possible ways of splitting the ordinal variable that maintains the ordering (like [education=less than HS or HS] and [education=some college, BA/BS, MA/MS, MD/JD/PhD]).</p></li>
+<li><p>Splits where the variable is nominal. For nominal variables, tree algorithms consider all possible ways of splitting the observations into two groups. For race, this means that the algorithm needs to consider all possible ways to group five race categories into two groups.</p>
+<ul>
+<li><p>[Asian] and [Black, Hispanic, White, Other]</p></li>
+<li><p>[Black] and [Asian, Hispanic, White, Other]</p></li>
+<li><p>[Hispanic] and [Asian, Black, White, Other]</p></li>
+<li><p>[White] and [Asian, Black, Hispanic, Other]</p></li>
+<li><p>[Other] and [Asian, Black, Hispanic, White]</p></li>
+<li><p>[Asian, Black] and [Hispanic, White, Other]</p></li>
+<li><p>[Asian, Hispanic] and [Black, White, Other]</p></li>
+<li><p>[Asian, White] and [Black, Hispanic, Other]</p></li>
+<li><p>[Asian, Other] and [Black, Hispanic, White]</p></li>
+<li><p>[Black, Hispanic] and [Asian, White, Other]</p></li>
+<li><p>[Black, White] and [Asian, Hispanic, Other]</p></li>
+<li><p>[Black, Other] and [Asian, Hispanic, White]</p></li>
+<li><p>[Hispanic, White] and [Asian, Black, Other]</p></li>
+<li><p>[Hispanic, Other] and [Asian, Black, White]</p></li>
+<li><p>[White, Other] and [Asian, Black, Hispanic]</p></li>
+</ul></li>
+</ol>
+<p>The number of possible splits can get very large. A nominal feature with <span class="math inline">\(m\)</span> categories will have <span class="math inline">\(2^m-1\)</span> possible ways of splitting them. For example, if <code>state</code> is one of your features, then there are 562,949,953,421,311 possible splits to evaluate. However, it turns out that if you sort the nominal features by the mean of the outcome, then the optimal split has to have those with the smaller mean outcome in one node and the larger mean outcome in the other node. For example, if for some outcome, <span class="math inline">\(y\)</span>, the race groups are sorted as</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Race</th>
+<th style="text-align: right;"><span class="math inline">\(\bar y\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Hispanic</td>
+<td style="text-align: right;">1.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Asian</td>
+<td style="text-align: right;">2.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Black</td>
+<td style="text-align: right;">3.2</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">White</td>
+<td style="text-align: right;">4.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Other</td>
+<td style="text-align: right;">5.4</td>
+</tr>
+</tbody>
+</table>
+<p>then the optimal split has to be one of the following</p>
+<ul>
+<li>[Hispanic] and [Asian, Black, White, Other]</li>
+<li>[Hispanic, Asian] and [Black, White, Other]</li>
+<li>[Hispanic, Asian, Black] and [White, Other]</li>
+<li>[Hispanic, Asian, Black, White] and [Other]</li>
+</ul>
+<p>Phew! Rather than having to evaluate all <span class="math inline">\(2^m-1\)</span> possibilities we just need to evaluate <span class="math inline">\(m-1\)</span> possible splits.</p>
+<ol start="4" type="1">
+<li><p>Interpretability. Part of the appeal of classification and regression trees is that they present a nice interpretable structure. However, exercise 5 in the homework assignment asks you to explore this property.</p></li>
+<li><p>Names. There are a variety of tree algorithms. The best known algorithms are CART (Classification and Regression Tree), C4.5, and C5.0. The name CART is trademarked, so the R implementation is in the <code>rpart</code> package (recursive partitioning). C5.0 is also available with the R package <code>C50</code>. They are essentially identical, but they traditionally use different loss functions. Earlier tree structured models were ID3 and CHAID.</p></li>
+<li><p>Out-of-sample predictive performance. The only way to properly evaluate the performance of a machine learning method is to make all the fitting and tuning parameter selection on one dataset and evaluate its performance on a completely independent test dataset.</p></li>
+</ol>
+</section>
+<section id="cart-on-the-nels88-data" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> CART on the NELS88 data</h1>
+<p>In this section we will walk through using the CART algorithm on the NELS88 data. We’ll start by loading some libraries and the dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"data/nels.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="practice-finding-the-first-split-by-hand" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="practice-finding-the-first-split-by-hand"><span class="header-section-number">7.1</span> Practice finding the first split “by hand”</h2>
+<p>Let’s find the first split “by hand”. We’ll consider all possible ways of splitting the sample into two based on <code>ses</code>, predict the dropout percentage to the “left” and to the “right,” and evaluate in terms of mean squared error. Note that this analysis incorporates <code>F4QWT</code>, which is the sampling weight. It upweights the kinds of students who are underrepresented in the sample and downweights those who are overrepresented in the sample.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># consider all possible splits on SES</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>sesSplits <span class="ot">&lt;-</span> nels0<span class="sc">$</span>ses <span class="sc">|&gt;</span> <span class="fu">unique</span>() <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># find mid-point between each unique split</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>sesSplits <span class="ot">&lt;-</span> (sesSplits[<span class="sc">-</span><span class="dv">1</span>] <span class="sc">+</span> sesSplits[<span class="sc">-</span><span class="fu">length</span>(sesSplits)])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">length</span>(sesSplits))</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(sesSplits))</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># note the use of F4QWT (sampling weight)</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  pred <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(ses<span class="sc">&lt;</span>sesSplits[i]) <span class="sc">|&gt;</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">p=</span><span class="fu">weighted.mean</span>(wave4dropout, F4QWT))</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  yPred <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(nels0<span class="sc">$</span>ses<span class="sc">&lt;</span>sesSplits[i], pred<span class="sc">$</span>p[<span class="dv">2</span>], pred<span class="sc">$</span>p[<span class="dv">1</span>])</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  mse[i] <span class="ot">&lt;-</span> <span class="fu">weighted.mean</span>((nels0<span class="sc">$</span>wave4dropout <span class="sc">-</span> yPred)<span class="sc">^</span><span class="dv">2</span>, nels0<span class="sc">$</span>F4QWT)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s plot the mean squared error by the SES split point and determine which split point minimizes it.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mse<span class="sc">~</span>sesSplits, <span class="at">type=</span><span class="st">"l"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># which split point minimizes MSE?</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="fu">which.min</span>(mse)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(sesSplits[i], mse[i])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -1.00600000  0.05280747</code></pre>
+</div>
+<div class="cell-output-display">
+<div id="fig-mseTreeNELS" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mseTreeNELS-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-mseTreeNELS-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mseTreeNELS-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;18: Mean squared error by SES split point
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>If splitting only on SES, then split at -1.006 is optimal. If we wished to involve other student features, then we would need to repeat the process on <em>all</em> other features to see if any split exists that gives an MSE less than 0.0528075.</p>
+</section>
+<section id="using-rpart-to-predict-dropout" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="using-rpart-to-predict-dropout"><span class="header-section-number">7.2</span> Using <code>rpart</code> to predict dropout</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>ses<span class="sc">+</span>famIncome,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>nels0,</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights=</span>nels0<span class="sc">$</span>F4QWT,</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">control=</span><span class="fu">rpart.control</span>(<span class="at">cp=</span><span class="fl">0.011</span>, <span class="at">xval=</span><span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A few notes on this call to <code>rpart()</code>. Setting <code>method="anova"</code> is equivalent to telling <code>rpart()</code> to minimize squared error. The other most common option is <code>method="class"</code>. When selecting <code>method="class"</code> you can set misclassification costs using <code>parms=list(loss=rbind(c(0,1),c(9,0)))</code>. <code>cp=0.011</code> sets the “complexity parameter” to 0.011. <code>rpart()</code> will continue recursively partitioning the data as long as the reduction in the loss function is at least <code>cp</code>. Typically, you would want this to be a little bigger than 0 so that the algorithm does not consider branches that do not really improve predictive performance. For now, we will just let the tree grow. Setting <code>xval=0</code> tells <code>rpart()</code> not to do any cross-validation. We will change this in a moment.</p>
+<p>Let’s take a look at the resulting tree. When <code>uniform=FALSE</code>, the lengths of the branches are drawn in proportion to the reduction in the loss function attributable to the split.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree1, <span class="at">uniform=</span><span class="cn">FALSE</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(tree1, <span class="at">minlength =</span> <span class="dv">20</span>, <span class="at">cex=</span><span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-treeDropout1" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeDropout1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeDropout1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeDropout1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;19: Decision tree predicting dropout risk from SES and family income
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Now let’s get some predicted values from the fitted tree.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get predicted values</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>nels0<span class="sc">$</span>yPred <span class="ot">&lt;-</span> <span class="fu">predict</span>(tree1, <span class="at">newdata=</span>nels0)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>And let’s see how the tree has carved up the 2D space.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nels0<span class="sc">$</span>famIncome, nels0<span class="sc">$</span>ses,</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Family income"</span>, <span class="at">ylab=</span><span class="st">"SES"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.006</span>, <span class="sc">-</span><span class="fl">0.1875</span>, <span class="sc">-</span><span class="fl">1.494</span>))</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">5.5</span>,<span class="fl">5.5</span>), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>,<span class="sc">-</span><span class="fl">1.494</span>))</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="at">yPred =</span> <span class="fu">round</span>(yPred,<span class="dv">3</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">famIncome =</span> <span class="fu">mean</span>(<span class="fu">as.numeric</span>(famIncome), <span class="at">na.rm=</span><span class="cn">TRUE</span>),</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">ses =</span> <span class="fu">mean</span>(ses))</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(a<span class="sc">$</span>famIncome, a<span class="sc">$</span>ses, a<span class="sc">$</span>yPred, <span class="at">col=</span><span class="st">"#3D2C8D"</span>, <span class="at">cex=</span><span class="fl">1.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="L05-trees_files/figure-html/unnamed-chunk-30-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="using-10-fold-cross-validation-to-select-the-tree-size" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="using-10-fold-cross-validation-to-select-the-tree-size"><span class="header-section-number">7.3</span> Using 10-fold cross-validation to select the tree size</h2>
+<p>In the previous section, I fixed the complexity parameter to limit the size of the tree. In this section, we will use 10-fold cross-validation (a more appropriate method) to find the tree depth (or equivalently the complexity parameter) that results in a tree with the best predictive performance.</p>
+<p>Ten-fold cross-validation proceeds by</p>
+<ol type="1">
+<li>hold out 10% of the data</li>
+<li>fit a regression tree of depth 1, 2, 3, … on the remaining 90%</li>
+<li>predict the trees of each depth on the held out 10%</li>
+<li>repeat 1-3 for each of the 10 holdout sets</li>
+<li>evaluate predictive performance</li>
+</ol>
+<p>In this way, every observation’s predicted value was produced by a model that did not include that observation in its model fitting stage.</p>
+<p>Let’s give this a try to figure out the optimal sized tree for predicting <code>wave4dropout</code> from <code>ses</code>.</p>
+<p>Note that the first step that I do is to fix the random number generator seed. This is because right at the beginning I randomly assign each observation to a “fold”. Setting the random number generator seed makes it so that if we rerun the same code, we will get the same answer again.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co"># compute baseline MSE</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>pred0 <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">weighted.mean</span>(wave4dropout, F4QWT)) <span class="sc">|&gt;</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>mse0 <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">weighted.mean</span>((wave4dropout <span class="sc">-</span> pred0)<span class="sc">^</span><span class="dv">2</span>, </span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>                          F4QWT)) <span class="sc">|&gt;</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>()</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a><span class="co"># for storing the results</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>mseCV <span class="ot">&lt;-</span> <span class="fu">c</span>(mse0, <span class="fu">rep</span>(<span class="cn">NA</span>,<span class="dv">10</span>)) </span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a><span class="co"># assign each observation to a random number 1 to 10</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>iFold <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">length.out=</span><span class="fu">nrow</span>(nels0)))</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="co"># for storing predicted values</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>nels0<span class="sc">$</span>yPred <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, <span class="fu">nrow</span>(nels0))</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a><span class="co"># consider trees of size 1 to 10</span></span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(iDepth <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># loop through each fold</span></span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(iCV <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb28-25"><a href="#cb28-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># fit tree to those observations *not* in fold iCV</span></span>
+<span id="cb28-26"><a href="#cb28-26" aria-hidden="true" tabindex="-1"></a>    tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>ses,</span>
+<span id="cb28-27"><a href="#cb28-27" aria-hidden="true" tabindex="-1"></a>                   <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb28-28"><a href="#cb28-28" aria-hidden="true" tabindex="-1"></a>                   <span class="co"># exclude the 10% held out</span></span>
+<span id="cb28-29"><a href="#cb28-29" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(nels0, iFold<span class="sc">!=</span>iCV),</span>
+<span id="cb28-30"><a href="#cb28-30" aria-hidden="true" tabindex="-1"></a>                   <span class="at">weights=</span>nels0<span class="sc">$</span>F4QWT[iFold<span class="sc">!=</span>iCV],</span>
+<span id="cb28-31"><a href="#cb28-31" aria-hidden="true" tabindex="-1"></a>                   <span class="at">control=</span><span class="fu">rpart.control</span>(<span class="at">maxdepth=</span>iDepth, <span class="at">cp=</span><span class="fl">0.0</span>, <span class="at">xval=</span><span class="dv">0</span>))</span>
+<span id="cb28-32"><a href="#cb28-32" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb28-33"><a href="#cb28-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># predict for the held out 10%</span></span>
+<span id="cb28-34"><a href="#cb28-34" aria-hidden="true" tabindex="-1"></a>    nels0<span class="sc">$</span>yPred[iFold<span class="sc">==</span>iCV] <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb28-35"><a href="#cb28-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(iFold<span class="sc">==</span>iCV) <span class="sc">|&gt;</span></span>
+<span id="cb28-36"><a href="#cb28-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">predict</span>(tree1, <span class="at">newdata =</span> _)</span>
+<span id="cb28-37"><a href="#cb28-37" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb28-38"><a href="#cb28-38" aria-hidden="true" tabindex="-1"></a>  mseCV[iDepth<span class="sc">+</span><span class="dv">1</span>] <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
+<span id="cb28-39"><a href="#cb28-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="fu">weighted.mean</span>((wave4dropout <span class="sc">-</span> yPred)<span class="sc">^</span><span class="dv">2</span>, F4QWT)) <span class="sc">|&gt;</span></span>
+<span id="cb28-40"><a href="#cb28-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>()</span>
+<span id="cb28-41"><a href="#cb28-41" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now let’s have a look at the results and assess what tree depth minimizes mean squared error.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>, mseCV, <span class="at">xlab=</span><span class="st">"Tree depth"</span>, <span class="at">ylab=</span><span class="st">"10-fold CV MSE"</span>,</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">pch=</span><span class="dv">19</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-10foldCVbyHand" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-10foldCVbyHand-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-10foldCVbyHand-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10foldCVbyHand-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;20: 10-fold cross-validation predicting dropout from SES
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Having determined that a tree of depth 2 is best, let’s fit a tree to the entire dataset limiting the depth to 2.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>ses,</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>nels0, <span class="co"># using entire dataset here</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights=</span>F4QWT,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">control=</span><span class="fu">rpart.control</span>(<span class="at">maxdepth=</span><span class="dv">2</span>, </span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">cp=</span><span class="fl">0.0</span>, <span class="at">xval=</span><span class="dv">0</span>))</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree1, <span class="at">uniform=</span><span class="cn">TRUE</span>, <span class="at">compress=</span><span class="cn">TRUE</span>)</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(tree1, <span class="at">minlength =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-10foldCVbyHandTree" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-10foldCVbyHandTree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-10foldCVbyHandTree-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10foldCVbyHandTree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;21: Decision tree selected using 10-fold cross-validation to predict dropout from SES
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>And let’s see what the shape of this model is in how it relates <code>ses</code> to <code>wave4dropout</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Trees fit piecewise constant functions</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>yPred <span class="ot">&lt;-</span> <span class="fu">predict</span>(tree1, <span class="at">newdata=</span>nels0)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nels0<span class="sc">$</span>ses, yPred,</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"SES"</span>, <span class="at">ylab=</span><span class="st">"Dropout probability"</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>tree1<span class="sc">$</span>splits[,<span class="st">"index"</span>], <span class="at">col=</span><span class="st">"grey"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-treeRelationshipSESvDropout" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRelationshipSESvDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRelationshipSESvDropout-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRelationshipSESvDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;22: Predicted probability of dropout from a tree of depth 2
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Recall that when we used a knn model, we got a shape that had a similar pattern: high rate of dropout with low SES with a decreasing dropout rate as SES increased, with evidence of threshold and saturation effects.</p>
+<p>Fortunately, <code>rpart()</code> has built in functionality to do cross-validation. By default, the parameter <code>xval</code> is set to 10, but you can increase it or decrease it. Ten is by far the most common choice. Let’s test this out using two student features this time around.</p>
+<p>Again, as a first step I set the random number generator seed. This is because <code>rpart()</code> will use the random number generator to conduct the 10-fold cross-validation. Setting the random number generator seed will produce the same results if we run the code again with the same seed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>ses<span class="sc">+</span>famIncome,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>nels0,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights=</span>nels0<span class="sc">$</span>F4QWT,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">control=</span><span class="fu">rpart.control</span>(<span class="at">cp=</span><span class="fl">0.001</span>, <span class="at">xval=</span><span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>plotcp()</code> shows a plot of the relationship between the complexity parameter, <code>cp</code>, and the cross-validation error (normalized so that the tree of depth 0 has a loss of 1.0). There is an equivalence between the complexity parameter and the number of terminal nodes in the tree, which the plot includes at the top. The plot also adds <span class="math inline">\(\pm 1\)</span> standard deviation “whiskers” around each error estimate.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-treeRelationshipSESIncomevDropout" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRelationshipSESIncomevDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRelationshipSESIncomevDropout-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRelationshipSESIncomevDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;23: Plot of complexity parameter (or number of terminal nodes) versus the relative cross-validated error
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>You can also just get a table showing the same information that is in the plot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">printcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Regression tree:
+rpart(formula = wave4dropout ~ ses + famIncome, data = nels0, 
+    weights = nels0$F4QWT, method = "anova", control = rpart.control(cp = 0.001, 
+        xval = 10))
+
+Variables actually used in tree construction:
+[1] famIncome ses      
+
+Root node error: 7.3193/11381 = 0.00064311
+
+n= 11381 
+
+          CP nsplit rel error  xerror    xstd
+1  0.0702856      0   1.00000 1.00088 0.32519
+2  0.0195618      1   0.92971 0.96542 0.30148
+3  0.0128936      2   0.91015 0.93521 0.29285
+4  0.0119385      3   0.89726 0.93584 0.29265
+5  0.0078416      4   0.88532 0.93422 0.29081
+6  0.0070295      6   0.86964 1.01972 0.30191
+7  0.0055358      9   0.84855 1.03058 0.30483
+8  0.0041741     10   0.84301 1.03366 0.30586
+9  0.0040727     11   0.83884 1.03807 0.30598
+10 0.0040471     12   0.83477 1.04733 0.30822
+11 0.0037835     13   0.83072 1.04559 0.30827
+12 0.0030054     15   0.82315 1.04138 0.30711
+13 0.0028358     16   0.82015 1.04388 0.30694
+14 0.0027899     17   0.81731 1.04311 0.30697
+15 0.0027203     19   0.81173 1.04315 0.30696
+16 0.0026523     25   0.79541 1.04441 0.30716
+17 0.0022532     26   0.79276 1.04380 0.30772
+18 0.0022413     27   0.79050 1.05026 0.30841
+19 0.0020084     28   0.78826 1.05239 0.30920
+20 0.0019737     31   0.78224 1.05666 0.31008
+21 0.0019389     32   0.78026 1.05690 0.31004
+22 0.0019042     33   0.77833 1.05827 0.31034
+23 0.0018545     36   0.77261 1.06101 0.31065
+24 0.0017236     38   0.76890 1.06816 0.31185
+25 0.0016473     39   0.76718 1.06601 0.31137
+26 0.0014097     41   0.76389 1.07831 0.31309
+27 0.0013250     47   0.75384 1.09819 0.31579
+28 0.0013236     58   0.73434 1.09877 0.31590
+29 0.0013097     61   0.73037 1.09878 0.31592
+30 0.0012880     64   0.72644 1.10464 0.31688
+31 0.0011600     71   0.71647 1.10593 0.31702
+32 0.0011531     72   0.71531 1.10708 0.31715
+33 0.0011088     73   0.71415 1.10611 0.31712
+34 0.0011080     75   0.71194 1.10616 0.31712
+35 0.0010958     77   0.70972 1.10667 0.31712
+36 0.0010886     78   0.70862 1.10667 0.31712
+37 0.0010327     81   0.70536 1.11010 0.31733
+38 0.0010000     82   0.70433 1.10843 0.31721</code></pre>
+</div>
+</div>
+<p>So let’s extract the optimal value of <code>cp</code> and reduce the tree, using <code>prune()</code>, so that the tree size matches the one with the best cross-validated error. It is more efficient to prune back the larger tree than to refit the tree.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>tree2 <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1, <span class="at">cp =</span> <span class="fu">bestCP</span>(tree1))</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree2, <span class="at">uniform=</span><span class="cn">TRUE</span>, <span class="at">compress=</span><span class="cn">TRUE</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(tree2, <span class="at">minlength =</span> <span class="dv">20</span>, <span class="at">cex=</span><span class="fl">0.7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-10foldCVRpart" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-10foldCVRpart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-10foldCVRpart-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10foldCVRpart-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;24: Decision tree selected using rpart’s 10-fold cross-validation to predict dropout from SES and family income
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Note that this tree is similar to the one we saw earlier. This time around we included family income and used 10-fold cross-validation to arrive at the optimal tree.</p>
+<p>Let’s push this a little further using more student features.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240214</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>tree1 <span class="ot">&lt;-</span> <span class="fu">rpart</span>(wave4dropout<span class="sc">~</span>typeSchool<span class="sc">+</span>urbanicity<span class="sc">+</span>region<span class="sc">+</span>pctMinor<span class="sc">+</span>pctFreeLunch<span class="sc">+</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>                 female<span class="sc">+</span>race<span class="sc">+</span>ses<span class="sc">+</span>parentEd<span class="sc">+</span>famSize<span class="sc">+</span>famStruct<span class="sc">+</span>parMarital<span class="sc">+</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                 famIncome<span class="sc">+</span>langHome,</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">method=</span><span class="st">"anova"</span>,</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">data=</span>nels0,</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights=</span>nels0<span class="sc">$</span>F4QWT,</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">control=</span><span class="fu">rpart.control</span>(<span class="at">cp=</span><span class="fl">0.001</span>, <span class="at">xval=</span><span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s get the information on how the 10-fold cross-validation evaluates the different choices for <code>cp</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plotcp</span>(tree1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-treeRelationshipManyVarsvDropout" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-treeRelationshipManyVarsvDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-treeRelationshipManyVarsvDropout-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-treeRelationshipManyVarsvDropout-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;25: Plot of complexity parameter (or number of terminal nodes) versus the relative cross-validated error for tree with many student features
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Again, we will use the value of <code>cp</code> that gets us the lowest cross-validated error, prune the tree back to that size, and see what it looks like.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>tree2 <span class="ot">&lt;-</span> <span class="fu">prune</span>(tree1, <span class="at">cp =</span> <span class="fu">bestCP</span>(tree1))</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">xpd=</span><span class="cn">NA</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(tree2, <span class="at">uniform=</span><span class="cn">TRUE</span>, <span class="at">compress=</span><span class="cn">TRUE</span>)</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="fu">text</span>(tree2, <span class="at">minlength =</span> <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-10foldCVRpartAllFeatures" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-10foldCVRpartAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L05-trees_files/figure-html/fig-10foldCVRpartAllFeatures-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10foldCVRpartAllFeatures-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;26: Decision tree selected using rpart’s 10-fold cross-validation to predict dropout from all available features
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Here we learn something potentially interesting. For low SES there is a high dropout risk, but that risk seems to be reduced if the family structure includes mom, mom and dad, or another relative (not dad alone, not mom and step-dad, not dad and step-mom).</p>
+</section>
+</section>
+<section id="summary" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Summary</h1>
+<p>We explored the principles and applications of classification and regression trees, focusing on their versatility in handling prediction problems of different kinds, such as having continuous or discrete outcomes and having continuous or categorical features.</p>
+<ol type="1">
+<li>We learned how trees partition data into meaningful subgroups to optimize predictive accuracy for both classification and regression problems</li>
+<li>Using the glass and NELS88 examples, we went step-by-step through creation and evaluation of decision trees, emphasizing their interpretability and the trade-offs between depth and performance</li>
+<li>Selecting the optimal tree size is a critical part of decision tree models. The optimal tree size balances bias and variance. Cross-validation is the key method for figuring out how much to prune overly complex trees, ensuring generalization to unseen or future cases</li>
+</ol>
+<p>The final thing you should know about decision trees is that they are not very good at predicting. They are essentially never the best method for getting good predictive performance. However, trees provide a foundation for advanced ensemble methods like gradient boosting, which we will study later. Boosting builds upon the strengths of decision trees while mitigating limitations such as overfitting and lack of smoothness</p>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-Hast:Tibs:2001" class="csl-entry" role="listitem">
+Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer-Verlag.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
