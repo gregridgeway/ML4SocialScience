@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Linear Algebra"
+title: "L6 Introduction to Linear Algebra"
 author:
 - affiliation: University of Pennsylvania
   email: gridge@upenn.edu

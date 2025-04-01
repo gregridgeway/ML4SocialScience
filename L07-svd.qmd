@@ -1,5 +1,5 @@
 ---
-title: "Singular value decomposition"
+title: "L7 Singular value decomposition"
 author:
 - affiliation: University of Pennsylvania
   email: gridge@upenn.edu
