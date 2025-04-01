@@ -404,10 +404,7 @@ If you want to do the full multiclass classification, make sure that `type` is a
 ```{r}
 #| label: fig-cvGlass
 #| fig-cap: Cross-validated error of glass classification by complexity parameter and tree size
-dGlass <- read.csv("http://archive.ics.uci.edu/ml/machine-learning-databases/glass/glass.data",
-                  header=FALSE, 
-                  col.names = c("ID","RI","Na","Mg","Al","Si",
-                                "K","Ca","Ba","Fe","type")) |>
+dGlass <- read.csv("data/glass.csv") |>
   # create 0/1 outcome for float
   mutate(window = as.numeric(type==1))
 
