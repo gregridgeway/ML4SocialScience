@@ -140,10 +140,10 @@ where in the last line the $\lambda$ absorbed the $2$.
 
 The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.
 
-The network in @fig-nnhidenlayer1 two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
+The network in @fig-nnhiddenlayer1 two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
 
 ```{tikz}
-#| label: fig-nnhidenlayer1
+#| label: fig-nnhiddenlayer1
 #| echo: false
 #| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
 #| fig-align: center
@@ -229,7 +229,7 @@ legend(-4,0.8,legend = c("sigmoid","tanh","ReLU","Heaviside"),
 
 Each node applies one of these activation functions to the linear combination of inputs from the previous layer. Used in this manner, they are called "ridge" activation functions.
 
-Returning to the network in @fig-nnhidenlayer1, the hidden nodes marked with a $[1]$ superscript in them all have the form
+Returning to the network in @fig-nnhiddenlayer1, the hidden nodes marked with a $[1]$ superscript in them all have the form
 $$
 \mathbf{a}^{[1]} = 
 \begin{bmatrix}
@@ -310,16 +310,31 @@ A rather complicated idea becomes a rather simple expression. To adjust the outp
 $$
     \mathbf{w}^{[2]} \leftarrow \mathbf{w}^{[2]} + \lambda\mathbf{A}^{[1]}{'}(\mathbf{y}-\mathbf{\hat y})
 $$
-Now that we have the algorithm for updating the output layer parameters, we can move backwards through the network to update the next layer's parameters. Here we look at layer $[1]$ and adjust the weight on input $k$ associated with hidden node $j$.
+Now that we have the algorithm for updating the output layer parameters, we can move backwards through the network to update the next layer's parameters. 
+
+::: callout-tip
+## Reminders
+
+$$
+\hat y_i = a_i^{[2]} = \sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a}_i^{[1]}\right) = \sigma\left(w_1^{[2]}a_{i1}^{[1]} + \ldots + w_4^{[2]}a_{i4}^{[1]}\right)
+$$
+
+$$
+a_{ij}^{[1]} = \sigma\left(\mathbf{w}_j^{[1]}{'}\mathbf{x}_i\right) = \sigma\left(w_1^{[1]}x_{i1} + w_2^{[1]}x_{i2}\right)
+$$
+
+:::
+
+Here we look at layer $[1]$ and adjust the weight on input $k$ associated with hidden node $j$.
 $$
 \begin{split}
     \frac{\partial J}{\partial w_{jk}^{[1]}} &= \sum_{i=1}^n  
-     \frac{\partial J}{\partial \hat y_i}
-     \frac{\partial\hat y_i}{\partial a_{ij}^{[1]}} 
-     \frac{\partial a_{ij}^{[1]}}{\partial w_{jk}^{[1]}} \\
-     &= -\sum_{i=1}^n \frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}
-        \hat y_i (1-\hat y_i)w_{j}^{[2]}
-        a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik} \\
+     \color{DodgerBlue}{\frac{\partial J}{\partial \hat y_i}}
+     \color{Orange}{\frac{\partial\hat y_i}{\partial a_{ij}^{[1]}} }
+     \color{SeaGreen}{\frac{\partial a_{ij}^{[1]}}{\partial w_{jk}^{[1]}}} \\
+     &= \sum_{i=1}^n \color{DodgerBlue}{-\frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}}
+        \color{Orange}{\hat y_i (1-\hat y_i)w_{j}^{[2]}}
+        \color{SeaGreen}{a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}} \\
      &= -w_{j}^{[2]}\sum_{i=1}^n (y_i-\hat y_i)
         a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}
 \end{split}
@@ -426,7 +441,7 @@ The mean of `y` for this simulation is `r mean(d$y)`. The final estimate of $\be
 
 ## Neural network with hidden layers
 
-To remedy the problem with the linear neural network, we are going to fit the model shown in @fig-nnhidenlayer1, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on [Building A Neural Net from Scratch Using R](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/). The code on the website has several bugs that have been fixed here.
+To remedy the problem with the linear neural network, we are going to fit the model shown in @fig-nnhiddenlayer1, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on [Building A Neural Net from Scratch Using R](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/). The code on the website has several bugs that have been fixed here.
 
 We start by setting up some functions to help us along the way. In this code, the "bias" terms (the "intercept" terms) `b1` and `b2` are stored separately from the weights.
 ```{r}
@@ -649,6 +664,7 @@ The plot shows the reduction in the negative Bernoulli log likelihood with each 
 ```{r}
 #| label: fig-nnFitCircular2HiddenNodes
 #| fig-cap: Predictions from a neural network with two hidden nodes
+#| cache: true
 y_pred <- makePrediction(X, y, train_model)
 
 plot(X[1,], X[2,], col=col1and2[(y_pred[1,]>0.5) + 1],
@@ -670,6 +686,7 @@ We seem to get better predictive performance here since we got the cost much low
 ```{r}
 #| label: fig-nnFitCircular4HiddenNodes
 #| fig-cap: Predictions from a neural network with four hidden nodes
+#| cache: true
 y_pred <- makePrediction(X, y, train_model)
 
 dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
@@ -736,6 +753,7 @@ plot(train_model$cost_hist, type="l")
 ```{r}
 #| label: fig-nnFitFlower4HiddenNodes
 #| fig-cap: Predictions from a neural network with four hidden nodes
+#| cache: true
 y_pred <- makePrediction(X, y, train_model)
 
 dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
@@ -800,6 +818,7 @@ Create a plot to show the decision boundary.
 ```{r}
 #| label: fig-nnFitCircularNNpackage
 #| fig-cap: Predictions from a neural network from the `neuralnet` package with four hidden nodes
+#| cache: true
 dAll <- expand.grid(x1=seq(-4.1,4.1,length.out=100),
                     x2=seq(-4.1,4.1,length.out=100))
 dAll$y <- 0
@@ -812,20 +831,29 @@ points(d$x1, d$x2, col=col1and2[(d$y>0.5) + 1])
 
 # Tensorflow and Keras
 
-[Tensorflow](https://www.tensorflow.org/) is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. [Keras](https://keras.io/) is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with [PyTorch](https://pytorch.org/), Facebook AI's group Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools. 
+[Tensorflow](https://www.tensorflow.org/) is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. [Keras](https://keras.io/) is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with [PyTorch](https://pytorch.org/), Facebook AI group's Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools. 
 
 A lot of the scientific community using deep learning works in Python. For that reason, you will find a lot of Python resources for developing neural networks. Since most social science research is conducted in R, I focused on R for this course. We will still use the R Keras library, which hooks into Python, which hooks into Keras, which hooks into Tensorflow. With all of your variations in computers, operating systems, and settings there is a lot of opportunity for some settings, versions, and options to not be compatible. I will have limited ability to troubleshoot why Keras, Tensorflow, or Python is giving you errors. In this case you will have to learn how to learn to figure these things out.
 
-For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into workign with Tensorflow (or PyTorch).
+For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into working with Tensorflow (or PyTorch).
 
-As I developed these notes, Tensorflow and Keras do not work with Python 3.12 (at present the latest version). That will certainly change. You may wish to start by working with Python 3.11.
+Tensorflow and Keras are usually behind a version or two of Python. Python 3.13 is the current version, but Keras/Tensorflow support up to Python 3.12. This constantly changes. I will be using Python 3.11, because I know it works.
+
+## Tensorflow Playground
+
+Visit the (Tensorflow Playground)[https://playground.tensorflow.org]. This let's you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network's ability to learn the decision boundary.
+
+Challenge: Using only $X_1$ and $X_2$ as inputs, can you alter the number of the hidden layers and nodes that will successful learn the spiral pattern?
+
+## Installing Tensorflow and Keras
 
 First, we will do a one-time installation. 
 ```{r}
 #| eval: false
 install.packages("keras")
 library(keras)
-install_keras(python_version="3.11") # doesn't work with 3.12 yet
+# March 2024, Keras works with 3.12... sticking with 3.11 for now
+install_keras(python_version="3.11") 
 ```
 You will need to restart R one last time after this installation.
 
@@ -837,11 +865,12 @@ library(keras)
 
 ## MNIST postal digits data
 
-We are going to experiment with the NIST postal digits data ([MNIST database](https://en.wikipedia.org/wiki/MNIST_database)). Why? Because it seems to be a right of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.
+We are going to experiment with the NIST postal digits data ([MNIST database](https://en.wikipedia.org/wiki/MNIST_database)). Why? Because it seems to be a rite of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.
 
 ```{r}
 #| label: fig-MNIST4
 #| fig-cap: An example number 4 from the MNIST data
+#| cache: true
 numData <- dataset_mnist()
 
 xTrain <- numData$train$x
@@ -1124,6 +1153,6 @@ Let's check the overall performance.
 ```{r}
 evaluate(kerasCNN, xTest, yTest)
 ```
-We have squeezed out just a tiny bit more predictive performance with this model. However, this model had `r count_params(kerasCNN)` parameters while our simpler one without convolution layers had `r count_params(keras1)` parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today's large language models have 100,000,000,000 (100 billion) to 1,000,000,000,000 (1 trillion) parameters.
+We have squeezed out just a tiny bit more predictive performance with this model. However, this model had `r count_params(kerasCNN)` parameters while our simpler one without convolution layers had `r count_params(keras1)` parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today's large language models have over 100,000,000,000 (100 billion) parameters. GPT4 weights in at 1,800,000,000,000 (1.8 trillion) parameters.
 
 Developing a neural network is more an art than a science. There are no general theories that tell us what the right way of combining layers are, how best to use convolutional layers, or how best to optimize parameters to minimize generalization error. In practice, we try a range of layers, parameters, and alterations to our dataset to see which one might get us some better performance. There are a variety of rules-of-thumb that have been adopted and I have used a lot of those here, but there is no reason to think that these are the best choices, and they certainly are not the best for all applications. With this I hope you have a start on how to use Keras to assemble a neural network for whatever problem you want to try to solve.

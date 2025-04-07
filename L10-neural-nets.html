@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-03-31">
+<meta name="dcterms.date" content="2025-04-07">
 
 <title>L10 Neural networks</title>
 <style>
@@ -144,9 +144,11 @@ window.Quarto = {
   <li><a href="#rs-neuralnet-package" id="toc-rs-neuralnet-package" class="nav-link" data-scroll-target="#rs-neuralnet-package"><span class="header-section-number">6</span> R’s <code>neuralnet</code> package</a></li>
   <li><a href="#tensorflow-and-keras" id="toc-tensorflow-and-keras" class="nav-link" data-scroll-target="#tensorflow-and-keras"><span class="header-section-number">7</span> Tensorflow and Keras</a>
   <ul class="collapse">
-  <li><a href="#mnist-postal-digits-data" id="toc-mnist-postal-digits-data" class="nav-link" data-scroll-target="#mnist-postal-digits-data"><span class="header-section-number">7.1</span> MNIST postal digits data</a></li>
-  <li><a href="#convolution-layers" id="toc-convolution-layers" class="nav-link" data-scroll-target="#convolution-layers"><span class="header-section-number">7.2</span> Convolution layers</a></li>
-  <li><a href="#a-convolutional-neural-network-with-keras" id="toc-a-convolutional-neural-network-with-keras" class="nav-link" data-scroll-target="#a-convolutional-neural-network-with-keras"><span class="header-section-number">7.3</span> A convolutional neural network with Keras</a></li>
+  <li><a href="#tensorflow-playground" id="toc-tensorflow-playground" class="nav-link" data-scroll-target="#tensorflow-playground"><span class="header-section-number">7.1</span> Tensorflow Playground</a></li>
+  <li><a href="#installing-tensorflow-and-keras" id="toc-installing-tensorflow-and-keras" class="nav-link" data-scroll-target="#installing-tensorflow-and-keras"><span class="header-section-number">7.2</span> Installing Tensorflow and Keras</a></li>
+  <li><a href="#mnist-postal-digits-data" id="toc-mnist-postal-digits-data" class="nav-link" data-scroll-target="#mnist-postal-digits-data"><span class="header-section-number">7.3</span> MNIST postal digits data</a></li>
+  <li><a href="#convolution-layers" id="toc-convolution-layers" class="nav-link" data-scroll-target="#convolution-layers"><span class="header-section-number">7.4</span> Convolution layers</a></li>
+  <li><a href="#a-convolutional-neural-network-with-keras" id="toc-a-convolutional-neural-network-with-keras" class="nav-link" data-scroll-target="#a-convolutional-neural-network-with-keras"><span class="header-section-number">7.5</span> A convolutional neural network with Keras</a></li>
   </ul></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L10-neural-nets.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -179,7 +181,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 31, 2025</p>
+      <p class="date">April 7, 2025</p>
     </div>
   </div>
   
@@ -256,15 +258,15 @@ Figure&nbsp;1: A linear model as a network
 <section id="neural-networks-with-hidden-layers" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Neural networks with hidden layers</h1>
 <p>The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.</p>
-<p>The network in <a href="#fig-nnhidenlayer1" class="quarto-xref">Figure&nbsp;2</a> two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.</p>
+<p>The network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a> two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.</p>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
-<div id="fig-nnhidenlayer1" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<div id="fig-nnhiddenlayer1" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-nnhidenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="L10-neural-nets_files/figure-html/fig-nnhidenlayer1-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+<div aria-describedby="fig-nnhiddenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L10-neural-nets_files/figure-html/fig-nnhiddenlayer1-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnhidenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnhiddenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;2: A neural network with a single hidden layer with 4 hidden nodes and a single output
 </figcaption>
 </figure>
@@ -302,7 +304,7 @@ Figure&nbsp;3: Four common activation functions
 </div>
 </div>
 <p>Each node applies one of these activation functions to the linear combination of inputs from the previous layer. Used in this manner, they are called “ridge” activation functions.</p>
-<p>Returning to the network in <a href="#fig-nnhidenlayer1" class="quarto-xref">Figure&nbsp;2</a>, the hidden nodes marked with a <span class="math inline">\([1]\)</span> superscript in them all have the form <span class="math display">\[
+<p>Returning to the network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a>, the hidden nodes marked with a <span class="math inline">\([1]\)</span> superscript in them all have the form <span class="math display">\[
 \mathbf{a}^{[1]} =
 \begin{bmatrix}
     a_1^{[1]} \\ a_2^{[1]} \\ a_3^{[1]} \\a_4^{[1]}
@@ -364,15 +366,34 @@ J(\mathbf{y},\mathbf{\hat y})=-\sum_{i=1}^n y_i\log(\hat y_i) + (1-y_i)\log(1-\h
 \end{split}
 \]</span> A rather complicated idea becomes a rather simple expression. To adjust the output layer weights to make the model perform a little better we need to update as <span class="math display">\[
     \mathbf{w}^{[2]} \leftarrow \mathbf{w}^{[2]} + \lambda\mathbf{A}^{[1]}{'}(\mathbf{y}-\mathbf{\hat y})
-\]</span> Now that we have the algorithm for updating the output layer parameters, we can move backwards through the network to update the next layer’s parameters. Here we look at layer <span class="math inline">\([1]\)</span> and adjust the weight on input <span class="math inline">\(k\)</span> associated with hidden node <span class="math inline">\(j\)</span>. <span class="math display">\[
+\]</span> Now that we have the algorithm for updating the output layer parameters, we can move backwards through the network to update the next layer’s parameters.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Reminders
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><span class="math display">\[
+\hat y_i = a_i^{[2]} = \sigma\left(\mathbf{w}^{[2]}{'}\mathbf{a}_i^{[1]}\right) = \sigma\left(w_1^{[2]}a_{i1}^{[1]} + \ldots + w_4^{[2]}a_{i4}^{[1]}\right)
+\]</span></p>
+<p><span class="math display">\[
+a_{ij}^{[1]} = \sigma\left(\mathbf{w}_j^{[1]}{'}\mathbf{x}_i\right) = \sigma\left(w_1^{[1]}x_{i1} + w_2^{[1]}x_{i2}\right)
+\]</span></p>
+</div>
+</div>
+<p>Here we look at layer <span class="math inline">\([1]\)</span> and adjust the weight on input <span class="math inline">\(k\)</span> associated with hidden node <span class="math inline">\(j\)</span>. <span class="math display">\[
 \begin{split}
     \frac{\partial J}{\partial w_{jk}^{[1]}} &amp;= \sum_{i=1}^n  
-     \frac{\partial J}{\partial \hat y_i}
-     \frac{\partial\hat y_i}{\partial a_{ij}^{[1]}}
-     \frac{\partial a_{ij}^{[1]}}{\partial w_{jk}^{[1]}} \\
-     &amp;= -\sum_{i=1}^n \frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}
-        \hat y_i (1-\hat y_i)w_{j}^{[2]}
-        a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik} \\
+     \color{DodgerBlue}{\frac{\partial J}{\partial \hat y_i}}
+     \color{Orange}{\frac{\partial\hat y_i}{\partial a_{ij}^{[1]}} }
+     \color{SeaGreen}{\frac{\partial a_{ij}^{[1]}}{\partial w_{jk}^{[1]}}} \\
+     &amp;= \sum_{i=1}^n \color{DodgerBlue}{-\frac{y_i-\hat y_i}{\hat y_i(1-\hat y_i)}}
+        \color{Orange}{\hat y_i (1-\hat y_i)w_{j}^{[2]}}
+        \color{SeaGreen}{a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}} \\
      &amp;= -w_{j}^{[2]}\sum_{i=1}^n (y_i-\hat y_i)
         a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}
 \end{split}
@@ -509,7 +530,7 @@ Figure&nbsp;7: Predicted values from linear perceptron model for circular decisi
 </section>
 <section id="neural-network-with-hidden-layers" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="neural-network-with-hidden-layers"><span class="header-section-number">5.2</span> Neural network with hidden layers</h2>
-<p>To remedy the problem with the linear neural network, we are going to fit the model shown in <a href="#fig-nnhidenlayer1" class="quarto-xref">Figure&nbsp;2</a>, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on <a href="https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/">Building A Neural Net from Scratch Using R</a>. The code on the website has several bugs that have been fixed here.</p>
+<p>To remedy the problem with the linear neural network, we are going to fit the model shown in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a>, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on <a href="https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/">Building A Neural Net from Scratch Using R</a>. The code on the website has several bugs that have been fixed here.</p>
 <p>We start by setting up some functions to help us along the way. In this code, the “bias” terms (the “intercept” terms) <code>b1</code> and <code>b2</code> are stored separately from the weights.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a function to get the number of nodes at each level, input, hidden, and output</span></span>
@@ -960,11 +981,11 @@ Figure&nbsp;12: Simulated data with a complex classification boundary
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">hidden_neurons =</span> <span class="dv">4</span>,</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">num_iteration =</span> <span class="dv">50000</span>, <span class="at">lr =</span> <span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Iteration 10000  | Cost:  0.249307 
-Iteration 20000  | Cost:  0.2358959 
-Iteration 30000  | Cost:  0.2304576 
-Iteration 40000  | Cost:  0.2272116 
-Iteration 50000  | Cost:  0.2249177 </code></pre>
+<pre><code>Iteration 10000  | Cost:  0.2863198 
+Iteration 20000  | Cost:  0.2676711 
+Iteration 30000  | Cost:  0.2595525 
+Iteration 40000  | Cost:  0.25454 
+Iteration 50000  | Cost:  0.2509547 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(train_model<span class="sc">$</span>cost_hist, <span class="at">type=</span><span class="st">"l"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1043,7 +1064,7 @@ Figure&nbsp;15: Simulated circular classification boundary
 <span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">act.fct=</span><span class="st">"logistic"</span>,    <span class="co"># sigmoid</span></span>
 <span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lifesign=</span><span class="st">"minimal"</span>)    <span class="co"># how much detail to print</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:  120775 error: 0.12107  time: 53.85 secs</code></pre>
+<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:  176764 error: 0.04531  time: 1.85 mins</code></pre>
 </div>
 </div>
 <p>The plot function will draw the network graph for us with the coefficients on all of the edges.</p>
@@ -1096,24 +1117,33 @@ Figure&nbsp;17: Predictions from a neural network from the <code>neuralnet</code
 </section>
 <section id="tensorflow-and-keras" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Tensorflow and Keras</h1>
-<p><a href="https://www.tensorflow.org/">Tensorflow</a> is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. <a href="https://keras.io/">Keras</a> is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with <a href="https://pytorch.org/">PyTorch</a>, Facebook AI’s group Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools.</p>
+<p><a href="https://www.tensorflow.org/">Tensorflow</a> is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. <a href="https://keras.io/">Keras</a> is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with <a href="https://pytorch.org/">PyTorch</a>, Facebook AI group’s Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools.</p>
 <p>A lot of the scientific community using deep learning works in Python. For that reason, you will find a lot of Python resources for developing neural networks. Since most social science research is conducted in R, I focused on R for this course. We will still use the R Keras library, which hooks into Python, which hooks into Keras, which hooks into Tensorflow. With all of your variations in computers, operating systems, and settings there is a lot of opportunity for some settings, versions, and options to not be compatible. I will have limited ability to troubleshoot why Keras, Tensorflow, or Python is giving you errors. In this case you will have to learn how to learn to figure these things out.</p>
-<p>For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into workign with Tensorflow (or PyTorch).</p>
-<p>As I developed these notes, Tensorflow and Keras do not work with Python 3.12 (at present the latest version). That will certainly change. You may wish to start by working with Python 3.11.</p>
+<p>For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into working with Tensorflow (or PyTorch).</p>
+<p>Tensorflow and Keras are usually behind a version or two of Python. Python 3.13 is the current version, but Keras/Tensorflow support up to Python 3.12. This constantly changes. I will be using Python 3.11, because I know it works.</p>
+<section id="tensorflow-playground" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="tensorflow-playground"><span class="header-section-number">7.1</span> Tensorflow Playground</h2>
+<p>Visit the (Tensorflow Playground)[https://playground.tensorflow.org]. This let’s you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network’s ability to learn the decision boundary.</p>
+<p>Challenge: Using only <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> as inputs, can you alter the number of the hidden layers and nodes that will successful learn the spiral pattern?</p>
+</section>
+<section id="installing-tensorflow-and-keras" class="level2" data-number="7.2">
+<h2 data-number="7.2" class="anchored" data-anchor-id="installing-tensorflow-and-keras"><span class="header-section-number">7.2</span> Installing Tensorflow and Keras</h2>
 <p>First, we will do a one-time installation.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"keras"</span>)</span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install_keras</span>(<span class="at">python_version=</span><span class="st">"3.11"</span>) <span class="co"># doesn't work with 3.12 yet</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="co"># March 2024, Keras works with 3.12... sticking with 3.11 for now</span></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">install_keras</span>(<span class="at">python_version=</span><span class="st">"3.11"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>You will need to restart R one last time after this installation.</p>
 <p>Now we can get busy with Keras by loading the library. If all is installed correctly, then this line will run with no errors.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="mnist-postal-digits-data" class="level2" data-number="7.1">
-<h2 data-number="7.1" class="anchored" data-anchor-id="mnist-postal-digits-data"><span class="header-section-number">7.1</span> MNIST postal digits data</h2>
-<p>We are going to experiment with the NIST postal digits data (<a href="https://en.wikipedia.org/wiki/MNIST_database">MNIST database</a>). Why? Because it seems to be a right of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.</p>
+</section>
+<section id="mnist-postal-digits-data" class="level2" data-number="7.3">
+<h2 data-number="7.3" class="anchored" data-anchor-id="mnist-postal-digits-data"><span class="header-section-number">7.3</span> MNIST postal digits data</h2>
+<p>We are going to experiment with the NIST postal digits data (<a href="https://en.wikipedia.org/wiki/MNIST_database">MNIST database</a>). Why? Because it seems to be a rite of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>numData <span class="ot">&lt;-</span> <span class="fu">dataset_mnist</span>()</span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1264,45 +1294,45 @@ ________________________________________________________________________________
 <span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 5s - loss: 0.3060 - accuracy: 0.9107 - val_loss: 0.1530 - val_accuracy: 0.9554 - 5s/epoch - 13ms/step
+375/375 - 6s - loss: 0.3053 - accuracy: 0.9124 - val_loss: 0.1484 - val_accuracy: 0.9589 - 6s/epoch - 17ms/step
 Epoch 2/20
-375/375 - 4s - loss: 0.1357 - accuracy: 0.9599 - val_loss: 0.1095 - val_accuracy: 0.9674 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.1333 - accuracy: 0.9612 - val_loss: 0.1049 - val_accuracy: 0.9695 - 5s/epoch - 13ms/step
 Epoch 3/20
-375/375 - 4s - loss: 0.0942 - accuracy: 0.9721 - val_loss: 0.0936 - val_accuracy: 0.9710 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0934 - accuracy: 0.9726 - val_loss: 0.0965 - val_accuracy: 0.9722 - 4s/epoch - 12ms/step
 Epoch 4/20
-375/375 - 4s - loss: 0.0706 - accuracy: 0.9789 - val_loss: 0.0851 - val_accuracy: 0.9738 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.0715 - accuracy: 0.9787 - val_loss: 0.0853 - val_accuracy: 0.9744 - 5s/epoch - 12ms/step
 Epoch 5/20
-375/375 - 4s - loss: 0.0562 - accuracy: 0.9829 - val_loss: 0.0783 - val_accuracy: 0.9766 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0567 - accuracy: 0.9829 - val_loss: 0.0827 - val_accuracy: 0.9755 - 4s/epoch - 12ms/step
 Epoch 6/20
-375/375 - 4s - loss: 0.0472 - accuracy: 0.9854 - val_loss: 0.0796 - val_accuracy: 0.9775 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0477 - accuracy: 0.9852 - val_loss: 0.0741 - val_accuracy: 0.9782 - 4s/epoch - 11ms/step
 Epoch 7/20
-375/375 - 4s - loss: 0.0380 - accuracy: 0.9883 - val_loss: 0.0733 - val_accuracy: 0.9795 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0387 - accuracy: 0.9882 - val_loss: 0.0712 - val_accuracy: 0.9787 - 4s/epoch - 11ms/step
 Epoch 8/20
-375/375 - 4s - loss: 0.0311 - accuracy: 0.9902 - val_loss: 0.0735 - val_accuracy: 0.9787 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0329 - accuracy: 0.9900 - val_loss: 0.0711 - val_accuracy: 0.9799 - 4s/epoch - 11ms/step
 Epoch 9/20
-375/375 - 4s - loss: 0.0274 - accuracy: 0.9912 - val_loss: 0.0724 - val_accuracy: 0.9802 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0278 - accuracy: 0.9914 - val_loss: 0.0725 - val_accuracy: 0.9800 - 4s/epoch - 11ms/step
 Epoch 10/20
-375/375 - 4s - loss: 0.0234 - accuracy: 0.9930 - val_loss: 0.0743 - val_accuracy: 0.9808 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0238 - accuracy: 0.9927 - val_loss: 0.0763 - val_accuracy: 0.9801 - 4s/epoch - 12ms/step
 Epoch 11/20
-375/375 - 4s - loss: 0.0197 - accuracy: 0.9934 - val_loss: 0.0741 - val_accuracy: 0.9797 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.0199 - accuracy: 0.9938 - val_loss: 0.0749 - val_accuracy: 0.9797 - 5s/epoch - 13ms/step
 Epoch 12/20
-375/375 - 4s - loss: 0.0166 - accuracy: 0.9949 - val_loss: 0.0765 - val_accuracy: 0.9812 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.0176 - accuracy: 0.9946 - val_loss: 0.0762 - val_accuracy: 0.9803 - 5s/epoch - 13ms/step
 Epoch 13/20
-375/375 - 4s - loss: 0.0155 - accuracy: 0.9952 - val_loss: 0.0724 - val_accuracy: 0.9816 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.0151 - accuracy: 0.9953 - val_loss: 0.0767 - val_accuracy: 0.9809 - 5s/epoch - 14ms/step
 Epoch 14/20
-375/375 - 5s - loss: 0.0133 - accuracy: 0.9957 - val_loss: 0.0757 - val_accuracy: 0.9815 - 5s/epoch - 13ms/step
+375/375 - 4s - loss: 0.0129 - accuracy: 0.9958 - val_loss: 0.0809 - val_accuracy: 0.9807 - 4s/epoch - 12ms/step
 Epoch 15/20
-375/375 - 4s - loss: 0.0113 - accuracy: 0.9967 - val_loss: 0.0783 - val_accuracy: 0.9812 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0118 - accuracy: 0.9964 - val_loss: 0.0767 - val_accuracy: 0.9822 - 4s/epoch - 12ms/step
 Epoch 16/20
-375/375 - 4s - loss: 0.0104 - accuracy: 0.9969 - val_loss: 0.0761 - val_accuracy: 0.9812 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0097 - accuracy: 0.9971 - val_loss: 0.0776 - val_accuracy: 0.9805 - 4s/epoch - 12ms/step
 Epoch 17/20
-375/375 - 4s - loss: 0.0090 - accuracy: 0.9974 - val_loss: 0.0745 - val_accuracy: 0.9819 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0084 - accuracy: 0.9974 - val_loss: 0.0795 - val_accuracy: 0.9801 - 4s/epoch - 11ms/step
 Epoch 18/20
-375/375 - 4s - loss: 0.0089 - accuracy: 0.9975 - val_loss: 0.0818 - val_accuracy: 0.9807 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0082 - accuracy: 0.9975 - val_loss: 0.0753 - val_accuracy: 0.9823 - 4s/epoch - 11ms/step
 Epoch 19/20
-375/375 - 4s - loss: 0.0070 - accuracy: 0.9979 - val_loss: 0.0771 - val_accuracy: 0.9822 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0068 - accuracy: 0.9980 - val_loss: 0.0845 - val_accuracy: 0.9815 - 4s/epoch - 12ms/step
 Epoch 20/20
-375/375 - 4s - loss: 0.0061 - accuracy: 0.9984 - val_loss: 0.0768 - val_accuracy: 0.9820 - 4s/epoch - 11ms/step</code></pre>
+375/375 - 4s - loss: 0.0071 - accuracy: 0.9980 - val_loss: 0.0816 - val_accuracy: 0.9813 - 4s/epoch - 12ms/step</code></pre>
 </div>
 </div>
 <p>We can plot the “learning curves,” tracing out how much better the neural network became after each epoch.</p>
@@ -1329,26 +1359,26 @@ Figure&nbsp;20: Loss function and accuracy on training and validation MNIST data
 <div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(keras1, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - 1s/epoch - 3ms/step</code></pre>
+<pre><code>313/313 - 1s - 585ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> <span class="fu">apply</span>(yTest, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
-yPredVal    0    1    2    3    4    5    6    7    8    9
-       0  971    0    3    1    1    2    3    0    3    2
-       1    1 1129    1    0    1    0    2    5    0    2
-       2    1    1 1011    2    1    0    1    6    3    0
-       3    0    0    2  995    1    9    1    1    5    4
-       4    1    0    2    0  968    1    2    0    2   12
-       5    1    0    0    4    0  873    3    0    1    2
-       6    3    2    1    0    3    3  945    0    2    1
-       7    1    1    8    4    1    1    1 1010    6    6
-       8    1    2    4    3    1    1    0    2  951    0
-       9    0    0    0    1    5    2    0    4    1  980</code></pre>
+yPredVal   0   1   2   3   4   5   6   7   8   9
+       0  24 465  21  16 143  45  21 105  13  71
+       1 135 279 238  93  51  78 185 379  56 186
+       2   1  65  18  19  12  10   1   7   9  16
+       3 640  57 201 193 343 412 599 174 488 304
+       4 171 211 537 624 396 272 146 319 370 355
+       5   0  35   0   0   0   0   0   1   1   0
+       6   2  20   7  41  19  52   3  33  27  60
+       7   7   3  10  24  10  23   2  10   9  17
+       8   0   0   0   0   1   0   1   0   0   0
+       9   0   0   0   0   7   0   0   0   1   0</code></pre>
 </div>
 </div>
-<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 12 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
+<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 355 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
 <p>Let’s examine 12 randomly selected digits that we have misclassified.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240408</span>)</span>
@@ -1382,16 +1412,16 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <div class="cell">
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(keras1, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - loss: 0.0672 - accuracy: 0.9833 - 931ms/epoch - 3ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 2.3954 - accuracy: 0.0923 - 624ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-0.067161 0.983300 </code></pre>
+2.395405 0.092300 </code></pre>
 </div>
 </div>
 </section>
-<section id="convolution-layers" class="level2" data-number="7.2">
-<h2 data-number="7.2" class="anchored" data-anchor-id="convolution-layers"><span class="header-section-number">7.2</span> Convolution layers</h2>
+<section id="convolution-layers" class="level2" data-number="7.4">
+<h2 data-number="7.4" class="anchored" data-anchor-id="convolution-layers"><span class="header-section-number">7.4</span> Convolution layers</h2>
 <p>Convolutional layers are the main building block for Convolution Neural Networks (CNNs), primarily used in processing data with a grid-like shapes, like images. The utility of convolutional layers comes from their ability to efficiently handle and process spatial information. Unlike layers that treat input data as a flat array, as we did previously, convolutional layers preserve the spatial relationships between pixels or data points by applying filters (or kernels) that scan over the input. This approach enables the network to capture local patterns such as edges, textures, or shapes within the input data. Convolutional layers can significantly reduce the size of networks needed to get good predictive performance, making the training process faster and less prone to overfitting. Convolutional layers learn feature representations, making them especially powerful for tasks involving images, video, and time-series data.</p>
 <p>Let <span class="math inline">\(\mathbf{X}\)</span> be an <span class="math inline">\(r\times c\)</span> greyscale image where the element <span class="math inline">\(\mathbf{X}_{ij}\)</span> is between 0 and 1, denoting the greyscale range from black to white. The convolution layer involves a <span class="math inline">\(m\times m\)</span> matrix of parameters, <span class="math inline">\(\mathbf{K}\)</span>, that the network will need to estimate from data. Typically, in practice <span class="math inline">\(m\)</span> is small, like 2, 3, or 4.</p>
 <p>Assume <span class="math inline">\(m=2\)</span> so that <span class="math inline">\(\mathbf{X}\)</span> is a <span class="math inline">\(2\times 2\)</span> matrix of the form <span class="math inline">\(\begin{bmatrix} a &amp; b \\ c &amp; d\end{bmatrix}\)</span>. The convolution layer will transform every <span class="math inline">\(2\times 2\)</span> section of <span class="math inline">\(\mathbf{X}\)</span> to create a new matrix that will feed into the next layer.</p>
@@ -1422,8 +1452,8 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <p>and sent into the next layer of the neural network, now accepting 4 new inputs rather than the original 9 inputs.</p>
 <p>The convolution kernel <span class="math inline">\(K\)</span> can vary by size and shape and “stride,” the spacing between each application of the convolution. Also, the input may be a three-dimensional tensor input with the third dimension being a 3-level color channel, the mixture of red, green, and blue, for example. For such cases, we use a 3D kernel for the convolution layer. This transforms both the spatial image and the local color structure to an input vector.</p>
 </section>
-<section id="a-convolutional-neural-network-with-keras" class="level2" data-number="7.3">
-<h2 data-number="7.3" class="anchored" data-anchor-id="a-convolutional-neural-network-with-keras"><span class="header-section-number">7.3</span> A convolutional neural network with Keras</h2>
+<section id="a-convolutional-neural-network-with-keras" class="level2" data-number="7.5">
+<h2 data-number="7.5" class="anchored" data-anchor-id="a-convolutional-neural-network-with-keras"><span class="header-section-number">7.5</span> A convolutional neural network with Keras</h2>
 <p>Keras easily allows you to add a convolution layer to the neural network. First, we need to reorganize our dataset so that we do not flatten out the images into one long vector of grayscale values, but instead retain their two dimensional structure.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>xTrain <span class="ot">&lt;-</span> numData<span class="sc">$</span>train<span class="sc">$</span>x</span>
@@ -1493,45 +1523,45 @@ ________________________________________________________________________________
 <span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">validation_split =</span> <span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 52s - loss: 2.3243 - accuracy: 0.8950 - val_loss: 0.1199 - val_accuracy: 0.9682 - 52s/epoch - 138ms/step
+375/375 - 53s - loss: 1.6531 - accuracy: 0.8943 - val_loss: 0.0927 - val_accuracy: 0.9767 - 53s/epoch - 141ms/step
 Epoch 2/20
-375/375 - 50s - loss: 0.1152 - accuracy: 0.9670 - val_loss: 0.0765 - val_accuracy: 0.9791 - 50s/epoch - 135ms/step
+375/375 - 50s - loss: 0.1097 - accuracy: 0.9696 - val_loss: 0.0661 - val_accuracy: 0.9799 - 50s/epoch - 135ms/step
 Epoch 3/20
-375/375 - 50s - loss: 0.0767 - accuracy: 0.9779 - val_loss: 0.0554 - val_accuracy: 0.9842 - 50s/epoch - 134ms/step
+375/375 - 50s - loss: 0.0761 - accuracy: 0.9788 - val_loss: 0.0588 - val_accuracy: 0.9841 - 50s/epoch - 134ms/step
 Epoch 4/20
-375/375 - 52s - loss: 0.0627 - accuracy: 0.9821 - val_loss: 0.0668 - val_accuracy: 0.9834 - 52s/epoch - 138ms/step
+375/375 - 50s - loss: 0.0593 - accuracy: 0.9846 - val_loss: 0.0576 - val_accuracy: 0.9856 - 50s/epoch - 132ms/step
 Epoch 5/20
-375/375 - 50s - loss: 0.0545 - accuracy: 0.9846 - val_loss: 0.0742 - val_accuracy: 0.9791 - 50s/epoch - 134ms/step
+375/375 - 49s - loss: 0.0476 - accuracy: 0.9872 - val_loss: 0.0578 - val_accuracy: 0.9871 - 49s/epoch - 132ms/step
 Epoch 6/20
-375/375 - 50s - loss: 0.0440 - accuracy: 0.9876 - val_loss: 0.0544 - val_accuracy: 0.9877 - 50s/epoch - 133ms/step
+375/375 - 51s - loss: 0.0459 - accuracy: 0.9881 - val_loss: 0.0707 - val_accuracy: 0.9866 - 51s/epoch - 135ms/step
 Epoch 7/20
-375/375 - 52s - loss: 0.0439 - accuracy: 0.9885 - val_loss: 0.0782 - val_accuracy: 0.9851 - 52s/epoch - 139ms/step
+375/375 - 50s - loss: 0.0405 - accuracy: 0.9899 - val_loss: 0.0868 - val_accuracy: 0.9855 - 50s/epoch - 134ms/step
 Epoch 8/20
-375/375 - 53s - loss: 0.0405 - accuracy: 0.9895 - val_loss: 0.0630 - val_accuracy: 0.9859 - 53s/epoch - 141ms/step
+375/375 - 51s - loss: 0.0355 - accuracy: 0.9905 - val_loss: 0.0735 - val_accuracy: 0.9873 - 51s/epoch - 136ms/step
 Epoch 9/20
-375/375 - 52s - loss: 0.0364 - accuracy: 0.9902 - val_loss: 0.0755 - val_accuracy: 0.9872 - 52s/epoch - 139ms/step
+375/375 - 50s - loss: 0.0355 - accuracy: 0.9912 - val_loss: 0.0942 - val_accuracy: 0.9844 - 50s/epoch - 132ms/step
 Epoch 10/20
-375/375 - 52s - loss: 0.0376 - accuracy: 0.9900 - val_loss: 0.0710 - val_accuracy: 0.9877 - 52s/epoch - 139ms/step
+375/375 - 50s - loss: 0.0354 - accuracy: 0.9911 - val_loss: 0.0887 - val_accuracy: 0.9892 - 50s/epoch - 134ms/step
 Epoch 11/20
-375/375 - 50s - loss: 0.0358 - accuracy: 0.9912 - val_loss: 0.1064 - val_accuracy: 0.9869 - 50s/epoch - 133ms/step
+375/375 - 50s - loss: 0.0322 - accuracy: 0.9919 - val_loss: 0.0945 - val_accuracy: 0.9885 - 50s/epoch - 133ms/step
 Epoch 12/20
-375/375 - 50s - loss: 0.0313 - accuracy: 0.9915 - val_loss: 0.0970 - val_accuracy: 0.9862 - 50s/epoch - 132ms/step
+375/375 - 51s - loss: 0.0290 - accuracy: 0.9932 - val_loss: 0.0895 - val_accuracy: 0.9854 - 51s/epoch - 137ms/step
 Epoch 13/20
-375/375 - 50s - loss: 0.0266 - accuracy: 0.9933 - val_loss: 0.0777 - val_accuracy: 0.9853 - 50s/epoch - 134ms/step
+375/375 - 50s - loss: 0.0279 - accuracy: 0.9935 - val_loss: 0.1168 - val_accuracy: 0.9868 - 50s/epoch - 133ms/step
 Epoch 14/20
-375/375 - 53s - loss: 0.0285 - accuracy: 0.9930 - val_loss: 0.0707 - val_accuracy: 0.9876 - 53s/epoch - 140ms/step
+375/375 - 50s - loss: 0.0309 - accuracy: 0.9933 - val_loss: 0.0777 - val_accuracy: 0.9850 - 50s/epoch - 133ms/step
 Epoch 15/20
-375/375 - 51s - loss: 0.0263 - accuracy: 0.9934 - val_loss: 0.0666 - val_accuracy: 0.9855 - 51s/epoch - 136ms/step
+375/375 - 52s - loss: 0.0303 - accuracy: 0.9933 - val_loss: 0.1471 - val_accuracy: 0.9878 - 52s/epoch - 138ms/step
 Epoch 16/20
-375/375 - 59s - loss: 0.0232 - accuracy: 0.9946 - val_loss: 0.0869 - val_accuracy: 0.9862 - 59s/epoch - 158ms/step
+375/375 - 54s - loss: 0.0250 - accuracy: 0.9942 - val_loss: 0.1300 - val_accuracy: 0.9874 - 54s/epoch - 144ms/step
 Epoch 17/20
-375/375 - 52s - loss: 0.0236 - accuracy: 0.9945 - val_loss: 0.1147 - val_accuracy: 0.9869 - 52s/epoch - 137ms/step
+375/375 - 55s - loss: 0.0228 - accuracy: 0.9947 - val_loss: 0.2226 - val_accuracy: 0.9861 - 55s/epoch - 147ms/step
 Epoch 18/20
-375/375 - 52s - loss: 0.0233 - accuracy: 0.9945 - val_loss: 0.1256 - val_accuracy: 0.9846 - 52s/epoch - 138ms/step
+375/375 - 52s - loss: 0.0269 - accuracy: 0.9944 - val_loss: 0.0949 - val_accuracy: 0.9879 - 52s/epoch - 138ms/step
 Epoch 19/20
-375/375 - 50s - loss: 0.0257 - accuracy: 0.9938 - val_loss: 0.0866 - val_accuracy: 0.9877 - 50s/epoch - 134ms/step
+375/375 - 49s - loss: 0.0228 - accuracy: 0.9950 - val_loss: 0.1154 - val_accuracy: 0.9881 - 49s/epoch - 131ms/step
 Epoch 20/20
-375/375 - 50s - loss: 0.0216 - accuracy: 0.9948 - val_loss: 0.1225 - val_accuracy: 0.9884 - 50s/epoch - 134ms/step</code></pre>
+375/375 - 51s - loss: 0.0258 - accuracy: 0.9948 - val_loss: 0.1080 - val_accuracy: 0.9880 - 51s/epoch - 136ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fitHx)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1552,23 +1582,23 @@ Figure&nbsp;22: Loss function and accuracy on training and validation MNIST data
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict on test dataset</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(kerasCNN, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 5s - 5s/epoch - 17ms/step</code></pre>
+<pre><code>313/313 - 1s - 1s/epoch - 4ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> yTest <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
-yPredVal    0    1    2    3    4    5    6    7    8    9
-       0  973    0    2    0    0    1    3    1    4    1
-       1    2 1129    7    0    0    0    2    3    2    2
-       2    0    0 1015    0    0    0    0    5    4    1
-       3    0    2    2 1001    0    5    0    1    1    3
-       4    0    0    0    0  976    0    1    1    2   10
-       5    0    0    0    3    0  884    2    0    1    6
-       6    3    3    0    0    5    2  949    0    1    0
-       7    1    0    5    4    0    0    0 1016    2    3
-       8    1    1    1    2    1    0    1    0  955    4
-       9    0    0    0    0    0    0    0    1    2  979</code></pre>
+yPredVal   0   1   2   3   4   5   6   7   8   9
+       0 359 152 337 121   8  73  45  17 189  17
+       1 188  36 190 164 229 140 486 299 203 163
+       2  69   3  27   4  29  29   3  74  25  29
+       3 279 713 202 626 599 588 341 600 523 741
+       4   4   4  89  29  14   5   9   4  10   7
+       5   0   0   3   0   9   1   1   6   0  14
+       6   7  55  22  28  30  29   9  13   3  12
+       7  57 169 154  38  58  12  51  10  15  22
+       8  13   0   0   0   0   1   0   0   0   0
+       9   4   3   8   0   6  14  13   5   6   4</code></pre>
 </div>
 </div>
 <p>Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.</p>
@@ -1603,14 +1633,14 @@ Figure&nbsp;23: Examples of errors from our neural network with a convolution la
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(kerasCNN, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 6s - loss: 0.1110 - accuracy: 0.9877 - 6s/epoch - 18ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 13.3041 - accuracy: 0.1086 - 1s/epoch - 5ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     loss  accuracy 
-0.1109959 0.9877000 </code></pre>
+<pre><code>    loss accuracy 
+13.30407  0.10860 </code></pre>
 </div>
 </div>
-<p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have 100,000,000,000 (100 billion) to 1,000,000,000,000 (1 trillion) parameters.</p>
+<p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have over 100,000,000,000 (100 billion) parameters. GPT4 weights in at 1,800,000,000,000 (1.8 trillion) parameters.</p>
 <p>Developing a neural network is more an art than a science. There are no general theories that tell us what the right way of combining layers are, how best to use convolutional layers, or how best to optimize parameters to minimize generalization error. In practice, we try a range of layers, parameters, and alterations to our dataset to see which one might get us some better performance. There are a variety of rules-of-thumb that have been adopted and I have used a lot of those here, but there is no reason to think that these are the best choices, and they certainly are not the best for all applications. With this I hope you have a start on how to use Keras to assemble a neural network for whatever problem you want to try to solve.</p>
 
 </section>
