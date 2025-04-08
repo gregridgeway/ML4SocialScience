@@ -199,9 +199,9 @@ window.Quarto = {
 
 
 <!-- In terminal -->
-<!-- quarto render L9-propensity-score-estimation.qmd -->
-<!-- quarto render L9-propensity-score-estimation.qmd --cache-refresh  -->
-<!-- git commit L9-* -m "commit message" -->
+<!-- quarto render L09-propensity-score-estimation.qmd -->
+<!-- quarto render L09-propensity-score-estimation.qmd --cache-refresh  -->
+<!-- git commit L09-* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
 <section id="introduction-to-estimating-treatment-effects-from-observational-studies" class="level1" data-number="1">
@@ -2192,10 +2192,10 @@ Table&nbsp;3: Results table showing unweighted, propensity score weighted, and D
 <div class="cell">
 <div class="sourceCode cell-code" id="cb139"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a>att <span class="ot">&lt;-</span> ps2<span class="sc">$</span>effects<span class="sc">$</span>arrest[<span class="st">"dr"</span>,<span class="st">"TE"</span>]</span>
 <span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>se  <span class="ot">&lt;-</span> ps2<span class="sc">$</span>effects<span class="sc">$</span>arrest[<span class="st">"dr"</span>,<span class="st">"se.TE"</span>]</span>
-<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate and 95% confidence interval</span></span>
-<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(att <span class="sc">+</span> <span class="fl">1.96</span><span class="sc">*</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="sc">*</span>se, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ATT estimate and 95% confidence interval</span></span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a><span class="dv">100</span><span class="sc">*</span><span class="fu">round</span>(att <span class="sc">+</span> <span class="fl">1.96</span><span class="sc">*</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="sc">*</span>se, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1 0.0 0.1</code></pre>
+<pre><code>[1]  6.1  1.6 10.6</code></pre>
 </div>
 </div>
 <p>These are powerful tools, but can only give results that are as good as the data. If the data have limited features, then you will be limited in how much confounding you can address. The most common failure of propensity score methods is the inability to measure important confounders in the first place. Propensity score methods only produce causal effects if strong ignorability holds. To get there often means very comprehensive data collection on the units of analysis and accounting for all of them in the propensity score model.</p>
