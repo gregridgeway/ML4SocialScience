@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-04-07">
+<meta name="dcterms.date" content="2025-04-08">
 
 <title>L10 Neural networks</title>
 <style>
@@ -181,7 +181,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 7, 2025</p>
+      <p class="date">April 8, 2025</p>
     </div>
   </div>
   
@@ -197,7 +197,7 @@ window.Quarto = {
 <!-- quarto render L10-neural-nets.qmd -->
 <!-- quarto render L10-neural-nets.qmd --cache-refresh  -->
 <!-- Include C:\cygwin64\bin in path to get to rsvg-convert -->
-<!-- git commit L9-* -m "commit message" -->
+<!-- git commit L10-* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
 <section id="reading" class="level1" data-number="1">
@@ -1362,26 +1362,26 @@ Figure&nbsp;20: Loss function and accuracy on training and validation MNIST data
 <div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(keras1, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - 607ms/epoch - 2ms/step</code></pre>
+<pre><code>313/313 - 1s - 1s/epoch - 3ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> <span class="fu">apply</span>(yTest, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0   1   0   2   7  14   2   3   4   6   8
-       1  18   8 176  76 195  36  67 139  46  61
-       2 156   5  96  25  42  82 420  29  30  11
-       3   0  29   9   2   1   3   5   5   1   0
-       4   0   1   1  10   0   2   3   1   0   0
-       5 753 320 355 514 680 677 286 535 751 812
-       6  24 215  19  82  12  36  10 126   9  41
-       7  26 557 374 294  33  47 161 186 131  74
-       8   2   0   0   0   4   7   3   3   0   2
-       9   0   0   0   0   1   0   0   0   0   0</code></pre>
+       0 184 276  58 285 114 171 252  52 125  31
+       1 526  27 113  90  69 161 176 309  76 186
+       2 132 466 701 486 376 300 240 309 567 292
+       3   4 184  27  10  23  14  29   1  18   0
+       4  97   7  29  67 264 162 173 292 115 411
+       5  15  24   4  44  28  23  20   3  17   6
+       6   1   0   0   2   0   1   7   0   3   1
+       7  18 150  95  22  94  45  38  51  53  73
+       8   2   0   2   2  10  12   0   2   0   7
+       9   1   1   3   2   4   3  23   9   0   2</code></pre>
 </div>
 </div>
-<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 0 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
+<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 411 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
 <p>Let’s examine 12 randomly selected digits that we have misclassified.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240408</span>)</span>
@@ -1415,11 +1415,11 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <div class="cell">
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(keras1, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - loss: 2.4419 - accuracy: 0.0980 - 658ms/epoch - 2ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 2.3133 - accuracy: 0.1269 - 1s/epoch - 5ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-2.441862 0.098000 </code></pre>
+ 2.31327  0.12690 </code></pre>
 </div>
 </div>
 </section>
@@ -1585,23 +1585,21 @@ Figure&nbsp;22: Loss function and accuracy on training and validation MNIST data
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict on test dataset</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(kerasCNN, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 2s - 2s/epoch - 6ms/step</code></pre>
+<pre><code>313/313 - 4s - 4s/epoch - 12ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> yTest <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0 725 362 353 319 404 402 242 382 435 382
-       1   0   0   0   0   0   0   0   4   0   0
-       2  88 148 196 133 334  90 496 168  73 316
-       3   0   0   0   0   0   0   0   2   0   0
-       4   2   5   1   2   1   1   0  20   1   0
-       5  33 122 306 172  35 102 108  48  58  10
-       6   0   2   0   2   1   0   0   2   0   5
-       7   0   0   0   1   0   1   0   9   0   0
-       8   4   0   4   9   2   6   9  49   1   8
-       9 128 496 172 372 205 290 103 344 406 288</code></pre>
+       0   0   0   1   0   0   0   0   0   0   0
+       1  95 406 396 174 596 127  57 454 149 363
+       3   0  17   0   3   2   7   0  19   3  25
+       4   1 419  55  55  12  78  38  34  53  52
+       5  23   2  17  14   0   6   6   0  13   1
+       7 853   6 390 469 233 587 703 501 628 473
+       8   0   0   0   0   0   0   0   0   0   2
+       9   8 285 173 295 139  87 154  20 128  93</code></pre>
 </div>
 </div>
 <p>Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.</p>
@@ -1636,11 +1634,11 @@ Figure&nbsp;23: Examples of errors from our neural network with a convolution la
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(kerasCNN, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 2s - loss: 18.9775 - accuracy: 0.1322 - 2s/epoch - 6ms/step</code></pre>
+<pre><code>313/313 - 4s - loss: 31.5050 - accuracy: 0.1021 - 4s/epoch - 13ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-18.97749  0.13220 </code></pre>
+31.50504  0.10210 </code></pre>
 </div>
 </div>
 <p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have over 100,000,000,000 (100 billion) parameters. GPT4 weights in at 1,800,000,000,000 (1.8 trillion) parameters.</p>
