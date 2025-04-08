@@ -26,6 +26,10 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- quarto render L10-neural-nets.qmd --cache-refresh  -->
 <!-- Include C:\cygwin64\bin in path to get to rsvg-convert -->
 
+<!-- git commit L10-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
 
 
 ```{r}
@@ -98,7 +102,7 @@ Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter 
 \end{tikzpicture}
 ```
 
-We start with some guess for $\hat\beta$, perhaps $(0,0,0)$. Then once we pass our data through the neural network we get predicted values and we learn how badly we did by computing $\sum (y_i-\hat y_i)^2$. Now we can improve our guess for $\hat\beta$ by computing the gradient of $J$ with respect to $\beta$. We will chain rule our way to figure out the gradient.
+We start with some guess for $\hat\beta$, perhaps $(0,0,0)$. Then, once we pass our data through the neural network, we get predicted values and learn the magnitude of our error by computing $\sum (y_i-\hat y_i)^2$. Now we can improve our guess for $\hat\beta$ by computing the gradient of $J$ with respect to $\beta$. We will chain rule our way to figure out the gradient.
 
 $$
 \begin{split}
@@ -140,7 +144,7 @@ where in the last line the $\lambda$ absorbed the $2$.
 
 The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.
 
-The network in @fig-nnhiddenlayer1 two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
+The network in @fig-nnhiddenlayer1 takes two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
 
 ```{tikz}
 #| label: fig-nnhiddenlayer1
