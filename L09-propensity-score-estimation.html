@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-03-31">
+<meta name="dcterms.date" content="2025-04-08">
 
 <title>L9 Boosted propensity score estimation</title>
 <style>
@@ -186,7 +186,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 31, 2025</p>
+      <p class="date">April 8, 2025</p>
     </div>
   </div>
   
@@ -2188,6 +2188,16 @@ Table&nbsp;3: Results table showing unweighted, propensity score weighted, and D
 </div>
 </div>
 <p>The first row of <a href="#tbl-ATTestimate" class="quarto-xref">Table&nbsp;3</a> shows the unadjusted analysis. The second row shows a propensity score analysis. The third row shows a doubly robust analysis, one that includes the features in the outcome regression model. The first column is the arrest rate for the heroin group. This remains unchanged regardless of the estimator. The second column is the arrest rate for the comparison group that is either unadjusted, propensity score weighted, or a doubly robust estimate. The next two columns show their standard errors. <code>TE</code> and <code>se.TE</code> show the treatment effect (ATT) and the standard error of the treatment effect. The final column shows the p-value.</p>
+<p>Heroin users had an arrest rate of 11.7%. Based on the doubly robust analysis, respondents who were similar to the heroin users (based on age, race, sex, and marital status) had an arrest rate of 5.6%. The ATT is the difference in these two percentages, 6.1 percentage points. We can get a 95% confidence interval by taking the <code>TE</code> and adding/subtracting 1.96 times the <code>se.TE</code>, which gives us</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb139"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb139-1"><a href="#cb139-1" aria-hidden="true" tabindex="-1"></a>att <span class="ot">&lt;-</span> ps2<span class="sc">$</span>effects<span class="sc">$</span>arrest[<span class="st">"dr"</span>,<span class="st">"TE"</span>]</span>
+<span id="cb139-2"><a href="#cb139-2" aria-hidden="true" tabindex="-1"></a>se  <span class="ot">&lt;-</span> ps2<span class="sc">$</span>effects<span class="sc">$</span>arrest[<span class="st">"dr"</span>,<span class="st">"se.TE"</span>]</span>
+<span id="cb139-3"><a href="#cb139-3" aria-hidden="true" tabindex="-1"></a><span class="co"># estimate and 95% confidence interval</span></span>
+<span id="cb139-4"><a href="#cb139-4" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(att <span class="sc">+</span> <span class="fl">1.96</span><span class="sc">*</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)<span class="sc">*</span>se, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1 0.0 0.1</code></pre>
+</div>
+</div>
 <p>These are powerful tools, but can only give results that are as good as the data. If the data have limited features, then you will be limited in how much confounding you can address. The most common failure of propensity score methods is the inability to measure important confounders in the first place. Propensity score methods only produce causal effects if strong ignorability holds. To get there often means very comprehensive data collection on the units of analysis and accounting for all of them in the propensity score model.</p>
 </section>
 </section>

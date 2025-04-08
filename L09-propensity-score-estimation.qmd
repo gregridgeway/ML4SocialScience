@@ -1091,6 +1091,15 @@ ps2$effects$arrest |>
 
 The first row of @tbl-ATTestimate shows the unadjusted analysis. The second row shows a propensity score analysis. The third row shows a doubly robust analysis, one that includes the features in the outcome regression model. The first column is the arrest rate for the heroin group. This remains unchanged regardless of the estimator. The second column is the arrest rate for the comparison group that is either unadjusted, propensity score weighted, or a doubly robust estimate. The next two columns show their standard errors. `TE` and `se.TE` show the treatment effect (ATT) and the standard error of the treatment effect. The final column shows the p-value.
 
+Heroin users had an arrest rate of `r round(100*ps2$effects$arrest["dr","E.y1"],1)`\%. Based on the doubly robust analysis, respondents who were similar to the heroin users (based on age, race, sex, and marital status) had an arrest rate of `r round(100*ps2$effects$arrest["dr","E.y0"],1)`\%. The ATT is the difference in these two percentages, `r round(100*(ps2$effects$arrest["dr","E.y1"]-ps2$effects$arrest["dr","E.y0"]),1)` percentage points. We can get a 95\% confidence interval by taking the `TE` and adding/subtracting 1.96 times the `se.TE`, which gives us 
+
+```{r}
+att <- ps2$effects$arrest["dr","TE"]
+se  <- ps2$effects$arrest["dr","se.TE"]
+# estimate and 95% confidence interval
+round(att + 1.96*c(0,-1,1)*se, 1)
+```
+
 These are powerful tools, but can only give results that are as good as the data. If the data have limited features, then you will be limited in how much confounding you can address. The most common failure of propensity score methods is the inability to measure important confounders in the first place. Propensity score methods only produce causal effects if strong ignorability holds. To get there often means very comprehensive data collection on the units of analysis and accounting for all of them in the propensity score model.
 
 # Summary
