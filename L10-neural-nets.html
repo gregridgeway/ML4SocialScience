@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-04-08">
+<meta name="dcterms.date" content="2025-04-10">
 
 <title>L10 Neural networks</title>
 <style>
@@ -134,21 +134,25 @@ window.Quarto = {
   <ul>
   <li><a href="#reading" id="toc-reading" class="nav-link active" data-scroll-target="#reading"><span class="header-section-number">1</span> Reading</a></li>
   <li><a href="#a-simple-neural-network" id="toc-a-simple-neural-network" class="nav-link" data-scroll-target="#a-simple-neural-network"><span class="header-section-number">2</span> A simple neural network</a></li>
-  <li><a href="#neural-networks-with-hidden-layers" id="toc-neural-networks-with-hidden-layers" class="nav-link" data-scroll-target="#neural-networks-with-hidden-layers"><span class="header-section-number">3</span> Neural networks with hidden layers</a></li>
-  <li><a href="#example-in-two-dimensions" id="toc-example-in-two-dimensions" class="nav-link" data-scroll-target="#example-in-two-dimensions"><span class="header-section-number">4</span> Example in two-dimensions</a></li>
-  <li><a href="#a-more-complex-decision-boundary-in-two-dimensions" id="toc-a-more-complex-decision-boundary-in-two-dimensions" class="nav-link" data-scroll-target="#a-more-complex-decision-boundary-in-two-dimensions"><span class="header-section-number">5</span> A more complex decision boundary in two dimensions</a>
+  <li><a href="#computing-derivatives-in-networks" id="toc-computing-derivatives-in-networks" class="nav-link" data-scroll-target="#computing-derivatives-in-networks"><span class="header-section-number">3</span> Computing derivatives in networks</a></li>
+  <li><a href="#backpropagation-for-a-neural-network-with-a-hidden-layer" id="toc-backpropagation-for-a-neural-network-with-a-hidden-layer" class="nav-link" data-scroll-target="#backpropagation-for-a-neural-network-with-a-hidden-layer"><span class="header-section-number">4</span> Backpropagation for a neural network with a hidden layer</a></li>
+  <li><a href="#examples-in-two-dimensions" id="toc-examples-in-two-dimensions" class="nav-link" data-scroll-target="#examples-in-two-dimensions"><span class="header-section-number">5</span> Examples in two-dimensions</a>
   <ul class="collapse">
-  <li><a href="#searching-for-a-linear-boundary" id="toc-searching-for-a-linear-boundary" class="nav-link" data-scroll-target="#searching-for-a-linear-boundary"><span class="header-section-number">5.1</span> Searching for a linear boundary</a></li>
-  <li><a href="#neural-network-with-hidden-layers" id="toc-neural-network-with-hidden-layers" class="nav-link" data-scroll-target="#neural-network-with-hidden-layers"><span class="header-section-number">5.2</span> Neural network with hidden layers</a></li>
+  <li><a href="#classes-separated-with-a-curve-but-we-try-a-linear-neural-network" id="toc-classes-separated-with-a-curve-but-we-try-a-linear-neural-network" class="nav-link" data-scroll-target="#classes-separated-with-a-curve-but-we-try-a-linear-neural-network"><span class="header-section-number">5.1</span> Classes separated with a curve, but we try a linear neural network</a></li>
+  <li><a href="#a-circular-decision-boundary-in-two-dimensions" id="toc-a-circular-decision-boundary-in-two-dimensions" class="nav-link" data-scroll-target="#a-circular-decision-boundary-in-two-dimensions"><span class="header-section-number">5.2</span> A circular decision boundary in two dimensions</a>
+  <ul class="collapse">
+  <li><a href="#searching-for-a-linear-boundary" id="toc-searching-for-a-linear-boundary" class="nav-link" data-scroll-target="#searching-for-a-linear-boundary"><span class="header-section-number">5.2.1</span> Searching for a linear boundary</a></li>
   </ul></li>
-  <li><a href="#rs-neuralnet-package" id="toc-rs-neuralnet-package" class="nav-link" data-scroll-target="#rs-neuralnet-package"><span class="header-section-number">6</span> R’s <code>neuralnet</code> package</a></li>
-  <li><a href="#tensorflow-and-keras" id="toc-tensorflow-and-keras" class="nav-link" data-scroll-target="#tensorflow-and-keras"><span class="header-section-number">7</span> Tensorflow and Keras</a>
+  </ul></li>
+  <li><a href="#implementing-backpropagation-by-hand-for-a-neural-network-with-a-hidden-layer" id="toc-implementing-backpropagation-by-hand-for-a-neural-network-with-a-hidden-layer" class="nav-link" data-scroll-target="#implementing-backpropagation-by-hand-for-a-neural-network-with-a-hidden-layer"><span class="header-section-number">6</span> Implementing backpropagation “by hand” for a neural network with a hidden layer</a></li>
+  <li><a href="#rs-neuralnet-package" id="toc-rs-neuralnet-package" class="nav-link" data-scroll-target="#rs-neuralnet-package"><span class="header-section-number">7</span> R’s <code>neuralnet</code> package</a></li>
+  <li><a href="#tensorflow-and-keras" id="toc-tensorflow-and-keras" class="nav-link" data-scroll-target="#tensorflow-and-keras"><span class="header-section-number">8</span> Tensorflow and Keras</a>
   <ul class="collapse">
-  <li><a href="#tensorflow-playground" id="toc-tensorflow-playground" class="nav-link" data-scroll-target="#tensorflow-playground"><span class="header-section-number">7.1</span> Tensorflow Playground</a></li>
-  <li><a href="#installing-tensorflow-and-keras" id="toc-installing-tensorflow-and-keras" class="nav-link" data-scroll-target="#installing-tensorflow-and-keras"><span class="header-section-number">7.2</span> Installing Tensorflow and Keras</a></li>
-  <li><a href="#mnist-postal-digits-data" id="toc-mnist-postal-digits-data" class="nav-link" data-scroll-target="#mnist-postal-digits-data"><span class="header-section-number">7.3</span> MNIST postal digits data</a></li>
-  <li><a href="#convolution-layers" id="toc-convolution-layers" class="nav-link" data-scroll-target="#convolution-layers"><span class="header-section-number">7.4</span> Convolution layers</a></li>
-  <li><a href="#a-convolutional-neural-network-with-keras" id="toc-a-convolutional-neural-network-with-keras" class="nav-link" data-scroll-target="#a-convolutional-neural-network-with-keras"><span class="header-section-number">7.5</span> A convolutional neural network with Keras</a></li>
+  <li><a href="#tensorflow-playground" id="toc-tensorflow-playground" class="nav-link" data-scroll-target="#tensorflow-playground"><span class="header-section-number">8.1</span> Tensorflow Playground</a></li>
+  <li><a href="#installing-tensorflow-and-keras" id="toc-installing-tensorflow-and-keras" class="nav-link" data-scroll-target="#installing-tensorflow-and-keras"><span class="header-section-number">8.2</span> Installing Tensorflow and Keras</a></li>
+  <li><a href="#mnist-postal-digits-data" id="toc-mnist-postal-digits-data" class="nav-link" data-scroll-target="#mnist-postal-digits-data"><span class="header-section-number">8.3</span> MNIST postal digits data</a></li>
+  <li><a href="#convolution-layers" id="toc-convolution-layers" class="nav-link" data-scroll-target="#convolution-layers"><span class="header-section-number">8.4</span> Convolution layers</a></li>
+  <li><a href="#a-convolutional-neural-network-with-keras" id="toc-a-convolutional-neural-network-with-keras" class="nav-link" data-scroll-target="#a-convolutional-neural-network-with-keras"><span class="header-section-number">8.5</span> A convolutional neural network with Keras</a></li>
   </ul></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L10-neural-nets.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -181,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 8, 2025</p>
+      <p class="date">April 10, 2025</p>
     </div>
   </div>
   
@@ -205,16 +209,17 @@ window.Quarto = {
 <p>Read <span class="citation" data-cites="Hast:Tibs:2001">Hastie, Tibshirani, and Friedman (<a href="#ref-Hast:Tibs:2001" role="doc-biblioref">2001</a>)</span> Chapter 11.</p>
 <p>Read <span class="citation" data-cites="ISLR2">James et al. (<a href="#ref-ISLR2" role="doc-biblioref">2021</a>)</span> Chapter 10.</p>
 <p>Read Y. LeCun, Y. Bengio, and G. Hinton (2015). “Deep learning,” <em>Nature</em> 521, 436–444.</p>
+<p>Section 5.6 of <span class="citation" data-cites="deisenroth2020mathematics">Deisenroth, Faisal, and Ong (<a href="#ref-deisenroth2020mathematics" role="doc-biblioref">2020</a>)</span>.</p>
 </section>
 <section id="a-simple-neural-network" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> A simple neural network</h1>
 <p>Consider a simple neural network that has two inputs <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> that enter a linear transformation, which outputs a prediction. Let’s further assume that we wish to minimize squared error, <span class="math inline">\(J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2\)</span>. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is</p>
-<div class="cell" data-layout-align="center">
+<div class="cell" data-layout-align="center" data-format-html="fig-ext=svg" data-format-pdf="fig-ext=pdf">
 <div class="cell-output-display">
 <div id="fig-linearnn" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-linearnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="L10-neural-nets_files/figure-html/fig-linearnn-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+<img src="L10-neural-nets_files/figure-html/fig-linearnn-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-linearnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Figure&nbsp;1: A linear model as a network
@@ -258,26 +263,132 @@ Figure&nbsp;1: A linear model as a network
 \end{split}
 \]</span> where in the last line the <span class="math inline">\(\lambda\)</span> absorbed the <span class="math inline">\(2\)</span>.</p>
 </section>
-<section id="neural-networks-with-hidden-layers" class="level1" data-number="3">
-<h1 data-number="3"><span class="header-section-number">3</span> Neural networks with hidden layers</h1>
-<p>The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.</p>
-<p>The network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a> takes two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.</p>
-<div class="cell" data-layout-align="center">
+<section id="computing-derivatives-in-networks" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Computing derivatives in networks</h1>
+<p>This is a nice example from <span class="citation" data-cites="deisenroth2020mathematics">Deisenroth, Faisal, and Ong (<a href="#ref-deisenroth2020mathematics" role="doc-biblioref">2020</a>)</span> Section 5.6. Let’s say you want to compute the derivative of</p>
+<p><span class="math display">\[
+f(x) = \sqrt{x^2 + e^{x^2}} + \cos\left(x^2 + e^{x^2}\right)
+\]</span> Using first semester univariate calculus rules, we can compute <span class="math inline">\(f'(x)\)</span> with a little effort. <span class="math display">\[
+f'(x) = \frac{2x+2xe^{x^2}}{2\sqrt{x^2 + e^{x^2}}}-\sin\left(x^2 + e^{x^2}\right)\left(2x+2xe^{x^2}\right)
+\]</span></p>
+<p>How could we go about turning this into something that a computer could handle? Let’s restructure the calculation by listing what we need to compute. In the second column I have compute the derivatives of each of these expressions. <span class="math display">\[
+\begin{array}{r@{\quad}l@{\qquad}r@{\quad}l}
+a &amp;= x^2                      &amp; \frac{\partial a}{\partial x} &amp;= 2x \\
+b &amp;= e^a                      &amp; \frac{\partial b}{\partial a} &amp;= e^a \\
+c &amp;= a + b                    &amp; \frac{\partial c}{\partial a} &amp;= 1 \\
+                              &amp;                                &amp; \frac{\partial c}{\partial b} &amp;= 1 \\
+d &amp;= \sqrt{c}                 &amp; \frac{\partial d}{\partial c} &amp;= \frac{1}{2\sqrt{c}} \\
+e &amp;= \cos(c)                  &amp; \frac{\partial e}{\partial c} &amp;= -\sin{c} \\
+f &amp;= d + e                    &amp; \frac{\partial f}{\partial d} &amp;= 1 \\
+                              &amp;                                &amp; \frac{\partial f}{\partial e} &amp;= 1 \\
+\end{array}
+\]</span> In the last row, the value of <span class="math inline">\(f\)</span> is <span class="math inline">\(f(x)\)</span>. We can conceptualize the calculation of <span class="math inline">\(f(x)\)</span> with the network shown in <a href="#fig-autodiffexample" class="quarto-xref">Figure&nbsp;2</a>.</p>
+<div class="cell" data-layout-align="center" data-format-html="fig-ext=svg" data-format-pdf="fig-ext=pdf">
+<div class="cell-output-display">
+<div id="fig-autodiffexample" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-autodiffexample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L10-neural-nets_files/figure-html/fig-autodiffexample-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-autodiffexample-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: An illustration of evaluating a function structured as a network
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Our goal is to compute <span class="math inline">\(\frac{\partial f}{\partial x}\)</span>. We will work backwards through <a href="#fig-autodiffexample" class="quarto-xref">Figure&nbsp;2</a>. We already have <span class="math inline">\(\frac{\partial f}{\partial e}\)</span> and <span class="math inline">\(\frac{\partial f}{\partial d}\)</span>. Let’s move the derivative one step further to get <span class="math inline">\(\frac{\partial f}{\partial c}\)</span>. There are two paths to get to <span class="math inline">\(c\)</span>, one through the square root and the other through the cosine. In standard mathematical notation, we are computing <span class="math display">\[
+\frac{\partial f}{\partial c} = \frac{\partial}{\partial c}\left( \sqrt{c} + \cos(c) \right)
+\]</span> Clearly the derivative is <span class="math inline">\(\frac{1}{2\sqrt{c}} - \sin(c)\)</span>. Referring to the network, we can see that this means that we sum over the derivatives associated with the paths through <span class="math inline">\(d\)</span> and <span class="math inline">\(e\)</span>, like</p>
+<p><span class="math display">\[
+\begin{split}
+\frac{\partial f}{\partial c} &amp;= \frac{\partial f}{\partial d}\frac{\partial d}{\partial c} + \frac{\partial f}{\partial e}\frac{\partial e}{\partial c} \\
+&amp;= 1 \times \frac{1}{2\sqrt{c}} + 1 \times - \sin(c) \\
+&amp;=\frac{1}{2\sqrt{c}} - \sin(c)
+\end{split}
+\]</span></p>
+<p>The more general rule is that as we move backwards through the network, the chain rule translates to <span class="math display">\[
+\frac{\partial f}{\partial x_i} = \sum_{x_j \in \mathrm{children}(x_i)}
+\frac{\partial f}{\partial x_j}\frac{\partial x_j}{\partial x_i}
+\]</span> Since <span class="math inline">\(d\)</span> and <span class="math inline">\(e\)</span> are the “children” of <span class="math inline">\(c\)</span>, we sum over them.</p>
+<p>Let’s move another step back in the network to <span class="math inline">\(b\)</span> applying this approach (note that <span class="math inline">\(a\)</span> is not a child of <span class="math inline">\(b\)</span>). We’ve already done the work to get <span class="math inline">\(\frac{\partial f}{\partial c}\)</span>, so we can plug that in. <span class="math display">\[
+\begin{split}
+\frac{\partial f}{\partial b} &amp;= \frac{\partial f}{\partial c}\frac{\partial c}{\partial b} \\
+&amp;= \left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times 1
+\end{split}
+\]</span> And another step back to <span class="math inline">\(a\)</span> (note that <span class="math inline">\(b\)</span> and <span class="math inline">\(c\)</span> are children of <span class="math inline">\(a\)</span>). <span class="math display">\[
+\begin{split}
+\frac{\partial f}{\partial a} &amp;= \frac{\partial f}{\partial b}\frac{\partial b}{\partial a} + \frac{\partial f}{\partial c}\frac{\partial c}{\partial a} \\
+&amp;= \left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times e^a +
+\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times 1
+\end{split}
+\]</span> And one more step to get us back to <span class="math inline">\(x\)</span>. <span class="math display">\[
+\begin{split}
+\frac{\partial f}{\partial x} &amp;= \frac{\partial f}{\partial a}\frac{\partial a}{\partial x} \\
+&amp;=  \left(\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)e^a +
+\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\right)\times 2x
+\end{split}
+\]</span> If in <a href="#fig-autodiffexample" class="quarto-xref">Figure&nbsp;2</a>, we choose a specific value for <span class="math inline">\(x\)</span> and propagate it forward through the network, we obtain all the intermediate values (<span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, …). As we chain rule backwards we use those values to obtain the values of the derivatives. By the time we are back to the beginning we can have already calculated all the necessary terms to obtain our final result.</p>
+<p>Let’s make this really concrete. Set <span class="math inline">\(x=2\)</span> and evaluate <span class="math inline">\(f(2)\)</span> and <span class="math inline">\(f'(2)\)</span>. Using the definition of <span class="math inline">\(f(x)\)</span> and our traditional hand-calculated derivative we get: <span class="math display">\[
+\begin{split}
+f(x) &amp;= \sqrt{x^2 + e^{x^2}} + \cos\left(x^2 + e^{x^2}\right) \\
+   &amp;= 7.19433 \\
+f'(x) &amp;= \frac{2x+2xe^{x^2}}{2\sqrt{x^2 + e^{x^2}}}-\sin\left(x^2 + e^{x^2}\right)\left(2x+2xe^{x^2}\right) \\
+&amp;=-182.8698
+\end{split}
+\]</span> Now let’s confirm that we indeed get <span class="math inline">\(f(2)=7.19433\)</span> when we propagate forward through the network and get <span class="math inline">\(f'(2)=-182.8698\)</span> when we move backwards through the network. In the forward pass, we can compute all of the intermediate values and derivatives of each intermediate value with respect to its “parents.” <span class="math display">\[
+\begin{array}{r@{\quad}l@{\qquad}r@{\quad}l}
+a &amp;= x^2 = 4                  &amp; \frac{\partial a}{\partial x} &amp;= 2x = 4\\
+b &amp;= e^a = e^4 = 54.59815     &amp; \frac{\partial b}{\partial a} &amp;= e^a = 54.59815\\
+c &amp;= a + b = 58.59815         &amp; \frac{\partial c}{\partial a} &amp;= 1 \\
+                              &amp;                                &amp; \frac{\partial c}{\partial b} &amp;= 1 \\
+d &amp;= \sqrt{c} = 7.654943      &amp; \frac{\partial d}{\partial c} &amp;= \frac{1}{2\sqrt{c}} = 0.06531727\\
+e &amp;= \cos(c) = -0.4606132     &amp; \frac{\partial e}{\partial c} &amp;= -\sin{c} = -0.887601\\
+f &amp;= d + e = 7.19433          &amp; \frac{\partial f}{\partial d} &amp;= 1 \\
+                              &amp;                                &amp; \frac{\partial f}{\partial e} &amp;= 1 \\
+\end{array}
+\]</span> In our forward pass we have values computed for every component. Now we move backwards to get the derivative. <span class="math display">\[
+\begin{split}
+\frac{\partial f}{\partial c} &amp;= \frac{\partial f}{\partial d}\frac{\partial d}{\partial c} + \frac{\partial f}{\partial e}\frac{\partial e}{\partial c} \\
+&amp;= 1\times 0.06531727 + 1\times -0.887601 \\
+&amp; = -0.8222837 \\
+\frac{\partial f}{\partial b} &amp;= \frac{\partial f}{\partial c}\frac{\partial c}{\partial b} \\
+&amp;= -0.8222837 \times 1 \\
+&amp;= -0.8222837 \\
+\frac{\partial f}{\partial a} &amp;= \frac{\partial f}{\partial b}\frac{\partial b}{\partial a} + \frac{\partial f}{\partial c}\frac{\partial c}{\partial a} \\
+&amp;= -0.8222837 \times 54.59815 + -0.8222837\times 1 \\
+&amp;= -45.71745 \\
+\frac{\partial f}{\partial x} &amp;= \frac{\partial f}{\partial a}\frac{\partial a}{\partial x} \\
+&amp;=  -45.71745\times 4 \\
+&amp;= -182.8698
+\end{split}
+\]</span> Exactly what we computed by hand. This is the general concept of the backpropagation algorithm for fitting neural networks. We will apply simple transformations to linear combinations of inputs and pass them forward in a network. Then to compute the gradient so that we can improve the fit of the model, we do a backwards pass (the backpropagation step). Computers are very good at keeping track of which nodes are children and which ones are parents and can efficiently compute the gradients by calculating and storing all of the intermediate calculations from the forward pass.</p>
+<p>You are now ready to apply this to a neural network with hidden layers.</p>
+</section>
+<section id="backpropagation-for-a-neural-network-with-a-hidden-layer" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Backpropagation for a neural network with a hidden layer</h1>
+<p>The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes:</p>
+<ol type="1">
+<li>add a hidden layer of nodes and</li>
+<li>add non-linear transformations of the input features.</li>
+</ol>
+<p>The network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;3</a> takes two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.</p>
+<div class="cell" data-layout-align="center" data-format-html="fig-ext=svg" data-format-pdf="fig-ext=pdf">
 <div class="cell-output-display">
 <div id="fig-nnhiddenlayer1" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-nnhiddenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="L10-neural-nets_files/figure-html/fig-nnhiddenlayer1-1.svg" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+<img src="L10-neural-nets_files/figure-html/fig-nnhiddenlayer1-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnhiddenlayer1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: A neural network with a single hidden layer with 4 hidden nodes and a single output
+Figure&nbsp;3: A neural network with a single hidden layer with 4 hidden nodes and a single output
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>If all the nodes just did linear transformations, then the output node would also just be a linear transformation of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span>, offering no improvement over ordinary least squares. Instead, neural networks apply a non-linear “activation function” to the linear combination of features from the previous node. With a single hidden layer and a non-linear activation function, a neural network can capture any shape decision boundary. It is a “universal approximator.” The success of deep learning comes from how expressive neural networks can be with layers of these simple functions on top of each other.</p>
-<p>The most common activation functions are the sigmoid (also known as the inverse logit transform or expit), the hyperbolic tangent, the rectified linear unit (ReLU… pronounced ray-loo), and the Heaviside function. <a href="#fig-activationFuncs" class="quarto-xref">Figure&nbsp;3</a> shows their shape.</p>
+<p>The most common activation functions are the sigmoid (also known as the inverse logit transform or expit), the hyperbolic tangent, the rectified linear unit (ReLU… pronounced ray-loo), and the Heaviside function. <a href="#fig-activationFuncs" class="quarto-xref">Figure&nbsp;4</a> shows their shape.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">4</span>,<span class="dv">4</span>,<span class="at">length.out=</span><span class="dv">100</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># sigmoid, 1/(1+exp(-x))</span></span>
@@ -300,14 +411,14 @@ Figure&nbsp;2: A neural network with a single hidden layer with 4 hidden nodes a
 <img src="L10-neural-nets_files/figure-html/fig-activationFuncs-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-activationFuncs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Four common activation functions
+Figure&nbsp;4: Four common activation functions
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>Each node applies one of these activation functions to the linear combination of inputs from the previous layer. Used in this manner, they are called “ridge” activation functions.</p>
-<p>Returning to the network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a>, the hidden nodes marked with a <span class="math inline">\([1]\)</span> superscript in them all have the form <span class="math display">\[
+<p>Returning to the network in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;3</a>, the hidden nodes marked with a <span class="math inline">\([1]\)</span> superscript in them all have the form <span class="math display">\[
 \mathbf{a}^{[1]} =
 \begin{bmatrix}
     a_1^{[1]} \\ a_2^{[1]} \\ a_3^{[1]} \\a_4^{[1]}
@@ -404,8 +515,10 @@ a_{ij}^{[1]} = \sigma\left(\mathbf{w}_j^{[1]}{'}\mathbf{x}_i\right) = \sigma\lef
     w_{jk}^{[1]} \leftarrow w_{jk}^{[1]} + \lambda w_{j}^{[2]}\sum_{i=1}^n (y_i-\hat y_i)a_{ij}^{[1]}(1-a_{ij}^{[1]})x_{ik}
 \]</span> The components of this expression were already computed when we passed forward through the network to make predictions. Now we work backward through the network applying the chain rule over and over to compute the gradients for each layer’s parameters. This process of working backwards computing the gradient is the “backpropagation” algorithm <span class="citation" data-cites="rosenblatt1962principles">(<a href="#ref-rosenblatt1962principles" role="doc-biblioref">Rosenblatt 1962</a>)</span>. The particular nice property of the algorithm is that the gradient is (relatively) easy to calculate knowing the derivatives from the next layer. So, working backwards to get the updates results is reasonably efficient optimization.</p>
 </section>
-<section id="example-in-two-dimensions" class="level1" data-number="4">
-<h1 data-number="4"><span class="header-section-number">4</span> Example in two-dimensions</h1>
+<section id="examples-in-two-dimensions" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Examples in two-dimensions</h1>
+<section id="classes-separated-with-a-curve-but-we-try-a-linear-neural-network" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="classes-separated-with-a-curve-but-we-try-a-linear-neural-network"><span class="header-section-number">5.1</span> Classes separated with a curve, but we try a linear neural network</h2>
 <p>We are going to be using the sigmoid a lot, so I am going to go ahead and make a helper function.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sigmoid <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {<span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>x))}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -427,13 +540,13 @@ a_{ij}^{[1]} = \sigma\left(\mathbf{w}_j^{[1]}{'}\mathbf{x}_i\right) = \sigma\lef
 <img src="L10-neural-nets_files/figure-html/fig-sigmoidSeparationSimulation1-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sigmoidSeparationSimulation1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Simulated data with a sigmoid separation boundary
+Figure&nbsp;5: Simulated data with a sigmoid separation boundary
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>We will use the algorithm we developed earlier to fit a “single-layer perceptron” model, like the one shown in <a href="#fig-linearnn" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<p>We will use the algorithm we developed earlier to fit a “single-layer linear perceptron” model, like the one shown in <a href="#fig-linearnn" class="quarto-xref">Figure&nbsp;1</a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># set some starting values</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">0</span>)</span>
@@ -462,18 +575,18 @@ Figure&nbsp;4: Simulated data with a sigmoid separation boundary
 <img src="L10-neural-nets_files/figure-html/fig-singlelayerperceptron-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-singlelayerperceptron-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Predicted values from linear perceptron model
+Figure&nbsp;6: Predicted values from linear perceptron model
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>In <a href="#fig-singlelayerperceptron" class="quarto-xref">Figure&nbsp;5</a>, the black curve shows the optimal decision boundary. The blue and orange points show the predicted values. The decision boundary is as best as you can get with a linear model. With a single-layer perceptron in which all relationships are linear, this is the best we can do.</p>
+<p>In <a href="#fig-singlelayerperceptron" class="quarto-xref">Figure&nbsp;6</a>, the black curve shows the optimal decision boundary. The blue and orange points show the predicted values. The decision boundary is as best as you can get with a linear model. With a single-layer perceptron in which all relationships are linear, this is the best we can do.</p>
 </section>
-<section id="a-more-complex-decision-boundary-in-two-dimensions" class="level1" data-number="5">
-<h1 data-number="5"><span class="header-section-number">5</span> A more complex decision boundary in two dimensions</h1>
-<section id="searching-for-a-linear-boundary" class="level2" data-number="5.1">
-<h2 data-number="5.1" class="anchored" data-anchor-id="searching-for-a-linear-boundary"><span class="header-section-number">5.1</span> Searching for a linear boundary</h2>
+<section id="a-circular-decision-boundary-in-two-dimensions" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="a-circular-decision-boundary-in-two-dimensions"><span class="header-section-number">5.2</span> A circular decision boundary in two dimensions</h2>
+<section id="searching-for-a-linear-boundary" class="level3" data-number="5.2.1">
+<h3 data-number="5.2.1" class="anchored" data-anchor-id="searching-for-a-linear-boundary"><span class="header-section-number">5.2.1</span> Searching for a linear boundary</h3>
 <p>Let’s consider a new decision boundary with which a linear neural network will really struggle.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">with</span>(d, <span class="fu">as.numeric</span>(x1<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span>x2<span class="sc">^</span><span class="dv">2</span> <span class="sc">&gt;</span> <span class="dv">1</span>))</span>
@@ -486,7 +599,7 @@ Figure&nbsp;5: Predicted values from linear perceptron model
 <img src="L10-neural-nets_files/figure-html/fig-simulationCircularBoundary-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-simulationCircularBoundary-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Simulated circular classification boundary
+Figure&nbsp;7: Simulated circular classification boundary
 </figcaption>
 </figure>
 </div>
@@ -523,7 +636,7 @@ Figure&nbsp;6: Simulated circular classification boundary
 <img src="L10-neural-nets_files/figure-html/fig-singlelayerperceptronCircle-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-singlelayerperceptronCircle-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Predicted values from linear perceptron model for circular decision boundary
+Figure&nbsp;8: Predicted values from linear perceptron model for circular decision boundary
 </figcaption>
 </figure>
 </div>
@@ -531,9 +644,11 @@ Figure&nbsp;7: Predicted values from linear perceptron model for circular decisi
 </div>
 <p>The mean of <code>y</code> for this simulation is 0.583. The final estimate of <span class="math inline">\(\beta\)</span> is 0.5800297, 0.0052191, 9.2792344^{-4}. In the end, the linear restrictions we have put on the neural network makes it abandon trying to separate the blue and the orange and just predicts all points to be in the majority class, orange.</p>
 </section>
-<section id="neural-network-with-hidden-layers" class="level2" data-number="5.2">
-<h2 data-number="5.2" class="anchored" data-anchor-id="neural-network-with-hidden-layers"><span class="header-section-number">5.2</span> Neural network with hidden layers</h2>
-<p>To remedy the problem with the linear neural network, we are going to fit the model shown in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;2</a>, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on <a href="https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/">Building A Neural Net from Scratch Using R</a>. The code on the website has several bugs that have been fixed here.</p>
+</section>
+</section>
+<section id="implementing-backpropagation-by-hand-for-a-neural-network-with-a-hidden-layer" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Implementing backpropagation “by hand” for a neural network with a hidden layer</h1>
+<p>To remedy the problem with the linear neural network, we are going to fit the model shown in <a href="#fig-nnhiddenlayer1" class="quarto-xref">Figure&nbsp;3</a>, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on <a href="https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/">Building A Neural Net from Scratch Using R</a>. The code on the website has several bugs that have been fixed here.</p>
 <p>We start by setting up some functions to help us along the way. In this code, the “bias” terms (the “intercept” terms) <code>b1</code> and <code>b2</code> are stored separately from the weights.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a function to get the number of nodes at each level, input, hidden, and output</span></span>
@@ -852,7 +967,7 @@ Iteration 50000  | Cost:  0.4343475 </code></pre>
 <img src="L10-neural-nets_files/figure-html/fig-neuralnetIterationxLL-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-neuralnetIterationxLL-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 2 hidden nodes
+Figure&nbsp;9: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 2 hidden nodes
 </figcaption>
 </figure>
 </div>
@@ -873,7 +988,7 @@ Figure&nbsp;8: Negative Bernoulli log likelihood by gradient descent iteration, 
 <img src="L10-neural-nets_files/figure-html/fig-nnFitCircular2HiddenNodes-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnFitCircular2HiddenNodes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;9: Predictions from a neural network with two hidden nodes
+Figure&nbsp;10: Predictions from a neural network with two hidden nodes
 </figcaption>
 </figure>
 </div>
@@ -899,7 +1014,7 @@ Iteration 50000  | Cost:  0.05542842 </code></pre>
 <img src="L10-neural-nets_files/figure-html/fig-neuralnetIterationxLL4HiddenNodes-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-neuralnetIterationxLL4HiddenNodes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;10: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes
+Figure&nbsp;11: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes
 </figcaption>
 </figure>
 </div>
@@ -928,7 +1043,7 @@ Figure&nbsp;10: Negative Bernoulli log likelihood by gradient descent iteration,
 <img src="L10-neural-nets_files/figure-html/fig-nnFitCircular4HiddenNodes-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnFitCircular4HiddenNodes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;11: Predictions from a neural network with four hidden nodes
+Figure&nbsp;12: Predictions from a neural network with four hidden nodes
 </figcaption>
 </figure>
 </div>
@@ -972,7 +1087,7 @@ Figure&nbsp;11: Predictions from a neural network with four hidden nodes
 <img src="L10-neural-nets_files/figure-html/fig-simulatedFlower-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-simulatedFlower-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;12: Simulated data with a complex classification boundary
+Figure&nbsp;13: Simulated data with a complex classification boundary
 </figcaption>
 </figure>
 </div>
@@ -984,11 +1099,11 @@ Figure&nbsp;12: Simulated data with a complex classification boundary
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">hidden_neurons =</span> <span class="dv">4</span>,</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">num_iteration =</span> <span class="dv">50000</span>, <span class="at">lr =</span> <span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Iteration 10000  | Cost:  0.2863198 
-Iteration 20000  | Cost:  0.2676711 
-Iteration 30000  | Cost:  0.2595525 
-Iteration 40000  | Cost:  0.25454 
-Iteration 50000  | Cost:  0.2509547 </code></pre>
+<pre><code>Iteration 10000  | Cost:  0.2743664 
+Iteration 20000  | Cost:  0.253922 
+Iteration 30000  | Cost:  0.2400474 
+Iteration 40000  | Cost:  0.23342 
+Iteration 50000  | Cost:  0.2292658 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(train_model<span class="sc">$</span>cost_hist, <span class="at">type=</span><span class="st">"l"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -998,7 +1113,7 @@ Iteration 50000  | Cost:  0.2509547 </code></pre>
 <img src="L10-neural-nets_files/figure-html/fig-neuralnetIterationxLLFlower4HiddenNodes-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-neuralnetIterationxLLFlower4HiddenNodes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;13: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes, “flower shaped” data
+Figure&nbsp;14: Negative Bernoulli log likelihood by gradient descent iteration, neural network with 4 hidden nodes, “flower shaped” data
 </figcaption>
 </figure>
 </div>
@@ -1023,7 +1138,7 @@ Figure&nbsp;13: Negative Bernoulli log likelihood by gradient descent iteration,
 <img src="L10-neural-nets_files/figure-html/fig-nnFitFlower4HiddenNodes-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnFitFlower4HiddenNodes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;14: Predictions from a neural network with four hidden nodes
+Figure&nbsp;15: Predictions from a neural network with four hidden nodes
 </figcaption>
 </figure>
 </div>
@@ -1031,9 +1146,8 @@ Figure&nbsp;14: Predictions from a neural network with four hidden nodes
 </div>
 <p>Yes! Four hidden nodes are sufficient to capture this pattern too.</p>
 </section>
-</section>
-<section id="rs-neuralnet-package" class="level1" data-number="6">
-<h1 data-number="6"><span class="header-section-number">6</span> R’s <code>neuralnet</code> package</h1>
+<section id="rs-neuralnet-package" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> R’s <code>neuralnet</code> package</h1>
 <p>Now that we have explored fitting a neural network “by hand,” in this section we will cover using existing software to fit neural networks.</p>
 <p>First, we will walk through using the <code>neuralnet</code> package. There is also a <code>nnet</code> package, but it allows only one hidden layer. The <code>neuralnet</code> package simply allows for more flexibility. After that, we will experiment with Keras, a professional grade neural network system regularly used in scientific analyses.</p>
 <p>Start by loading the neuralnet package and revisiting our circular decision boundary dataset.</p>
@@ -1050,7 +1164,7 @@ Figure&nbsp;14: Predictions from a neural network with four hidden nodes
 <img src="L10-neural-nets_files/figure-html/fig-simulationCircularBoundary2-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-simulationCircularBoundary2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;15: Simulated circular classification boundary
+Figure&nbsp;16: Simulated circular classification boundary
 </figcaption>
 </figure>
 </div>
@@ -1067,7 +1181,7 @@ Figure&nbsp;15: Simulated circular classification boundary
 <span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">act.fct=</span><span class="st">"logistic"</span>,    <span class="co"># sigmoid</span></span>
 <span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lifesign=</span><span class="st">"minimal"</span>)    <span class="co"># how much detail to print</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:  176764 error: 0.04531  time: 1.85 mins</code></pre>
+<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:  305180 error: 0.01745  time: 2.16 mins</code></pre>
 </div>
 </div>
 <p>The plot function will draw the network graph for us with the coefficients on all of the edges.</p>
@@ -1088,7 +1202,7 @@ Figure&nbsp;15: Simulated circular classification boundary
 <img src="L10-neural-nets_files/figure-html/fig-drawNeuralNetwork-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-drawNeuralNetwork-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;16: Neural network estimated with <code>neuralnet()</code>
+Figure&nbsp;17: Neural network estimated with <code>neuralnet()</code>
 </figcaption>
 </figure>
 </div>
@@ -1111,26 +1225,26 @@ Figure&nbsp;16: Neural network estimated with <code>neuralnet()</code>
 <img src="L10-neural-nets_files/figure-html/fig-nnFitCircularNNpackage-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nnFitCircularNNpackage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;17: Predictions from a neural network from the <code>neuralnet</code> package with four hidden nodes
+Figure&nbsp;18: Predictions from a neural network from the <code>neuralnet</code> package with four hidden nodes
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="tensorflow-and-keras" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Tensorflow and Keras</h1>
+<section id="tensorflow-and-keras" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Tensorflow and Keras</h1>
 <p><a href="https://www.tensorflow.org/">Tensorflow</a> is a Google product for efficient machine learning. It allows for computation with GPUs, but current GPU functionality on Windows is broken and removed. <a href="https://keras.io/">Keras</a> is a set of Python tools for communicating what neural network structure you want. It then translates that structure into a neural network model that can be fit with Tensorflow (or with <a href="https://pytorch.org/">PyTorch</a>, Facebook AI group’s Python tools for machine learning). I encourage you to read the documentation and explore demos available for all of these tools.</p>
 <p>A lot of the scientific community using deep learning works in Python. For that reason, you will find a lot of Python resources for developing neural networks. Since most social science research is conducted in R, I focused on R for this course. We will still use the R Keras library, which hooks into Python, which hooks into Keras, which hooks into Tensorflow. With all of your variations in computers, operating systems, and settings there is a lot of opportunity for some settings, versions, and options to not be compatible. I will have limited ability to troubleshoot why Keras, Tensorflow, or Python is giving you errors. In this case you will have to learn how to learn to figure these things out.</p>
 <p>For the most serious deep learning analysis, that work is done directly in Tensorflow. So, if you really want to learn this area well, start with Keras and then start digging into working with Tensorflow (or PyTorch).</p>
 <p>Tensorflow and Keras are usually behind a version or two of Python. Python 3.13 is the current version, but Keras/Tensorflow support up to Python 3.12. This constantly changes. I will be using Python 3.11, because I know it works.</p>
-<section id="tensorflow-playground" class="level2" data-number="7.1">
-<h2 data-number="7.1" class="anchored" data-anchor-id="tensorflow-playground"><span class="header-section-number">7.1</span> Tensorflow Playground</h2>
-<p>Visit the (Tensorflow Playground)[https://playground.tensorflow.org]. This let’s you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network’s ability to learn the decision boundary.</p>
+<section id="tensorflow-playground" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="tensorflow-playground"><span class="header-section-number">8.1</span> Tensorflow Playground</h2>
+<p>Visit the <a href="https://playground.tensorflow.org">Tensorflow Playground</a>. This let’s you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network’s ability to learn the decision boundary.</p>
 <p>Challenge: Using only <span class="math inline">\(X_1\)</span> and <span class="math inline">\(X_2\)</span> as inputs, can you alter the number of the hidden layers and nodes that will successful learn the spiral pattern?</p>
 </section>
-<section id="installing-tensorflow-and-keras" class="level2" data-number="7.2">
-<h2 data-number="7.2" class="anchored" data-anchor-id="installing-tensorflow-and-keras"><span class="header-section-number">7.2</span> Installing Tensorflow and Keras</h2>
+<section id="installing-tensorflow-and-keras" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="installing-tensorflow-and-keras"><span class="header-section-number">8.2</span> Installing Tensorflow and Keras</h2>
 <p>First, we will do a one-time installation.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"keras"</span>)</span>
@@ -1144,8 +1258,8 @@ Figure&nbsp;17: Predictions from a neural network from the <code>neuralnet</code
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="mnist-postal-digits-data" class="level2" data-number="7.3">
-<h2 data-number="7.3" class="anchored" data-anchor-id="mnist-postal-digits-data"><span class="header-section-number">7.3</span> MNIST postal digits data</h2>
+<section id="mnist-postal-digits-data" class="level2" data-number="8.3">
+<h2 data-number="8.3" class="anchored" data-anchor-id="mnist-postal-digits-data"><span class="header-section-number">8.3</span> MNIST postal digits data</h2>
 <p>We are going to experiment with the NIST postal digits data (<a href="https://en.wikipedia.org/wiki/MNIST_database">MNIST database</a>). Why? Because it seems to be a rite of passage for anyone working on neural networks. Everyone has to run the MNIST problem at some point. It is a set of 60,000 28x28 grayscale images handwritten digits. There is also a test set of 10,000 images. The Keras library comes with the MNIST database. We can load the dataset and print out one of the images.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>numData <span class="ot">&lt;-</span> <span class="fu">dataset_mnist</span>()</span>
@@ -1170,7 +1284,7 @@ Figure&nbsp;17: Predictions from a neural network from the <code>neuralnet</code
 <img src="L10-neural-nets_files/figure-html/fig-MNIST4-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-MNIST4-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;18: An example number 4 from the MNIST data
+Figure&nbsp;19: An example number 4 from the MNIST data
 </figcaption>
 </figure>
 </div>
@@ -1196,7 +1310,7 @@ Figure&nbsp;18: An example number 4 from the MNIST data
 <img src="L10-neural-nets_files/figure-html/fig-MNIST25-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-MNIST25-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;19: 25 examples from the MNIST data
+Figure&nbsp;20: 25 examples from the MNIST data
 </figcaption>
 </figure>
 </div>
@@ -1297,45 +1411,45 @@ ________________________________________________________________________________
 <span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 6s - loss: 0.3053 - accuracy: 0.9124 - val_loss: 0.1484 - val_accuracy: 0.9589 - 6s/epoch - 17ms/step
+375/375 - 5s - loss: 0.3107 - accuracy: 0.9112 - val_loss: 0.1605 - val_accuracy: 0.9543 - 5s/epoch - 15ms/step
 Epoch 2/20
-375/375 - 5s - loss: 0.1333 - accuracy: 0.9612 - val_loss: 0.1049 - val_accuracy: 0.9695 - 5s/epoch - 13ms/step
+375/375 - 4s - loss: 0.1363 - accuracy: 0.9606 - val_loss: 0.1121 - val_accuracy: 0.9655 - 4s/epoch - 10ms/step
 Epoch 3/20
-375/375 - 4s - loss: 0.0934 - accuracy: 0.9726 - val_loss: 0.0965 - val_accuracy: 0.9722 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0952 - accuracy: 0.9717 - val_loss: 0.0993 - val_accuracy: 0.9696 - 4s/epoch - 10ms/step
 Epoch 4/20
-375/375 - 5s - loss: 0.0715 - accuracy: 0.9787 - val_loss: 0.0853 - val_accuracy: 0.9744 - 5s/epoch - 12ms/step
+375/375 - 3s - loss: 0.0730 - accuracy: 0.9779 - val_loss: 0.0908 - val_accuracy: 0.9707 - 3s/epoch - 9ms/step
 Epoch 5/20
-375/375 - 4s - loss: 0.0567 - accuracy: 0.9829 - val_loss: 0.0827 - val_accuracy: 0.9755 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0575 - accuracy: 0.9829 - val_loss: 0.0823 - val_accuracy: 0.9751 - 4s/epoch - 10ms/step
 Epoch 6/20
-375/375 - 4s - loss: 0.0477 - accuracy: 0.9852 - val_loss: 0.0741 - val_accuracy: 0.9782 - 4s/epoch - 11ms/step
+375/375 - 3s - loss: 0.0474 - accuracy: 0.9858 - val_loss: 0.0751 - val_accuracy: 0.9773 - 3s/epoch - 9ms/step
 Epoch 7/20
-375/375 - 4s - loss: 0.0387 - accuracy: 0.9882 - val_loss: 0.0712 - val_accuracy: 0.9787 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0379 - accuracy: 0.9886 - val_loss: 0.0757 - val_accuracy: 0.9787 - 4s/epoch - 11ms/step
 Epoch 8/20
-375/375 - 4s - loss: 0.0329 - accuracy: 0.9900 - val_loss: 0.0711 - val_accuracy: 0.9799 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0326 - accuracy: 0.9897 - val_loss: 0.0744 - val_accuracy: 0.9783 - 4s/epoch - 10ms/step
 Epoch 9/20
-375/375 - 4s - loss: 0.0278 - accuracy: 0.9914 - val_loss: 0.0725 - val_accuracy: 0.9800 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0275 - accuracy: 0.9916 - val_loss: 0.0783 - val_accuracy: 0.9783 - 4s/epoch - 10ms/step
 Epoch 10/20
-375/375 - 4s - loss: 0.0238 - accuracy: 0.9927 - val_loss: 0.0763 - val_accuracy: 0.9801 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0238 - accuracy: 0.9929 - val_loss: 0.0743 - val_accuracy: 0.9799 - 4s/epoch - 10ms/step
 Epoch 11/20
-375/375 - 5s - loss: 0.0199 - accuracy: 0.9938 - val_loss: 0.0749 - val_accuracy: 0.9797 - 5s/epoch - 13ms/step
+375/375 - 4s - loss: 0.0203 - accuracy: 0.9937 - val_loss: 0.0737 - val_accuracy: 0.9793 - 4s/epoch - 11ms/step
 Epoch 12/20
-375/375 - 5s - loss: 0.0176 - accuracy: 0.9946 - val_loss: 0.0762 - val_accuracy: 0.9803 - 5s/epoch - 13ms/step
+375/375 - 4s - loss: 0.0187 - accuracy: 0.9939 - val_loss: 0.0746 - val_accuracy: 0.9812 - 4s/epoch - 10ms/step
 Epoch 13/20
-375/375 - 5s - loss: 0.0151 - accuracy: 0.9953 - val_loss: 0.0767 - val_accuracy: 0.9809 - 5s/epoch - 14ms/step
+375/375 - 4s - loss: 0.0159 - accuracy: 0.9953 - val_loss: 0.0764 - val_accuracy: 0.9802 - 4s/epoch - 10ms/step
 Epoch 14/20
-375/375 - 4s - loss: 0.0129 - accuracy: 0.9958 - val_loss: 0.0809 - val_accuracy: 0.9807 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0139 - accuracy: 0.9958 - val_loss: 0.0766 - val_accuracy: 0.9801 - 4s/epoch - 11ms/step
 Epoch 15/20
-375/375 - 4s - loss: 0.0118 - accuracy: 0.9964 - val_loss: 0.0767 - val_accuracy: 0.9822 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0116 - accuracy: 0.9967 - val_loss: 0.0812 - val_accuracy: 0.9798 - 4s/epoch - 11ms/step
 Epoch 16/20
-375/375 - 4s - loss: 0.0097 - accuracy: 0.9971 - val_loss: 0.0776 - val_accuracy: 0.9805 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0105 - accuracy: 0.9971 - val_loss: 0.0767 - val_accuracy: 0.9817 - 4s/epoch - 9ms/step
 Epoch 17/20
-375/375 - 4s - loss: 0.0084 - accuracy: 0.9974 - val_loss: 0.0795 - val_accuracy: 0.9801 - 4s/epoch - 11ms/step
+375/375 - 3s - loss: 0.0090 - accuracy: 0.9971 - val_loss: 0.0775 - val_accuracy: 0.9813 - 3s/epoch - 8ms/step
 Epoch 18/20
-375/375 - 4s - loss: 0.0082 - accuracy: 0.9975 - val_loss: 0.0753 - val_accuracy: 0.9823 - 4s/epoch - 11ms/step
+375/375 - 3s - loss: 0.0081 - accuracy: 0.9973 - val_loss: 0.0819 - val_accuracy: 0.9814 - 3s/epoch - 9ms/step
 Epoch 19/20
-375/375 - 4s - loss: 0.0068 - accuracy: 0.9980 - val_loss: 0.0845 - val_accuracy: 0.9815 - 4s/epoch - 12ms/step
+375/375 - 4s - loss: 0.0075 - accuracy: 0.9975 - val_loss: 0.0775 - val_accuracy: 0.9810 - 4s/epoch - 10ms/step
 Epoch 20/20
-375/375 - 4s - loss: 0.0071 - accuracy: 0.9980 - val_loss: 0.0816 - val_accuracy: 0.9813 - 4s/epoch - 12ms/step</code></pre>
+375/375 - 3s - loss: 0.0067 - accuracy: 0.9979 - val_loss: 0.0793 - val_accuracy: 0.9825 - 3s/epoch - 9ms/step</code></pre>
 </div>
 </div>
 <p>We can plot the “learning curves,” tracing out how much better the neural network became after each epoch.</p>
@@ -1352,7 +1466,7 @@ Epoch 20/20
 <img src="L10-neural-nets_files/figure-html/fig-keraslearningcurve-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-keraslearningcurve-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;20: Loss function and accuracy on training and validation MNIST data
+Figure&nbsp;21: Loss function and accuracy on training and validation MNIST data
 </figcaption>
 </figure>
 </div>
@@ -1362,26 +1476,25 @@ Figure&nbsp;20: Loss function and accuracy on training and validation MNIST data
 <div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(keras1, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - 1s/epoch - 3ms/step</code></pre>
+<pre><code>313/313 - 1s - 723ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> <span class="fu">apply</span>(yTest, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0 184 276  58 285 114 171 252  52 125  31
-       1 526  27 113  90  69 161 176 309  76 186
-       2 132 466 701 486 376 300 240 309 567 292
-       3   4 184  27  10  23  14  29   1  18   0
-       4  97   7  29  67 264 162 173 292 115 411
-       5  15  24   4  44  28  23  20   3  17   6
-       6   1   0   0   2   0   1   7   0   3   1
-       7  18 150  95  22  94  45  38  51  53  73
-       8   2   0   2   2  10  12   0   2   0   7
-       9   1   1   3   2   4   3  23   9   0   2</code></pre>
+       0   0  28   1   0   1  15   5   3   3   0
+       1 193 492 428 521  40 423 430  65 270  81
+       2   0   9   0   0   0   0   0   0   0   0
+       3   0   0   0   2   9  10   0   4   7   1
+       5 179 341  48  92  35  59  15  44  45  21
+       6 398  70 178 139 701 254 177 831 465 843
+       7   3   0  14  22   0   4   0  16  29   5
+       8 196 195 350 227 171 114 323  58 154  53
+       9  11   0  13   7  25  13   8   7   1   5</code></pre>
 </div>
 </div>
-<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 411 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
+<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 0 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
 <p>Let’s examine 12 randomly selected digits that we have misclassified.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240408</span>)</span>
@@ -1405,7 +1518,7 @@ yPredVal   0   1   2   3   4   5   6   7   8   9
 <img src="L10-neural-nets_files/figure-html/fig-MNISTexampleErrors-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-MNISTexampleErrors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;21: Examples of errors from our neural network. Heading of each image shows the predicted value
+Figure&nbsp;22: Examples of errors from our neural network. Heading of each image shows the predicted value
 </figcaption>
 </figure>
 </div>
@@ -1415,16 +1528,16 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <div class="cell">
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(keras1, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - loss: 2.3133 - accuracy: 0.1269 - 1s/epoch - 5ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 2.3830 - accuracy: 0.0905 - 652ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
- 2.31327  0.12690 </code></pre>
+2.383048 0.090500 </code></pre>
 </div>
 </div>
 </section>
-<section id="convolution-layers" class="level2" data-number="7.4">
-<h2 data-number="7.4" class="anchored" data-anchor-id="convolution-layers"><span class="header-section-number">7.4</span> Convolution layers</h2>
+<section id="convolution-layers" class="level2" data-number="8.4">
+<h2 data-number="8.4" class="anchored" data-anchor-id="convolution-layers"><span class="header-section-number">8.4</span> Convolution layers</h2>
 <p>Convolutional layers are the main building block for Convolution Neural Networks (CNNs), primarily used in processing data with a grid-like shapes, like images. The utility of convolutional layers comes from their ability to efficiently handle and process spatial information. Unlike layers that treat input data as a flat array, as we did previously, convolutional layers preserve the spatial relationships between pixels or data points by applying filters (or kernels) that scan over the input. This approach enables the network to capture local patterns such as edges, textures, or shapes within the input data. Convolutional layers can significantly reduce the size of networks needed to get good predictive performance, making the training process faster and less prone to overfitting. Convolutional layers learn feature representations, making them especially powerful for tasks involving images, video, and time-series data.</p>
 <p>Let <span class="math inline">\(\mathbf{X}\)</span> be an <span class="math inline">\(r\times c\)</span> greyscale image where the element <span class="math inline">\(\mathbf{X}_{ij}\)</span> is between 0 and 1, denoting the greyscale range from black to white. The convolution layer involves a <span class="math inline">\(m\times m\)</span> matrix of parameters, <span class="math inline">\(\mathbf{K}\)</span>, that the network will need to estimate from data. Typically, in practice <span class="math inline">\(m\)</span> is small, like 2, 3, or 4.</p>
 <p>Assume <span class="math inline">\(m=2\)</span> so that <span class="math inline">\(\mathbf{X}\)</span> is a <span class="math inline">\(2\times 2\)</span> matrix of the form <span class="math inline">\(\begin{bmatrix} a &amp; b \\ c &amp; d\end{bmatrix}\)</span>. The convolution layer will transform every <span class="math inline">\(2\times 2\)</span> section of <span class="math inline">\(\mathbf{X}\)</span> to create a new matrix that will feed into the next layer.</p>
@@ -1455,8 +1568,8 @@ Figure&nbsp;21: Examples of errors from our neural network. Heading of each imag
 <p>and sent into the next layer of the neural network, now accepting 4 new inputs rather than the original 9 inputs.</p>
 <p>The convolution kernel <span class="math inline">\(K\)</span> can vary by size and shape and “stride,” the spacing between each application of the convolution. Also, the input may be a three-dimensional tensor input with the third dimension being a 3-level color channel, the mixture of red, green, and blue, for example. For such cases, we use a 3D kernel for the convolution layer. This transforms both the spatial image and the local color structure to an input vector.</p>
 </section>
-<section id="a-convolutional-neural-network-with-keras" class="level2" data-number="7.5">
-<h2 data-number="7.5" class="anchored" data-anchor-id="a-convolutional-neural-network-with-keras"><span class="header-section-number">7.5</span> A convolutional neural network with Keras</h2>
+<section id="a-convolutional-neural-network-with-keras" class="level2" data-number="8.5">
+<h2 data-number="8.5" class="anchored" data-anchor-id="a-convolutional-neural-network-with-keras"><span class="header-section-number">8.5</span> A convolutional neural network with Keras</h2>
 <p>Keras easily allows you to add a convolution layer to the neural network. First, we need to reorganize our dataset so that we do not flatten out the images into one long vector of grayscale values, but instead retain their two dimensional structure.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>xTrain <span class="ot">&lt;-</span> numData<span class="sc">$</span>train<span class="sc">$</span>x</span>
@@ -1526,45 +1639,45 @@ ________________________________________________________________________________
 <span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">validation_split =</span> <span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 53s - loss: 1.6531 - accuracy: 0.8943 - val_loss: 0.0927 - val_accuracy: 0.9767 - 53s/epoch - 141ms/step
+375/375 - 51s - loss: 1.7704 - accuracy: 0.8936 - val_loss: 0.1043 - val_accuracy: 0.9676 - 51s/epoch - 135ms/step
 Epoch 2/20
-375/375 - 50s - loss: 0.1097 - accuracy: 0.9696 - val_loss: 0.0661 - val_accuracy: 0.9799 - 50s/epoch - 135ms/step
+375/375 - 46s - loss: 0.1115 - accuracy: 0.9685 - val_loss: 0.0685 - val_accuracy: 0.9815 - 46s/epoch - 122ms/step
 Epoch 3/20
-375/375 - 50s - loss: 0.0761 - accuracy: 0.9788 - val_loss: 0.0588 - val_accuracy: 0.9841 - 50s/epoch - 134ms/step
+375/375 - 50s - loss: 0.0781 - accuracy: 0.9783 - val_loss: 0.0799 - val_accuracy: 0.9787 - 50s/epoch - 134ms/step
 Epoch 4/20
-375/375 - 50s - loss: 0.0593 - accuracy: 0.9846 - val_loss: 0.0576 - val_accuracy: 0.9856 - 50s/epoch - 132ms/step
+375/375 - 44s - loss: 0.0603 - accuracy: 0.9827 - val_loss: 0.0710 - val_accuracy: 0.9846 - 44s/epoch - 118ms/step
 Epoch 5/20
-375/375 - 49s - loss: 0.0476 - accuracy: 0.9872 - val_loss: 0.0578 - val_accuracy: 0.9871 - 49s/epoch - 132ms/step
+375/375 - 43s - loss: 0.0545 - accuracy: 0.9851 - val_loss: 0.0674 - val_accuracy: 0.9826 - 43s/epoch - 115ms/step
 Epoch 6/20
-375/375 - 51s - loss: 0.0459 - accuracy: 0.9881 - val_loss: 0.0707 - val_accuracy: 0.9866 - 51s/epoch - 135ms/step
+375/375 - 45s - loss: 0.0498 - accuracy: 0.9867 - val_loss: 0.0691 - val_accuracy: 0.9812 - 45s/epoch - 121ms/step
 Epoch 7/20
-375/375 - 50s - loss: 0.0405 - accuracy: 0.9899 - val_loss: 0.0868 - val_accuracy: 0.9855 - 50s/epoch - 134ms/step
+375/375 - 44s - loss: 0.0485 - accuracy: 0.9873 - val_loss: 0.0613 - val_accuracy: 0.9855 - 44s/epoch - 118ms/step
 Epoch 8/20
-375/375 - 51s - loss: 0.0355 - accuracy: 0.9905 - val_loss: 0.0735 - val_accuracy: 0.9873 - 51s/epoch - 136ms/step
+375/375 - 44s - loss: 0.0432 - accuracy: 0.9893 - val_loss: 0.0757 - val_accuracy: 0.9830 - 44s/epoch - 118ms/step
 Epoch 9/20
-375/375 - 50s - loss: 0.0355 - accuracy: 0.9912 - val_loss: 0.0942 - val_accuracy: 0.9844 - 50s/epoch - 132ms/step
+375/375 - 48s - loss: 0.0423 - accuracy: 0.9893 - val_loss: 0.0659 - val_accuracy: 0.9858 - 48s/epoch - 127ms/step
 Epoch 10/20
-375/375 - 50s - loss: 0.0354 - accuracy: 0.9911 - val_loss: 0.0887 - val_accuracy: 0.9892 - 50s/epoch - 134ms/step
+375/375 - 44s - loss: 0.0428 - accuracy: 0.9903 - val_loss: 0.0788 - val_accuracy: 0.9850 - 44s/epoch - 118ms/step
 Epoch 11/20
-375/375 - 50s - loss: 0.0322 - accuracy: 0.9919 - val_loss: 0.0945 - val_accuracy: 0.9885 - 50s/epoch - 133ms/step
+375/375 - 44s - loss: 0.0374 - accuracy: 0.9907 - val_loss: 0.0781 - val_accuracy: 0.9867 - 44s/epoch - 118ms/step
 Epoch 12/20
-375/375 - 51s - loss: 0.0290 - accuracy: 0.9932 - val_loss: 0.0895 - val_accuracy: 0.9854 - 51s/epoch - 137ms/step
+375/375 - 45s - loss: 0.0340 - accuracy: 0.9920 - val_loss: 0.0923 - val_accuracy: 0.9881 - 45s/epoch - 121ms/step
 Epoch 13/20
-375/375 - 50s - loss: 0.0279 - accuracy: 0.9935 - val_loss: 0.1168 - val_accuracy: 0.9868 - 50s/epoch - 133ms/step
+375/375 - 46s - loss: 0.0331 - accuracy: 0.9915 - val_loss: 0.0868 - val_accuracy: 0.9884 - 46s/epoch - 123ms/step
 Epoch 14/20
-375/375 - 50s - loss: 0.0309 - accuracy: 0.9933 - val_loss: 0.0777 - val_accuracy: 0.9850 - 50s/epoch - 133ms/step
+375/375 - 45s - loss: 0.0294 - accuracy: 0.9930 - val_loss: 0.0786 - val_accuracy: 0.9880 - 45s/epoch - 121ms/step
 Epoch 15/20
-375/375 - 52s - loss: 0.0303 - accuracy: 0.9933 - val_loss: 0.1471 - val_accuracy: 0.9878 - 52s/epoch - 138ms/step
+375/375 - 44s - loss: 0.0311 - accuracy: 0.9928 - val_loss: 0.0822 - val_accuracy: 0.9840 - 44s/epoch - 118ms/step
 Epoch 16/20
-375/375 - 54s - loss: 0.0250 - accuracy: 0.9942 - val_loss: 0.1300 - val_accuracy: 0.9874 - 54s/epoch - 144ms/step
+375/375 - 43s - loss: 0.0289 - accuracy: 0.9935 - val_loss: 0.0953 - val_accuracy: 0.9875 - 43s/epoch - 116ms/step
 Epoch 17/20
-375/375 - 55s - loss: 0.0228 - accuracy: 0.9947 - val_loss: 0.2226 - val_accuracy: 0.9861 - 55s/epoch - 147ms/step
+375/375 - 44s - loss: 0.0281 - accuracy: 0.9938 - val_loss: 0.0787 - val_accuracy: 0.9879 - 44s/epoch - 117ms/step
 Epoch 18/20
-375/375 - 52s - loss: 0.0269 - accuracy: 0.9944 - val_loss: 0.0949 - val_accuracy: 0.9879 - 52s/epoch - 138ms/step
+375/375 - 47s - loss: 0.0297 - accuracy: 0.9937 - val_loss: 0.0957 - val_accuracy: 0.9869 - 47s/epoch - 126ms/step
 Epoch 19/20
-375/375 - 49s - loss: 0.0228 - accuracy: 0.9950 - val_loss: 0.1154 - val_accuracy: 0.9881 - 49s/epoch - 131ms/step
+375/375 - 46s - loss: 0.0288 - accuracy: 0.9935 - val_loss: 0.0954 - val_accuracy: 0.9864 - 46s/epoch - 123ms/step
 Epoch 20/20
-375/375 - 51s - loss: 0.0258 - accuracy: 0.9948 - val_loss: 0.1080 - val_accuracy: 0.9880 - 51s/epoch - 136ms/step</code></pre>
+375/375 - 52s - loss: 0.0243 - accuracy: 0.9941 - val_loss: 0.0937 - val_accuracy: 0.9858 - 52s/epoch - 139ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fitHx)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1574,7 +1687,7 @@ Epoch 20/20
 <img src="L10-neural-nets_files/figure-html/fig-keraslearningcurveConv-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-keraslearningcurveConv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;22: Loss function and accuracy on training and validation MNIST data with a convolution layer
+Figure&nbsp;23: Loss function and accuracy on training and validation MNIST data with a convolution layer
 </figcaption>
 </figure>
 </div>
@@ -1585,21 +1698,21 @@ Figure&nbsp;22: Loss function and accuracy on training and validation MNIST data
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict on test dataset</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(kerasCNN, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 4s - 4s/epoch - 12ms/step</code></pre>
+<pre><code>313/313 - 2s - 2s/epoch - 8ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> yTest <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
-yPredVal   0   1   2   3   4   5   6   7   8   9
-       0   0   0   1   0   0   0   0   0   0   0
-       1  95 406 396 174 596 127  57 454 149 363
-       3   0  17   0   3   2   7   0  19   3  25
-       4   1 419  55  55  12  78  38  34  53  52
-       5  23   2  17  14   0   6   6   0  13   1
-       7 853   6 390 469 233 587 703 501 628 473
-       8   0   0   0   0   0   0   0   0   0   2
-       9   8 285 173 295 139  87 154  20 128  93</code></pre>
+yPredVal    0    1    2    3    4    5    6    7    8    9
+       1    0    7   20    2    5   21    3   34   30    8
+       2  143    0   21    0    0    5   65    3    3    2
+       3    6   30   84    3   71   41  175    3   10    5
+       4    0    0   15    0   24   12    7   15    0    9
+       5    6    2    0   70    0  127    2   33   21   22
+       6  817 1012  833  905  800  670  504  844  891  860
+       8    1    0    2    2    0    0   10   38    1    1
+       9    7   84   57   28   82   16  192   58   18  102</code></pre>
 </div>
 </div>
 <p>Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.</p>
@@ -1624,7 +1737,7 @@ yPredVal   0   1   2   3   4   5   6   7   8   9
 <img src="L10-neural-nets_files/figure-html/fig-MNISTexampleErrorsConv-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-MNISTexampleErrorsConv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;23: Examples of errors from our neural network with a convolution layer. Heading of each image shows the predicted
+Figure&nbsp;24: Examples of errors from our neural network with a convolution layer. Heading of each image shows the predicted
 </figcaption>
 </figure>
 </div>
@@ -1634,11 +1747,11 @@ Figure&nbsp;23: Examples of errors from our neural network with a convolution la
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(kerasCNN, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 4s - loss: 31.5050 - accuracy: 0.1021 - 4s/epoch - 13ms/step</code></pre>
+<pre><code>313/313 - 3s - loss: 40.1405 - accuracy: 0.0789 - 3s/epoch - 9ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-31.50504  0.10210 </code></pre>
+ 40.1405   0.0789 </code></pre>
 </div>
 </div>
 <p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have over 100,000,000,000 (100 billion) parameters. GPT4 weights in at 1,800,000,000,000 (1.8 trillion) parameters.</p>
@@ -1648,6 +1761,9 @@ Figure&nbsp;23: Examples of errors from our neural network with a convolution la
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-deisenroth2020mathematics" class="csl-entry" role="listitem">
+Deisenroth, Marc Peter, A. Aldo Faisal, and Cheng Soon Ong. 2020. <em>Mathematics for Machine Learning</em>. Cambridge University Press. <a href="https://mml-book.com/">https://mml-book.com/</a>.
+</div>
 <div id="ref-Hast:Tibs:2001" class="csl-entry" role="listitem">
 Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Springer-Verlag.
 </div>

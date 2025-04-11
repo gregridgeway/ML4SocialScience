@@ -54,6 +54,8 @@ Read @ISLR2 Chapter 10.
 
 Read Y. LeCun, Y. Bengio, and G. Hinton (2015). "Deep learning," *Nature* 521, 436–444.
 
+Section 5.6 of @deisenroth2020mathematics.
+
 # A simple neural network
 
 Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter a linear transformation, which outputs a prediction. Let's further assume that we wish to minimize squared error, $J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2$. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is
@@ -63,8 +65,11 @@ Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter 
 #| echo: false
 #| fig-cap: "A linear model as a network"
 #| fig-align: center
-#| fig-ext: svg
+#| format-html: fig-ext=svg
+#| format-pdf: fig-ext=pdf
 #| out-width: 100%
+\special{background:transparent}
+
 \tikzstyle{mynode}=[thick,draw=blue,fill=blue!20,circle,minimum size=22]
 \usetikzlibrary{arrows.meta} % for arrow size
 \tikzset{>=latex} % for LaTeX arrow head
@@ -140,9 +145,173 @@ $$ Putting this all together, an algorithm for optimizing this simple neural net
 $$ 
 where in the last line the $\lambda$ absorbed the $2$.
 
-# Neural networks with hidden layers
+# Computing derivatives in networks
 
-The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 1) add a hidden layer of nodes and 2) add non-linear transformations of the input features.
+This is a nice example from @deisenroth2020mathematics Section 5.6. Let's say you want to compute the derivative of
+
+$$
+f(x) = \sqrt{x^2 + e^{x^2}} + \cos\left(x^2 + e^{x^2}\right)
+$$
+Using first semester univariate calculus rules, we can compute $f'(x)$ with a little effort.
+$$
+f'(x) = \frac{2x+2xe^{x^2}}{2\sqrt{x^2 + e^{x^2}}}-\sin\left(x^2 + e^{x^2}\right)\left(2x+2xe^{x^2}\right)
+$$
+
+How could we go about turning this into something that a computer could handle? Let's restructure the calculation by listing what we need to compute. In the second column I have compute the derivatives of each of these expressions.
+$$
+\begin{array}{r@{\quad}l@{\qquad}r@{\quad}l}
+a &= x^2                      & \frac{\partial a}{\partial x} &= 2x \\
+b &= e^a                      & \frac{\partial b}{\partial a} &= e^a \\
+c &= a + b                    & \frac{\partial c}{\partial a} &= 1 \\
+                              &                                & \frac{\partial c}{\partial b} &= 1 \\
+d &= \sqrt{c}                 & \frac{\partial d}{\partial c} &= \frac{1}{2\sqrt{c}} \\
+e &= \cos(c)                  & \frac{\partial e}{\partial c} &= -\sin{c} \\
+f &= d + e                    & \frac{\partial f}{\partial d} &= 1 \\
+                              &                                & \frac{\partial f}{\partial e} &= 1 \\
+\end{array}
+$$
+In the last row, the value of $f$ is $f(x)$. We can conceptualize the calculation of $f(x)$ with the network shown in @fig-autodiffexample.
+
+
+```{tikz}
+#| label: fig-autodiffexample
+#| echo: false
+#| fig-cap: "An illustration of evaluating a function structured as a network"
+#| fig-align: center
+#| format-html: fig-ext=svg
+#| format-pdf: fig-ext=pdf
+#| out-width: 90%
+
+\special{background:transparent}
+
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{positioning}
+\definecolor{slateblue}{RGB}{106, 90, 205}
+
+
+\begin{tikzpicture}[>=Stealth, node distance=2cm, every node/.style={font=\small, text=slateblue}, every path/.style={draw=slateblue}]
+  \node (x) {$x$};
+  \node[right=1cm of x] (square) {$x^2$};
+  \node[right=1cm of square] (a) {$a$};
+  \node[right=1cm of a] (sum1) [circle, draw, inner sep=2pt] {+};
+  \node[right=1cm of sum1] (c) {$c$};
+  \node[above=1cm of sum1] (b) {$b$};
+  \node[above=1cm of c, xshift=1cm] (d) {$d$};
+  \node[below=1cm of c, xshift=1cm] (e) {$e$};
+  \node[right=2cm of c] (sum2) [circle, draw, inner sep=2pt] {+};
+  \node[right=1cm of sum2] (f) {$f$};
+
+  % Arrows
+  \draw[->] (x) -- (square);
+  \draw[->] (square) -- (a);
+  \draw[->] (a) -- (sum1);
+  \draw[->] (sum1) -- (c);
+  \draw[->] (a) to[out=90,in=180] node[midway, above] {\small$\exp(a)$} (b);
+  \draw[->] (b) -- (sum1);
+
+  \draw[->] (c) to[out=90,in=180] node[midway, above] {\small$c^\frac{1}{2}$} (d);
+  \draw[->] (c) to[out=-90,in=180] node[midway, below] {\small$\cos(c)$} (e);
+  \draw[->] (d) to[out=0,in=90] (sum2);
+  \draw[->] (e) to[out=0,in=270] (sum2);
+  \draw[->] (sum2) -- (f);
+
+\end{tikzpicture}
+```
+Our goal is to compute $\frac{\partial f}{\partial x}$. We will work backwards through @fig-autodiffexample. We already have $\frac{\partial f}{\partial e}$ and $\frac{\partial f}{\partial d}$. Let's move the derivative one step further to get $\frac{\partial f}{\partial c}$. There are two paths to get to $c$, one through the square root and the other through the cosine. In standard mathematical notation, we are computing
+$$
+\frac{\partial f}{\partial c} = \frac{\partial}{\partial c}\left( \sqrt{c} + \cos(c) \right)
+$$
+Clearly the derivative is $\frac{1}{2\sqrt{c}} - \sin(c)$. Referring to the network, we can see that this means that we sum over the derivatives associated with the paths through $d$ and $e$, like
+
+$$
+\begin{split}
+\frac{\partial f}{\partial c} &= \frac{\partial f}{\partial d}\frac{\partial d}{\partial c} + \frac{\partial f}{\partial e}\frac{\partial e}{\partial c} \\
+&= 1 \times \frac{1}{2\sqrt{c}} + 1 \times - \sin(c) \\
+&=\frac{1}{2\sqrt{c}} - \sin(c)
+\end{split}
+$$
+
+The more general rule is that as we move backwards through the network, the chain rule translates to
+$$
+\frac{\partial f}{\partial x_i} = \sum_{x_j \in \mathrm{children}(x_i)}
+\frac{\partial f}{\partial x_j}\frac{\partial x_j}{\partial x_i}
+$$
+Since $d$ and $e$ are the "children" of $c$, we sum over them.
+
+Let's move another step back in the network to $b$ applying this approach (note that $a$ is not a child of $b$). We've already done the work to get $\frac{\partial f}{\partial c}$, so we can plug that in.
+$$
+\begin{split}
+\frac{\partial f}{\partial b} &= \frac{\partial f}{\partial c}\frac{\partial c}{\partial b} \\
+&= \left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times 1
+\end{split}
+$$
+And another step back to $a$ (note that $b$ and $c$ are children of $a$).
+$$
+\begin{split}
+\frac{\partial f}{\partial a} &= \frac{\partial f}{\partial b}\frac{\partial b}{\partial a} + \frac{\partial f}{\partial c}\frac{\partial c}{\partial a} \\
+&= \left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times e^a +
+\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\times 1
+\end{split}
+$$
+And one more step to get us back to $x$.
+$$
+\begin{split}
+\frac{\partial f}{\partial x} &= \frac{\partial f}{\partial a}\frac{\partial a}{\partial x} \\
+&=  \left(\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)e^a +
+\left(\frac{1}{2\sqrt{c}} - \sin(c)\right)\right)\times 2x
+\end{split}
+$$
+If in @fig-autodiffexample, we choose a specific value for $x$ and propagate it forward through the network, we obtain all the intermediate values ($a$, $b$, ...). As we chain rule backwards we use those values to obtain the values of the derivatives. By the time we are back to the beginning we can have already calculated all the necessary terms to obtain our final result.
+
+Let's make this really concrete. Set $x=2$ and evaluate $f(2)$ and $f'(2)$. Using the definition of $f(x)$ and our traditional hand-calculated derivative we get:
+$$
+\begin{split}
+f(x) &= \sqrt{x^2 + e^{x^2}} + \cos\left(x^2 + e^{x^2}\right) \\
+   &= 7.19433 \\
+f'(x) &= \frac{2x+2xe^{x^2}}{2\sqrt{x^2 + e^{x^2}}}-\sin\left(x^2 + e^{x^2}\right)\left(2x+2xe^{x^2}\right) \\
+&=-182.8698
+\end{split}
+$$
+Now let's confirm that we indeed get $f(2)=7.19433$ when we propagate forward through the network and get $f'(2)=-182.8698$ when we move backwards through the network. In the forward pass, we can compute all of the intermediate values and derivatives of each intermediate value with respect to its "parents."
+$$
+\begin{array}{r@{\quad}l@{\qquad}r@{\quad}l}
+a &= x^2 = 4                  & \frac{\partial a}{\partial x} &= 2x = 4\\
+b &= e^a = e^4 = 54.59815     & \frac{\partial b}{\partial a} &= e^a = 54.59815\\
+c &= a + b = 58.59815         & \frac{\partial c}{\partial a} &= 1 \\
+                              &                                & \frac{\partial c}{\partial b} &= 1 \\
+d &= \sqrt{c} = 7.654943      & \frac{\partial d}{\partial c} &= \frac{1}{2\sqrt{c}} = 0.06531727\\
+e &= \cos(c) = -0.4606132     & \frac{\partial e}{\partial c} &= -\sin{c} = -0.887601\\
+f &= d + e = 7.19433          & \frac{\partial f}{\partial d} &= 1 \\
+                              &                                & \frac{\partial f}{\partial e} &= 1 \\
+\end{array}
+$$
+In our forward pass we have values computed for every component. Now we move backwards to get the derivative.
+$$
+\begin{split}
+\frac{\partial f}{\partial c} &= \frac{\partial f}{\partial d}\frac{\partial d}{\partial c} + \frac{\partial f}{\partial e}\frac{\partial e}{\partial c} \\
+&= 1\times 0.06531727 + 1\times -0.887601 \\
+& = -0.8222837 \\
+\frac{\partial f}{\partial b} &= \frac{\partial f}{\partial c}\frac{\partial c}{\partial b} \\
+&= -0.8222837 \times 1 \\
+&= -0.8222837 \\
+\frac{\partial f}{\partial a} &= \frac{\partial f}{\partial b}\frac{\partial b}{\partial a} + \frac{\partial f}{\partial c}\frac{\partial c}{\partial a} \\
+&= -0.8222837 \times 54.59815 + -0.8222837\times 1 \\
+&= -45.71745 \\
+\frac{\partial f}{\partial x} &= \frac{\partial f}{\partial a}\frac{\partial a}{\partial x} \\
+&=  -45.71745\times 4 \\
+&= -182.8698
+\end{split}
+$$
+Exactly what we computed by hand. This is the general concept of the backpropagation algorithm for fitting neural networks. We will apply simple transformations to linear combinations of inputs and pass them forward in a network. Then to compute the gradient so that we can improve the fit of the model, we do a backwards pass (the backpropagation step). Computers are very good at keeping track of which nodes are children and which ones are parents and can efficiently compute the gradients by calculating and storing all of the intermediate calculations from the forward pass.
+
+You are now ready to apply this to a neural network with hidden layers.
+
+# Backpropagation for a neural network with a hidden layer
+
+The neural network in the previous section has no better features or capacity than ordinary least squares. To get more capacity to capture interesting shapes and boundaries we will make two changes: 
+
+1.  add a hidden layer of nodes and 
+2.  add non-linear transformations of the input features.
 
 The network in @fig-nnhiddenlayer1 takes two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
 
@@ -151,8 +320,11 @@ The network in @fig-nnhiddenlayer1 takes two continuous inputs, passes them thro
 #| echo: false
 #| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
 #| fig-align: center
-#| fig-ext: svg
+#| format-html: fig-ext=svg
+#| format-pdf: fig-ext=pdf
 #| out-width: 100%
+
+\special{background:transparent}
 
 \tikzstyle{mynode}=[thick,draw=blue,fill=blue!20,circle,minimum size=22]
 \usetikzlibrary{arrows.meta} % for arrow size
@@ -350,7 +522,9 @@ $$
 The components of this expression were already computed when we passed forward through the network to make predictions. Now we work backward through the network applying the chain rule over and over to compute the gradients for each layer's parameters. This process of working backwards computing the gradient is the "backpropagation" algorithm [@rosenblatt1962principles]. The particular nice property of the algorithm is that the gradient is (relatively) easy to calculate knowing the derivatives from the next layer. So, working backwards to get the updates results is reasonably efficient optimization.
 
 
-# Example in two-dimensions
+# Examples in two-dimensions
+
+## Classes separated with a curve, but we try a linear neural network
 
 We are going to be using the sigmoid a lot, so I am going to go ahead and make a helper function.
 ```{r}
@@ -372,7 +546,7 @@ plot(d$x1, d$x2, col=col1and2[d$y+1],
      xlab="x1", ylab="x2")
 ```
 
-We will use the algorithm we developed earlier to fit a "single-layer perceptron" model, like the one shown in @fig-linearnn.
+We will use the algorithm we developed earlier to fit a "single-layer linear perceptron" model, like the one shown in @fig-linearnn.
 ```{r}
 #| label: fig-singlelayerperceptron
 #| fig-cap: Predicted values from linear perceptron model
@@ -399,9 +573,9 @@ for(i in 1:100)
 ```
 In @fig-singlelayerperceptron, the black curve shows the optimal decision boundary. The blue and orange points show the predicted values. The decision boundary is as best as you can get with a linear model. With a single-layer perceptron in which all relationships are linear, this is the best we can do. 
 
-# A more complex decision boundary in two dimensions
+## A circular decision boundary in two dimensions
 
-## Searching for a linear boundary
+### Searching for a linear boundary
 
 Let's consider a new decision boundary with which a linear neural network will really struggle.
 ```{r}
@@ -443,7 +617,7 @@ for(i in 1:50)
 The mean of `y` for this simulation is `r mean(d$y)`. The final estimate of $\beta$ is `r beta`. In the end, the linear restrictions we have put on the neural network makes it abandon trying to separate the blue and the orange and just predicts all points to be in the majority class, orange.
 
 
-## Neural network with hidden layers
+# Implementing backpropagation "by hand" for a neural network with a hidden layer
 
 To remedy the problem with the linear neural network, we are going to fit the model shown in @fig-nnhiddenlayer1, with a hidden layer and using the sigmoid activation function. I borrowed this code structure from this blog post on [Building A Neural Net from Scratch Using R](https://rviews.rstudio.com/2020/07/20/shallow-neural-net-from-scratch-using-r-part-1/). The code on the website has several bugs that have been fixed here.
 
@@ -845,7 +1019,7 @@ Tensorflow and Keras are usually behind a version or two of Python. Python 3.13 
 
 ## Tensorflow Playground
 
-Visit the (Tensorflow Playground)[https://playground.tensorflow.org]. This let's you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network's ability to learn the decision boundary.
+Visit the [Tensorflow Playground](https://playground.tensorflow.org). This let's you freely experiment with datasets with different shapes for their classification boundaries, change the number of hidden layers and the number of nodes in each layer, and see the effect on the network's ability to learn the decision boundary.
 
 Challenge: Using only $X_1$ and $X_2$ as inputs, can you alter the number of the hidden layers and nodes that will successful learn the spiral pattern?
 
