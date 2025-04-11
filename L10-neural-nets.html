@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-04-10">
+<meta name="dcterms.date" content="2025-04-11">
 
 <title>L10 Neural networks</title>
 <style>
@@ -185,7 +185,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 10, 2025</p>
+      <p class="date">April 11, 2025</p>
     </div>
   </div>
   
@@ -214,7 +214,7 @@ window.Quarto = {
 <section id="a-simple-neural-network" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> A simple neural network</h1>
 <p>Consider a simple neural network that has two inputs <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> that enter a linear transformation, which outputs a prediction. Let’s further assume that we wish to minimize squared error, <span class="math inline">\(J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2\)</span>. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is</p>
-<div class="cell" data-layout-align="center" data-format-html="fig-ext=svg" data-format-pdf="fig-ext=pdf">
+<div class="cell" data-layout-align="center" data-format-pdf="fig-ext=pdf">
 <div class="cell-output-display">
 <div id="fig-linearnn" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1099,11 +1099,11 @@ Figure&nbsp;13: Simulated data with a complex classification boundary
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">hidden_neurons =</span> <span class="dv">4</span>,</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                          <span class="at">num_iteration =</span> <span class="dv">50000</span>, <span class="at">lr =</span> <span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Iteration 10000  | Cost:  0.2743664 
-Iteration 20000  | Cost:  0.253922 
-Iteration 30000  | Cost:  0.2400474 
-Iteration 40000  | Cost:  0.23342 
-Iteration 50000  | Cost:  0.2292658 </code></pre>
+<pre><code>Iteration 10000  | Cost:  0.2735538 
+Iteration 20000  | Cost:  0.2518069 
+Iteration 30000  | Cost:  0.2426238 
+Iteration 40000  | Cost:  0.2365029 
+Iteration 50000  | Cost:  0.2318489 </code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(train_model<span class="sc">$</span>cost_hist, <span class="at">type=</span><span class="st">"l"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1181,7 +1181,7 @@ Figure&nbsp;16: Simulated circular classification boundary
 <span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">act.fct=</span><span class="st">"logistic"</span>,    <span class="co"># sigmoid</span></span>
 <span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">lifesign=</span><span class="st">"minimal"</span>)    <span class="co"># how much detail to print</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:  305180 error: 0.01745  time: 2.16 mins</code></pre>
+<pre><code>hidden: 4    thresh: 0.01    rep: 1/1    steps:   80001 error: 0.03587  time: 33.47 secs</code></pre>
 </div>
 </div>
 <p>The plot function will draw the network graph for us with the coefficients on all of the edges.</p>
@@ -1411,45 +1411,45 @@ ________________________________________________________________________________
 <span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 5s - loss: 0.3107 - accuracy: 0.9112 - val_loss: 0.1605 - val_accuracy: 0.9543 - 5s/epoch - 15ms/step
+375/375 - 6s - loss: 0.3150 - accuracy: 0.9101 - val_loss: 0.1646 - val_accuracy: 0.9539 - 6s/epoch - 15ms/step
 Epoch 2/20
-375/375 - 4s - loss: 0.1363 - accuracy: 0.9606 - val_loss: 0.1121 - val_accuracy: 0.9655 - 4s/epoch - 10ms/step
+375/375 - 5s - loss: 0.1369 - accuracy: 0.9599 - val_loss: 0.1086 - val_accuracy: 0.9672 - 5s/epoch - 12ms/step
 Epoch 3/20
-375/375 - 4s - loss: 0.0952 - accuracy: 0.9717 - val_loss: 0.0993 - val_accuracy: 0.9696 - 4s/epoch - 10ms/step
+375/375 - 4s - loss: 0.0949 - accuracy: 0.9717 - val_loss: 0.0932 - val_accuracy: 0.9740 - 4s/epoch - 10ms/step
 Epoch 4/20
-375/375 - 3s - loss: 0.0730 - accuracy: 0.9779 - val_loss: 0.0908 - val_accuracy: 0.9707 - 3s/epoch - 9ms/step
+375/375 - 4s - loss: 0.0704 - accuracy: 0.9787 - val_loss: 0.0816 - val_accuracy: 0.9758 - 4s/epoch - 10ms/step
 Epoch 5/20
-375/375 - 4s - loss: 0.0575 - accuracy: 0.9829 - val_loss: 0.0823 - val_accuracy: 0.9751 - 4s/epoch - 10ms/step
+375/375 - 4s - loss: 0.0574 - accuracy: 0.9830 - val_loss: 0.0805 - val_accuracy: 0.9758 - 4s/epoch - 10ms/step
 Epoch 6/20
-375/375 - 3s - loss: 0.0474 - accuracy: 0.9858 - val_loss: 0.0751 - val_accuracy: 0.9773 - 3s/epoch - 9ms/step
+375/375 - 5s - loss: 0.0477 - accuracy: 0.9858 - val_loss: 0.0888 - val_accuracy: 0.9747 - 5s/epoch - 13ms/step
 Epoch 7/20
-375/375 - 4s - loss: 0.0379 - accuracy: 0.9886 - val_loss: 0.0757 - val_accuracy: 0.9787 - 4s/epoch - 11ms/step
+375/375 - 5s - loss: 0.0393 - accuracy: 0.9879 - val_loss: 0.0812 - val_accuracy: 0.9768 - 5s/epoch - 14ms/step
 Epoch 8/20
-375/375 - 4s - loss: 0.0326 - accuracy: 0.9897 - val_loss: 0.0744 - val_accuracy: 0.9783 - 4s/epoch - 10ms/step
+375/375 - 5s - loss: 0.0338 - accuracy: 0.9893 - val_loss: 0.0704 - val_accuracy: 0.9800 - 5s/epoch - 12ms/step
 Epoch 9/20
-375/375 - 4s - loss: 0.0275 - accuracy: 0.9916 - val_loss: 0.0783 - val_accuracy: 0.9783 - 4s/epoch - 10ms/step
+375/375 - 5s - loss: 0.0287 - accuracy: 0.9910 - val_loss: 0.0755 - val_accuracy: 0.9797 - 5s/epoch - 13ms/step
 Epoch 10/20
-375/375 - 4s - loss: 0.0238 - accuracy: 0.9929 - val_loss: 0.0743 - val_accuracy: 0.9799 - 4s/epoch - 10ms/step
+375/375 - 4s - loss: 0.0243 - accuracy: 0.9926 - val_loss: 0.0727 - val_accuracy: 0.9790 - 4s/epoch - 11ms/step
 Epoch 11/20
-375/375 - 4s - loss: 0.0203 - accuracy: 0.9937 - val_loss: 0.0737 - val_accuracy: 0.9793 - 4s/epoch - 11ms/step
+375/375 - 4s - loss: 0.0199 - accuracy: 0.9937 - val_loss: 0.0752 - val_accuracy: 0.9813 - 4s/epoch - 11ms/step
 Epoch 12/20
-375/375 - 4s - loss: 0.0187 - accuracy: 0.9939 - val_loss: 0.0746 - val_accuracy: 0.9812 - 4s/epoch - 10ms/step
+375/375 - 5s - loss: 0.0176 - accuracy: 0.9948 - val_loss: 0.0714 - val_accuracy: 0.9816 - 5s/epoch - 13ms/step
 Epoch 13/20
-375/375 - 4s - loss: 0.0159 - accuracy: 0.9953 - val_loss: 0.0764 - val_accuracy: 0.9802 - 4s/epoch - 10ms/step
+375/375 - 6s - loss: 0.0163 - accuracy: 0.9952 - val_loss: 0.0774 - val_accuracy: 0.9803 - 6s/epoch - 16ms/step
 Epoch 14/20
-375/375 - 4s - loss: 0.0139 - accuracy: 0.9958 - val_loss: 0.0766 - val_accuracy: 0.9801 - 4s/epoch - 11ms/step
+375/375 - 6s - loss: 0.0135 - accuracy: 0.9955 - val_loss: 0.0758 - val_accuracy: 0.9806 - 6s/epoch - 15ms/step
 Epoch 15/20
-375/375 - 4s - loss: 0.0116 - accuracy: 0.9967 - val_loss: 0.0812 - val_accuracy: 0.9798 - 4s/epoch - 11ms/step
+375/375 - 6s - loss: 0.0113 - accuracy: 0.9968 - val_loss: 0.0786 - val_accuracy: 0.9806 - 6s/epoch - 15ms/step
 Epoch 16/20
-375/375 - 4s - loss: 0.0105 - accuracy: 0.9971 - val_loss: 0.0767 - val_accuracy: 0.9817 - 4s/epoch - 9ms/step
+375/375 - 5s - loss: 0.0112 - accuracy: 0.9968 - val_loss: 0.0773 - val_accuracy: 0.9808 - 5s/epoch - 13ms/step
 Epoch 17/20
-375/375 - 3s - loss: 0.0090 - accuracy: 0.9971 - val_loss: 0.0775 - val_accuracy: 0.9813 - 3s/epoch - 8ms/step
+375/375 - 5s - loss: 0.0095 - accuracy: 0.9972 - val_loss: 0.0779 - val_accuracy: 0.9807 - 5s/epoch - 14ms/step
 Epoch 18/20
-375/375 - 3s - loss: 0.0081 - accuracy: 0.9973 - val_loss: 0.0819 - val_accuracy: 0.9814 - 3s/epoch - 9ms/step
+375/375 - 5s - loss: 0.0076 - accuracy: 0.9979 - val_loss: 0.0792 - val_accuracy: 0.9818 - 5s/epoch - 13ms/step
 Epoch 19/20
-375/375 - 4s - loss: 0.0075 - accuracy: 0.9975 - val_loss: 0.0775 - val_accuracy: 0.9810 - 4s/epoch - 10ms/step
+375/375 - 5s - loss: 0.0069 - accuracy: 0.9981 - val_loss: 0.0810 - val_accuracy: 0.9812 - 5s/epoch - 13ms/step
 Epoch 20/20
-375/375 - 3s - loss: 0.0067 - accuracy: 0.9979 - val_loss: 0.0793 - val_accuracy: 0.9825 - 3s/epoch - 9ms/step</code></pre>
+375/375 - 5s - loss: 0.0063 - accuracy: 0.9982 - val_loss: 0.0794 - val_accuracy: 0.9816 - 5s/epoch - 13ms/step</code></pre>
 </div>
 </div>
 <p>We can plot the “learning curves,” tracing out how much better the neural network became after each epoch.</p>
@@ -1476,25 +1476,25 @@ Figure&nbsp;21: Loss function and accuracy on training and validation MNIST data
 <div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(keras1, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - 723ms/epoch - 2ms/step</code></pre>
+<pre><code>313/313 - 0s - 494ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> <span class="fu">apply</span>(yTest, <span class="dv">1</span>, which.max)<span class="sc">-</span><span class="dv">1</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
 yPredVal   0   1   2   3   4   5   6   7   8   9
-       0   0  28   1   0   1  15   5   3   3   0
-       1 193 492 428 521  40 423 430  65 270  81
-       2   0   9   0   0   0   0   0   0   0   0
-       3   0   0   0   2   9  10   0   4   7   1
-       5 179 341  48  92  35  59  15  44  45  21
-       6 398  70 178 139 701 254 177 831 465 843
-       7   3   0  14  22   0   4   0  16  29   5
-       8 196 195 350 227 171 114 323  58 154  53
-       9  11   0  13   7  25  13   8   7   1   5</code></pre>
+       1  28  67  49  58  23 102  97  64  45  33
+       2  54  64  43 127  97 111  43  58  63 199
+       3 433 755 629 594 258 303 392 609 443 494
+       4 127 135  70  23 528 188  59 190 176 197
+       5 163   2   4  14  11  21  33   5  21   2
+       6  21   0  14   2   1   4  14   0   4   0
+       7   3  39  11   8  26  14  21  69  15  32
+       8  20   2   0   0   1   5   1   0   3   5
+       9 131  71 212 184  37 144 298  33 204  47</code></pre>
 </div>
 </div>
-<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 0 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
+<p>For the most part we observe very high counts along the diagonal indicating that the neural network gets a lot of the classifications correctly. We do see a fair number of off diagonal elements as well. For example, note that for 197 images that were actually 9s, the neural network classified them as 4s. That is probably the most common mistake a human would make as well.</p>
 <p>Let’s examine 12 randomly selected digits that we have misclassified.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">20240408</span>)</span>
@@ -1528,11 +1528,11 @@ Figure&nbsp;22: Examples of errors from our neural network. Heading of each imag
 <div class="cell">
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(keras1, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 1s - loss: 2.3830 - accuracy: 0.0905 - 652ms/epoch - 2ms/step</code></pre>
+<pre><code>313/313 - 1s - loss: 2.3298 - accuracy: 0.1386 - 656ms/epoch - 2ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
-2.383048 0.090500 </code></pre>
+2.329761 0.138600 </code></pre>
 </div>
 </div>
 </section>
@@ -1639,45 +1639,45 @@ ________________________________________________________________________________
 <span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">validation_split =</span> <span class="fl">0.2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Epoch 1/20
-375/375 - 51s - loss: 1.7704 - accuracy: 0.8936 - val_loss: 0.1043 - val_accuracy: 0.9676 - 51s/epoch - 135ms/step
+375/375 - 51s - loss: 1.5829 - accuracy: 0.8896 - val_loss: 0.0864 - val_accuracy: 0.9752 - 51s/epoch - 136ms/step
 Epoch 2/20
-375/375 - 46s - loss: 0.1115 - accuracy: 0.9685 - val_loss: 0.0685 - val_accuracy: 0.9815 - 46s/epoch - 122ms/step
+375/375 - 46s - loss: 0.1009 - accuracy: 0.9707 - val_loss: 0.0695 - val_accuracy: 0.9832 - 46s/epoch - 122ms/step
 Epoch 3/20
-375/375 - 50s - loss: 0.0781 - accuracy: 0.9783 - val_loss: 0.0799 - val_accuracy: 0.9787 - 50s/epoch - 134ms/step
+375/375 - 49s - loss: 0.0695 - accuracy: 0.9805 - val_loss: 0.0560 - val_accuracy: 0.9841 - 49s/epoch - 131ms/step
 Epoch 4/20
-375/375 - 44s - loss: 0.0603 - accuracy: 0.9827 - val_loss: 0.0710 - val_accuracy: 0.9846 - 44s/epoch - 118ms/step
+375/375 - 47s - loss: 0.0510 - accuracy: 0.9855 - val_loss: 0.0902 - val_accuracy: 0.9833 - 47s/epoch - 126ms/step
 Epoch 5/20
-375/375 - 43s - loss: 0.0545 - accuracy: 0.9851 - val_loss: 0.0674 - val_accuracy: 0.9826 - 43s/epoch - 115ms/step
+375/375 - 51s - loss: 0.0464 - accuracy: 0.9873 - val_loss: 0.0744 - val_accuracy: 0.9848 - 51s/epoch - 136ms/step
 Epoch 6/20
-375/375 - 45s - loss: 0.0498 - accuracy: 0.9867 - val_loss: 0.0691 - val_accuracy: 0.9812 - 45s/epoch - 121ms/step
+375/375 - 46s - loss: 0.0414 - accuracy: 0.9892 - val_loss: 0.0713 - val_accuracy: 0.9858 - 46s/epoch - 123ms/step
 Epoch 7/20
-375/375 - 44s - loss: 0.0485 - accuracy: 0.9873 - val_loss: 0.0613 - val_accuracy: 0.9855 - 44s/epoch - 118ms/step
+375/375 - 48s - loss: 0.0367 - accuracy: 0.9906 - val_loss: 0.0757 - val_accuracy: 0.9850 - 48s/epoch - 129ms/step
 Epoch 8/20
-375/375 - 44s - loss: 0.0432 - accuracy: 0.9893 - val_loss: 0.0757 - val_accuracy: 0.9830 - 44s/epoch - 118ms/step
+375/375 - 48s - loss: 0.0337 - accuracy: 0.9909 - val_loss: 0.0864 - val_accuracy: 0.9857 - 48s/epoch - 129ms/step
 Epoch 9/20
-375/375 - 48s - loss: 0.0423 - accuracy: 0.9893 - val_loss: 0.0659 - val_accuracy: 0.9858 - 48s/epoch - 127ms/step
+375/375 - 46s - loss: 0.0305 - accuracy: 0.9917 - val_loss: 0.0786 - val_accuracy: 0.9863 - 46s/epoch - 122ms/step
 Epoch 10/20
-375/375 - 44s - loss: 0.0428 - accuracy: 0.9903 - val_loss: 0.0788 - val_accuracy: 0.9850 - 44s/epoch - 118ms/step
+375/375 - 43s - loss: 0.0294 - accuracy: 0.9927 - val_loss: 0.0752 - val_accuracy: 0.9858 - 43s/epoch - 114ms/step
 Epoch 11/20
-375/375 - 44s - loss: 0.0374 - accuracy: 0.9907 - val_loss: 0.0781 - val_accuracy: 0.9867 - 44s/epoch - 118ms/step
+375/375 - 45s - loss: 0.0267 - accuracy: 0.9930 - val_loss: 0.0937 - val_accuracy: 0.9858 - 45s/epoch - 119ms/step
 Epoch 12/20
-375/375 - 45s - loss: 0.0340 - accuracy: 0.9920 - val_loss: 0.0923 - val_accuracy: 0.9881 - 45s/epoch - 121ms/step
+375/375 - 45s - loss: 0.0251 - accuracy: 0.9936 - val_loss: 0.1056 - val_accuracy: 0.9871 - 45s/epoch - 120ms/step
 Epoch 13/20
-375/375 - 46s - loss: 0.0331 - accuracy: 0.9915 - val_loss: 0.0868 - val_accuracy: 0.9884 - 46s/epoch - 123ms/step
+375/375 - 47s - loss: 0.0266 - accuracy: 0.9936 - val_loss: 0.0808 - val_accuracy: 0.9877 - 47s/epoch - 125ms/step
 Epoch 14/20
-375/375 - 45s - loss: 0.0294 - accuracy: 0.9930 - val_loss: 0.0786 - val_accuracy: 0.9880 - 45s/epoch - 121ms/step
+375/375 - 50s - loss: 0.0247 - accuracy: 0.9938 - val_loss: 0.1044 - val_accuracy: 0.9866 - 50s/epoch - 134ms/step
 Epoch 15/20
-375/375 - 44s - loss: 0.0311 - accuracy: 0.9928 - val_loss: 0.0822 - val_accuracy: 0.9840 - 44s/epoch - 118ms/step
+375/375 - 52s - loss: 0.0260 - accuracy: 0.9941 - val_loss: 0.0998 - val_accuracy: 0.9883 - 52s/epoch - 139ms/step
 Epoch 16/20
-375/375 - 43s - loss: 0.0289 - accuracy: 0.9935 - val_loss: 0.0953 - val_accuracy: 0.9875 - 43s/epoch - 116ms/step
+375/375 - 46s - loss: 0.0247 - accuracy: 0.9948 - val_loss: 0.0823 - val_accuracy: 0.9865 - 46s/epoch - 123ms/step
 Epoch 17/20
-375/375 - 44s - loss: 0.0281 - accuracy: 0.9938 - val_loss: 0.0787 - val_accuracy: 0.9879 - 44s/epoch - 117ms/step
+375/375 - 43s - loss: 0.0254 - accuracy: 0.9945 - val_loss: 0.0997 - val_accuracy: 0.9849 - 43s/epoch - 116ms/step
 Epoch 18/20
-375/375 - 47s - loss: 0.0297 - accuracy: 0.9937 - val_loss: 0.0957 - val_accuracy: 0.9869 - 47s/epoch - 126ms/step
+375/375 - 45s - loss: 0.0226 - accuracy: 0.9950 - val_loss: 0.1257 - val_accuracy: 0.9863 - 45s/epoch - 119ms/step
 Epoch 19/20
-375/375 - 46s - loss: 0.0288 - accuracy: 0.9935 - val_loss: 0.0954 - val_accuracy: 0.9864 - 46s/epoch - 123ms/step
+375/375 - 46s - loss: 0.0233 - accuracy: 0.9949 - val_loss: 0.0902 - val_accuracy: 0.9872 - 46s/epoch - 122ms/step
 Epoch 20/20
-375/375 - 52s - loss: 0.0243 - accuracy: 0.9941 - val_loss: 0.0937 - val_accuracy: 0.9858 - 52s/epoch - 139ms/step</code></pre>
+375/375 - 48s - loss: 0.0206 - accuracy: 0.9953 - val_loss: 0.1349 - val_accuracy: 0.9873 - 48s/epoch - 127ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fitHx)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
@@ -1698,21 +1698,20 @@ Figure&nbsp;23: Loss function and accuracy on training and validation MNIST data
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict on test dataset</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>yPredVal <span class="ot">&lt;-</span> <span class="fu">predict</span>(kerasCNN, xTest) <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 2s - 2s/epoch - 8ms/step</code></pre>
+<pre><code>313/313 - 2s - 2s/epoch - 5ms/step</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>yTestVal <span class="ot">&lt;-</span> yTest <span class="sc">|&gt;</span> <span class="fu">k_argmax</span>() <span class="sc">|&gt;</span> <span class="fu">as.numeric</span>()</span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(yPredVal, yTestVal)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        yTestVal
-yPredVal    0    1    2    3    4    5    6    7    8    9
-       1    0    7   20    2    5   21    3   34   30    8
-       2  143    0   21    0    0    5   65    3    3    2
-       3    6   30   84    3   71   41  175    3   10    5
-       4    0    0   15    0   24   12    7   15    0    9
-       5    6    2    0   70    0  127    2   33   21   22
-       6  817 1012  833  905  800  670  504  844  891  860
-       8    1    0    2    2    0    0   10   38    1    1
-       9    7   84   57   28   82   16  192   58   18  102</code></pre>
+yPredVal   0   1   2   3   4   5   6   7   8   9
+       0   3   0   2   0   2  12  18   2   3   0
+       2   3   0   4   1   0   1   1   0   1   1
+       3   0   5   3  21   0   6   6   7   8   0
+       5 155  75 145 118 103 258  42  84 158  94
+       6  52 311  43 252  12 149  69  69  15  98
+       7 137 248 347 102 242  76 376 678 455 427
+       8 630 496 488 516 623 390 446 188 334 389</code></pre>
 </div>
 </div>
 <p>Again, we can check to see what kind of errors the model makes. Frankly, they would be quite difficult for a human to distinguish too.</p>
@@ -1747,11 +1746,11 @@ Figure&nbsp;24: Examples of errors from our neural network with a convolution la
 <div class="cell">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">evaluate</span>(kerasCNN, xTest, yTest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>313/313 - 3s - loss: 40.1405 - accuracy: 0.0789 - 3s/epoch - 9ms/step</code></pre>
+<pre><code>313/313 - 2s - loss: 16.8927 - accuracy: 0.1367 - 2s/epoch - 5ms/step</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    loss accuracy 
- 40.1405   0.0789 </code></pre>
+16.89272  0.13670 </code></pre>
 </div>
 </div>
 <p>We have squeezed out just a tiny bit more predictive performance with this model. However, this model had 3149394 parameters while our simpler one without convolution layers had 407050 parameters. We had to spend a lot of additional parameters to get a tiny gain in predictive performance. And when we check what we are getting wrong, we are at the stage where humans would have a hard time getting them correct. For comparison, today’s large language models have over 100,000,000,000 (100 billion) parameters. GPT4 weights in at 1,800,000,000,000 (1.8 trillion) parameters.</p>

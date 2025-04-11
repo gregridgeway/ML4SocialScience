@@ -12,6 +12,9 @@ format:
       light: default
     toc: true
     html-math-method: mathjax
+    tikz:
+      engine: latex
+      dvisvgm-opts: "--no-background"
   pdf:
     toc: true
 prefer-html: true
@@ -65,7 +68,6 @@ Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter 
 #| echo: false
 #| fig-cap: "A linear model as a network"
 #| fig-align: center
-#| format-html: fig-ext=svg
 #| format-pdf: fig-ext=pdf
 #| out-width: 100%
 \special{background:transparent}
