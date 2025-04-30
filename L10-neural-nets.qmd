@@ -24,6 +24,7 @@ editor_options:
 bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
+<!-- Check Keras results. Might need to clear cache  -->
 <!-- In terminal -->
 <!-- quarto render L10-neural-nets.qmd -->
 <!-- quarto render L10-neural-nets.qmd --cache-refresh  -->
