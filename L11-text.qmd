@@ -786,6 +786,11 @@ plot_ly(
   )
 ```
 
+## Vector quantization
+[To be completed]
+
+Vector quantization starts with all the documents in a single cluster. Then, apply 2-means clustering to split the documents into two groups. Then recursively apply 2-means clustering within each of the groups. Continue splitting the nodes that offer the greatest increase in $R^2$.
+
 ## Exploring Document Clusters with UMAP
 
 UMAP (Uniform Manifold Approximation and Projection) is another approach to visualizing document clusters [@mcinnes2018joss]. Unlike SVD, which finds linear axes of variation, UMAP attempts to preserve both local neighborhood structure and global relationships, making it especially useful for discovering clusters or themes in high-dimensional data like TF-IDF matrices. UMAP aims to find a low dimensional (like 2D) arrangement of points where distances between points in that low dimensional space is close to the distances in the higher dimensional space.
