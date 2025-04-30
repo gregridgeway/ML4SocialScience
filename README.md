@@ -37,6 +37,6 @@ Table of contents
     - Working with `text2vec`
     - DTM and TFIDF
     - SVD for text
-12. [Long short-term memory (LSTM) neural networks](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L11-text.html)
+12. [Long short-term memory (LSTM) neural networks](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L12-RNN.html)
     - LSTM models
     - a *small* language model
