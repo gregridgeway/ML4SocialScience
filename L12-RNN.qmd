@@ -1,0 +1,873 @@
+---
+title: "L12 Recurrent and Long Short-Term Memory Neural Networks"
+author:
+- affiliation: University of Pennsylvania
+  email: gridge@upenn.edu
+  name: Greg Ridgeway
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+engine: knitr
+format:
+  html:
+    theme: 
+      dark: darkly
+      light: default
+    toc: true
+    html-math-method: mathjax
+    tikz:
+      engine: latex
+      dvisvgm-opts: "--no-background"
+      pdf: default
+  pdf:
+    toc: true
+prefer-html: true
+number-sections: true
+editor_options: 
+  chunk_output_type: console
+bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
+---
+
+<!-- Check Keras results. Might need to clear cache  -->
+<!-- In terminal -->
+<!-- quarto render L12-RNN.qmd -->
+<!-- quarto render L12-RNN.qmd --cache-refresh  -->
+
+<!-- git commit L12-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+
+```{r}
+#| echo: false
+#| message: false
+col1 <- "#0072B2"
+col2 <- "#E69F00"
+col1and2 <- c(col1, col2)
+# Find color codes to make these somewhat transparent
+col1and2transparent <- 
+  apply(col2rgb(col=col1and2), 2,
+        function(x) rgb(x[1]/255, x[2]/255, x[3]/255)) |>
+  paste0("10")
+```
+
+Recurrent neural networks (RNNs) are a class of neural networks designed to model sequential data. Unlike feedforward networks, RNNs maintain an internal state (memory) that captures information about prior elements in the sequence, making them well-suited to time series, natural language, and other sequential tasks.
+
+# Basic Recurrent Neural Network
+
+First, let's look at the basic form of a recurrent neural network. As shown in @fig-rnn, we observe at time $t$ the input features $\mathbf{x}_t$ and want to predict the output features $\mathbf{y}_t$. Between the input and output layers is a hidden layer, $\mathbf{h}_t$. The length of the vector $\mathbf{h}$ does not need to match the lengths of $\mathbf{y}$ or $\mathbf{x}$. The hidden layer is intended to capture patterns or memories that need to persist over time, possibly modified by the current input $\mathbf{x}_t$.
+
+```{tikz}
+#| label: fig-rnn
+#| echo: false
+#| fig-cap: "A recurrent neural network"
+#| fig-align: center
+#| out-width: 100%
+#| cache: true
+
+\definecolor{darklybg}{RGB}{34,34,34}
+
+\usetikzlibrary{positioning, arrows.meta, shapes.multipart, calc, backgrounds, fit}
+
+\begin{tikzpicture}[node distance=1.5cm and 2.5cm, >=Latex, every node/.style={align=center}, every path/.style={draw=white, thick}]
+  
+  % Styles
+  \tikzstyle{input}  = [circle, draw=green!60!black, fill=green!20, minimum size=1cm]
+  \tikzstyle{hidden} = [rectangle, draw=blue!60!black, fill=blue!20, minimum width=1.5cm, minimum height=1cm]
+  \tikzstyle{output} = [circle, draw=red!60!black, fill=red!20, minimum size=1cm]
+
+  % Time step t-1
+  \node[input]  (x1)                 {$\mathbf{x}_{t-1}$};
+  \node[hidden] (h1) [above=of x1]   {$\mathbf{h}_{t-1}$};
+  \node[output] (o1) [above=of h1]   {$\mathbf{y}_{t-1}$};
+
+  % Time step t
+  \node[input]  (x2) [right=of x1]   {$\mathbf{x}_t$};
+  \node[hidden] (h2) [above=of x2]   {$\mathbf{h}_t$};
+  \node[output] (o2) [above=of h2]   {$\mathbf{y}_t$};
+
+  % Time step t+1
+  \node[input]  (x3) [right=of x2]   {$\mathbf{x}_{t+1}$};
+  \node[hidden] (h3) [above=of x3]   {$\mathbf{h}_{t+1}$};
+  \node[output] (o3) [above=of h3]   {$\mathbf{y}_{t+1}$};
+
+  % Arrows for input to hidden
+  \draw[->] (x1) -- (h1);
+  \draw[->] (x2) -- (h2);
+  \draw[->] (x3) -- (h3);
+
+  % Hidden to hidden connections
+  \draw[->] (h1) -- (h2);
+  \draw[->] (h2) -- (h3);
+
+  % Hidden to output
+  \draw[->] (h1) -- (o1);
+  \draw[->] (h2) -- (o2);
+  \draw[->] (h3) -- (o3);
+
+  % Left ellipsis and arrow
+  \node at ($(h1)+( -2.2, 0)$) (dotsL) {\large \textcolor{white}{$\cdots$}};
+  \draw[->] (dotsL) -- (h1);
+
+  % Right ellipsis and arrow
+  \node at ($(h3)+(2.2, 0)$) (dotsR) {\large \textcolor{white}{$\cdots$}};
+  \draw[->] (h3) -- (dotsR);
+
+  \node[fit=(x1)(x2)(x3)(h1)(h2)(h3)(o1)(o2)(o3)(dotsL)(dotsR), inner sep=1cm, name=bgbox] {};
+
+  % Background layer
+  \begin{pgfonlayer}{background}
+    \fill[darklybg] (bgbox.south west) rectangle (bgbox.north east);
+  \end{pgfonlayer}
+  
+\end{tikzpicture}
+```
+
+## RNN activation functions
+
+First, we need to do a quick refresh on activation functions. RNNs are going to depend on two primary activation functions: the sigmoid and hyperbolic tangent functions.
+
+1.  sigmoid function
+
+    a.  transforms its argument into a value that is between 0 and 1
+
+    b.  useful in RNNs for tagging memories that the RNN should remember (a value near 1) or can forget (a value near 0)
+
+2.  hyperbolic tangent
+
+    a.  $\tanh(x)$, often pronounced "tanch" or "tan-h"
+
+    b.  similar shape to the sigmoid except that it stretches from -1 to 1
+
+    c.  squashes large values into a narrow range but allows for outputs to have a positive or negative sign
+
+    d.  In RNNs, past values may increase or decrease the chance that something happens at future time points. The hyperbolic tangent's ability to output positive or negative values makes it a good candidate
+
+```{r}
+#| label: fig-sigmoidtanh
+#| echo: false
+#| fig-cap: "Sigmoid and hyperbolic tangent activation functions"
+#| fig-align: center
+#| out-width: 100%
+#| cache: true
+
+sigmoid <- function(x) 1/(1+exp(-x))
+x_vals <- seq(-5, 5, length.out = 500)
+df <- data.frame(x = x_vals,
+                 tanh = tanh(x_vals),
+                 sigmoid = sigmoid(x_vals))
+
+plot(tanh~x, data=df, type="l", lwd=3, 
+     ylab=expression(sigma(x)),
+     ylim=c(-1,1))
+lines(sigmoid~x, data=df, col=col1, lwd=3)
+
+legend(-4,1,legend = c("sigmoid","tanh"),
+       col=c(col1,"black"),
+       lwd=5)
+```
+
+The sigmoid function is like a smooth version of an on/off switch, while the hyperbolic tangent is like a knob that can increase or decrease a signal.
+
+Something to pay attention to... the math notation becomes a little awkward when dealing with RNNs. We will apply functions to vectors, but intend to mean applying that function to each element of the vector. So you may see something like $\tanh(\mathbf{x})$, where $\mathbf{x}$ is a vector. The mathematical intention is
+
+$$
+\begin{split}
+\tanh(\mathbf{x}) &= \tanh(\begin{bmatrix} x_1 & x_2 & \ldots & x_n \end{bmatrix}) \\
+  &= \begin{bmatrix} \tanh(x_1) & \tanh(x_2) & \ldots & \tanh(x_n) \end{bmatrix})
+\end{split}
+$$ This is somewhat an abuse of mathematical notation, but try to remember these as element-wise calculations. In mathematics these are generally called "Hadamard operations" or in computer science "vectorized functions."
+
+With that in mind, we can turn to how the RNN blends the hidden layer memory, $\mathbf{h}_{t-1}$, and the new input $\mathbf{x}_t$. Traditionally, RNNs use the hyperbolic tangent function as the activation function in the hidden memory layer.
+
+$$
+\begin{split}
+\mathbf{h}_t &= \tanh(W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1}) \\
+             &= 
+\begin{bmatrix}
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_1\right) \\
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_2\right) \\
+\vdots \\
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_n\right)
+\end{bmatrix}
+\end{split}
+$$
+
+RNN's compute the output $y_t$ at each time point as:
+
+$$
+y_t = W_{hy} h_t
+$$ or $$
+y_t = g(W_{hy} h_t)
+$$ 
+where $\sigma(\cdot)$ is some activation function.
+
+$W_{hx}$, $W_{hh}$, $W_{hy}$ are weight matrices that we would estimate using backpropation.
+
+## Challenges with RNNs
+
+While Recurrent Neural Networks offer a powerful framework for modeling sequential data, they suffer from fundamental training challenges, most notably the *vanishing gradient* and *exploding gradient* problems. These arise during backpropagation, where gradients are repeatedly multiplied by weight matrices at each time step. If the weights are small, the gradients shrink exponentially, leading to vanishing gradients, which prevent the network from learning long-range dependencies. Conversely, if the weights are large, gradients can grow exponentially, resulting in exploding gradients, which cause unstable parameter updates and numerical overflow.
+
+These issues make it difficult for standard RNNs to retain or learn dependencies that span many time steps, limiting their effectiveness in tasks such as language modeling or long-horizon forecasting (e.g. 30 days ago, 30 words previously).
+
+Long Short-Term Memory (LSTM) neural networks were specifically designed to address these problems through gating mechanisms that regulate information flow.
+
+
+# Long Short-Term Memory (LSTM)
+
+LSTMs are a version of RNNs that address the vanishing gradient problem and are able to retain long-term dependencies through a gating mechanism. They make use of clever combinations of the sigmoid and hyperbolic tangent functions to keep and discard memories and up date long-term memory with new concepts.
+
+LSTMs look just like @fig-rnn, but add more complexity to the cell between $\mathbf{x}_t$ and $\mathbf{y}_t$. We will through the components, long-term memory, forget gates, input gates, and output gates.
+
+
+## Long-term memory
+
+Throughout the LSTM model there is a kind of long-term memory, denoted $\mathbf{C}_t$, that captures important, durable concepts. For example, if we were modeling text and a sentence begins with "Greg went...", then the long-term memory needs to store the gender of the subject of the sentence so that the rest of the sentence conforms to traditional English grammar for pronouns. The gender concept needs to stay in long term memory until there's some kind of change, like the introduction of a new subject.
+
+Like the standard RNN, the cell for timepoint $t$ has an input, $\mathbf{x}_t$, a hidden "short-term" memory, $\mathbf{h}_t$, and an output, $\mathbf{y}_t$. In addition to those standard features, LSTMs add a long-term memory component, $\mathbf{C}_t$. All of these components are vectors. In deep learning applications $\mathbf{C}_t$ can be a vector of dimension 1,024 or more. In simpler applications or for time series forecasting, $\mathbf{C}_t$ can be a smaller vector with dimension like 64 or 128. The dimension of $\mathbf{C}_t$ does need to match the dimension of $\mathbf{h}_t$.
+
+```{tikz}
+#| label: fig-lstm-longterm
+#| echo: false
+#| fig-cap: "Modification of an RNN cell to have LSTM's long term memory"
+#| fig-align: center
+#| format-pdf: default
+#| out-width: 100%
+#| cache: true
+
+\definecolor{darklybg}{RGB}{34,34,34}
+\usetikzlibrary{backgrounds, arrows.meta, calc}
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[
+  x=0.75pt, y=0.75pt, yscale=-1, xscale=1,
+  every node/.style={text=white},
+  every path/.style={
+    draw=white,
+    line width=1pt,
+    >={Latex[round, open, fill=white]}
+  }
+]
+
+%Shape: Rectangle [id:dp4077144512206101] 
+\draw   (141,59) -- (421.5,59) -- (421.5,218) -- (141,218) -- cycle ;
+%Straight Lines [id:da04036778270881636] Long horizontal like from C_t-1 to C_t
+\draw [->,line width=1.5]    (103,73) -- (462.5,73) ;
+%Curve Lines [id:da3367787516778076] Line from x_t
+\draw [line width=1.5]    (151,238.75) .. controls (150,190.75) and (151,195) .. (195,194) ;
+%Straight Lines [id:da3944470267506499] horizontal line from h,x
+\draw [->,line width=1.5]    (103,194) -- (462.5,194) ;
+%Straight Lines [id:da7236433019764783] line up to y_t
+\draw [->,line width=1.5]    (408,194) -- (408,37.75) ;
+
+% Text Node
+\draw (93,49.5) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{C}_{t-1}$};
+\draw (462,49.5) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{C}_t$};
+\draw (142.5,244.4) node [anchor=north west][inner sep=0.75pt]{$\mathbf{x}_t$};
+\draw (93,173) node [anchor=north west][inner sep=0.75pt]     {$\mathbf{h}_{t-1}$};
+\draw (462,173) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{h}_t$};
+\draw (398,11.4) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{y}_t$};
+
+\begin{pgfonlayer}{background}
+  \fill[darklybg] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{pgfonlayer}
+
+\end{tikzpicture}
+```
+
+The remaining cell components work to modify the short term memory in $\mathbf{h}$ and the long-term memory in $\mathbf{C}$ and produce accurate outputs in $\mathbf{y}$. Those components are three gates: forget, input, and output. We will walk through each of these gates separately.
+
+
+## Forget gate
+
+The forget gate take a linear combination of the values in $\mathbf{x}_t$ and $\mathbf{h}_{t-1}$, passes them through the sigmoid function, and then multiples the result elementwise with the $\mathbf{C}_{t-1}$. Recall the sigmoid function's shape from @fig-sigmoidtanh. If there's a concept that the long-term memory needs to forget, then argument to the sigmoid fucntion will be a large negative number and push the sigmoid function toward 0. Then when we multiple $\mathbf{f}_t$ and $\mathbf{C}_{t-1}$ *elementwise* (the $\odot$ symbolizes multiplying element by element) $\mathbf{f}_t$ will zero out the concept that needed to be forgotten. In the same way, the forget gate and keep components in memory by passing a large positive value through the sigmoid so that $\mathbf{f}_t$ is close to 1 and keeps the long-term memory relatively unchanged in the elementwise multiplication.
+
+$$
+\begin{aligned}
+\mathbf{f}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &= \sigma\left(\mathbf{W}_{xf}\mathbf{x}_t + \mathbf{W}_{hf}\mathbf{h}_{t-1}\right) \\
+\mathbf{C}_t &= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \text{more to come here...}
+\end{aligned}
+$$
+
+```{tikz}
+#| label: fig-lstm-forget
+#| echo: false
+#| fig-cap: "The forget gate"
+#| fig-align: center
+#| format-pdf: default
+#| out-width: 100%
+#| cache: true
+
+\definecolor{darklybg}{RGB}{34,34,34}
+\usetikzlibrary{backgrounds, arrows.meta, calc}
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[
+  x=0.75pt, y=0.75pt, yscale=-1, xscale=1,
+  every node/.style={text=white},
+  every path/.style={
+    draw=white,
+    line width=1pt,
+    >={Latex[round, open, fill=white]}
+  }
+]
+
+%Shape: Rectangle [id:dp4077144512206101] 
+\draw   (141,59) -- (421.5,59) -- (421.5,218) -- (141,218) -- cycle ;
+%Straight Lines [id:da04036778270881636] Long horizontal like from C_t-1 to C_t
+\draw [->,line width=1.5]    (103,73) -- (462.5,73) ;
+%Curve Lines [id:da3367787516778076] Line from x_t
+\draw [line width=1.5]    (151,238.75) .. controls (150,190.75) and (151,195) .. (195,194) ;
+%Straight Lines [id:da5929019634203202] arrow up to f_t
+\draw [->,line width=1.5]   (195,195) -- (195,150.5) ;
+%Straight Lines [id:da17125461561429178] line up to x C_t-1
+\draw [->,line width=1.5]   (195,120.5) -- (195,83.5) ;
+%Shape: Circle [id:dp9295484095314784] Circle around left \times
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (186,73.5) .. controls (186,68.25) and (190.25,64) .. (195.5,64) .. controls (200.75,64) and (205,68.25) .. (205,73.5) .. controls (205,78.75) and (200.75,83) .. (195.5,83) .. controls (190.25,83) and (186,78.75) .. (186,73.5) -- cycle ;
+
+%Straight Lines [id:da3944470267506499] horizontal line from h,x
+\draw [->,line width=1.5]    (103,194) -- (462.5,194) ;
+%Straight Lines [id:da7236433019764783] line up to y_t
+\draw [->,line width=1.5]    (408,194) -- (408,37.75) ;
+
+% Text Node
+\draw (186,123.4) node [anchor=north west][inner sep=0.75pt]  {$\mathbf{f}_t$};
+\draw (170,163) node [anchor=north west][inner sep=0.75pt]    {$\sigma(\cdot)$};
+% Text Node
+\node at (195.5, 73.5) {$\times$};
+
+\draw (93,49.5) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{C}_{t-1}$};
+\draw (462,49.5) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{C}_t$};
+\draw (142.5,244.4) node [anchor=north west][inner sep=0.75pt]{$\mathbf{x}_t$};
+\draw (93,173) node [anchor=north west][inner sep=0.75pt]     {$\mathbf{h}_{t-1}$};
+\draw (462,173) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{h}_t$};
+\draw (398,11.4) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{y}_t$};
+
+\begin{pgfonlayer}{background}
+  \fill[darklybg] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{pgfonlayer}
+
+\end{tikzpicture}
+```
+
+
+## Input gate gate
+
+The input gate handles the process of forming *new* long-term memories.
+
+Like the forget gate, the input gate also takes a linear combination of the values in $\mathbf{x}_t$ and $\mathbf{h}_{t-1}$, passes them through the sigmoid function, and uses the result to determine how much of the candidate cell state $\tilde{\mathbf{C}}_t$ should be written into long-term memory. The candidate $\tilde{\mathbf{C}}_t$ is computed separately by passing a linear combination of $\mathbf{x}_t$ and $\mathbf{h}_{t-1}$ through the hyperbolic tangent activation function. Just like in the forget gate, the input gate’s sigmoid output $\mathbf{i}_t$ ranges between 0 and 1, controlling the degree of update for each element. If a new concept should be added to long-term memory, the linear input to the sigmoid will be strongly positive, pushing $\mathbf{i}_t$ close to 1. In contrast, if no update is needed in that dimension, the sigmoid output will be near 0, and the corresponding element in $\tilde{\mathbf{C}}_t$ will be ignored during the elementwise multiplication with $\mathbf{i}_t$. The product $\mathbf{i}_t \odot \tilde{\mathbf{C}}_t$ is then added into $\mathbf{C}_t$, forming the additive update to long-term memory.
+
+$$
+\begin{aligned}
+\mathbf{i}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &= \sigma\left(\mathbf{W}_{xi}\mathbf{x}_t + \mathbf{W}_{hi}\mathbf{h}_{t-1}\right) \\
+\tilde{\mathbf{C}}_t &= \tanh\left(\mathbf{W}_{xc}\mathbf{x}_t + \mathbf{W}_{hc}\mathbf{h}_{t-1}\right) \\
+\mathbf{C}_t &= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t
+\end{aligned}
+$$
+
+
+```{tikz}
+#| label: fig-lstm-input
+#| echo: false
+#| fig-cap: "The input gate"
+#| fig-align: center
+#| format-pdf: default
+#| out-width: 100%
+#| cache: true
+
+\definecolor{darklybg}{RGB}{34,34,34}
+\usetikzlibrary{backgrounds, arrows.meta, calc}
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[
+  x=0.75pt, y=0.75pt, yscale=-1, xscale=1,
+  every node/.style={text=white},
+  every path/.style={
+    draw=white,
+    line width=1pt,
+    >={Latex[round, open, fill=white]}
+  }
+]
+
+%Shape: Rectangle [id:dp4077144512206101] 
+\draw   (141,59) -- (421.5,59) -- (421.5,218) -- (141,218) -- cycle ;
+%Straight Lines [id:da04036778270881636] Long horizontal like from C_t-1 to C_t
+\draw [->,line width=1.5]    (103,73) -- (462.5,73) ;
+%Curve Lines [id:da3367787516778076] Line from x_t
+\draw [line width=1.5]    (151,238.75) .. controls (150,190.75) and (151,195) .. (195,194) ;
+%Straight Lines [id:da5929019634203202] arrow up to f_t
+\draw [->,line width=1.5]   (195,195) -- (195,150.5) ;
+%Straight Lines [id:da17125461561429178] line up to x C_t-1
+\draw [->,line width=1.5]   (195,120.5) -- (195,83.5) ;
+%Shape: Circle [id:dp9295484095314784] Circle around left \times
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (186,73.5) .. controls (186,68.25) and (190.25,64) .. (195.5,64) .. controls (200.75,64) and (205,68.25) .. (205,73.5) .. controls (205,78.75) and (200.75,83) .. (195.5,83) .. controls (190.25,83) and (186,78.75) .. (186,73.5) -- cycle ;
+
+%Straight Lines [id:da3944470267506499] horizontal line from h,x
+\draw [->,line width=1.5]    (103,194) -- (462.5,194) ;
+%Straight Lines [id:da7236433019764783] line up to y_t
+\draw [->,line width=1.5]    (408,194) -- (408,37.75) ;
+
+%Shape: Circle [id:dp8374646905801614] Circle around \times middle
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (267,133.5) .. controls (267,128.25) and (271.25,124) .. (276.5,124) .. controls (281.75,124) and (286,128.25) .. (286,133.5) .. controls (286,138.75) and (281.75,143) .. (276.5,143) .. controls (271.25,143) and (267,138.75) .. (267,133.5) -- cycle ;
+%Curve Lines [id:da4778295405705043] Line through i_t
+\draw  [->,line width=1.5]  (223.5,194.35) .. controls (222.5,146.35) and (222.5,133.35) .. (266.5,132.35) ;
+%Straight Lines [id:da18814499707001964] line h,x through tilde C
+\draw [->,line width=1.5]   (276.5,194.25) -- (276.5,145) ;
+%Shape: Circle [id:dp9707702312229181] Circle around + at top middle
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (267.5,73.5) .. controls (267.5,68.25) and (271.75,64) .. (277,64) .. controls (282.25,64) and (286.5,68.25) .. (286.5,73.5) .. controls (286.5,78.75) and (282.25,83) .. (277,83) .. controls (271.75,83) and (267.5,78.75) .. (267.5,73.5) -- cycle ;
+
+%Straight Lines [id:da03029505734985216] line from i*C up to +
+\draw [->,line width=1.5]   (276.5,124) -- (276.5,85) ;
+
+\draw (225,117.4) node [anchor=north west][inner sep=0.75pt]  {$\mathbf{i}_t$};
+\draw (280,158.4) node [anchor=north west][inner sep=0.75pt]  {$\tilde{\mathbf{C}}_t$};
+\node at (277,133.5) {$\times$};
+\node at (277,73.5) {$+$};
+\draw (225,158.4) node [anchor=north west][inner sep=0.75pt]  {$\sigma(\cdot)$};
+\draw (280,176) node [anchor=north west][inner sep=0.75pt]    {$\tanh(\cdot)$};
+
+% Text Node
+\draw (186,123.4) node [anchor=north west][inner sep=0.75pt]  {$\mathbf{f}_t$};
+\draw (170,163) node [anchor=north west][inner sep=0.75pt]    {$\sigma(\cdot)$};
+\node at (195.5, 73.5) {$\times$};
+
+\draw (93,49.5) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{C}_{t-1}$};
+\draw (462,49.5) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{C}_t$};
+\draw (142.5,244.4) node [anchor=north west][inner sep=0.75pt]{$\mathbf{x}_t$};
+\draw (93,173) node [anchor=north west][inner sep=0.75pt]     {$\mathbf{h}_{t-1}$};
+\draw (462,173) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{h}_t$};
+\draw (398,11.4) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{y}_t$};
+
+\begin{pgfonlayer}{background}
+  \fill[darklybg] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{pgfonlayer}
+
+
+\end{tikzpicture}
+```
+
+
+## Output gate
+
+The output gate determines how much of the current long-term memory $\mathbf{C}_t$ should be exposed to the rest of the network at time $t$. Like the other gates, it takes a linear combination of $\mathbf{x}_t$ and $\mathbf{h}_{t-1}$, passes the result through a sigmoid function, and uses that to control the final output. But instead of applying this gate directly to $\mathbf{C}_t$, the cell state is first passed through the hyperbolic tangent to squash its values between $-1$ and $1$, producing a bounded signal. Then the gate value $\mathbf{o}_t$ is multiplied elementwise with the transformed memory, yielding the hidden state $\mathbf{h}_t$. This means the output gate decides how much of each component in the memory vector is allowed to influence the next time step. If the sigmoid pushes a value in $\mathbf{o}_t$ close to 0, the corresponding element in $\mathbf{C}_t$ will be suppressed. If it is close to 1, the full strength of that memory component will be stored in $\mathbf{h}_t$.
+
+$$
+\begin{aligned}
+\mathbf{o}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &= \sigma\left(\mathbf{W}_{xo}\mathbf{x}_t + \mathbf{W}_{ho}\mathbf{h}_{t-1}\right) \\
+\mathbf{h}_t &= \mathbf{o}_t \odot \tanh\left(\mathbf{C}_t\right) \\
+\mathbf{y}_t &= g(\mathbf{h}_t)
+\end{aligned}
+$$
+
+```{tikz}
+#| label: fig-lstm-output
+#| echo: false
+#| fig-cap: "The output gate"
+#| fig-align: center
+#| format-pdf: default
+#| out-width: 100%
+#| cache: true
+
+\definecolor{darklybg}{RGB}{34,34,34}
+\usetikzlibrary{backgrounds, arrows.meta, calc}
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[
+  x=0.75pt, y=0.75pt, yscale=-1, xscale=1,
+  every node/.style={text=white},
+  every path/.style={
+    draw=white,
+    line width=1pt,
+    >={Latex[round, open, fill=white]}
+  }
+]
+
+%Shape: Rectangle [id:dp4077144512206101] 
+\draw   (141,59) -- (421.5,59) -- (421.5,218) -- (141,218) -- cycle ;
+%Straight Lines [id:da04036778270881636] Long horizontal like from C_t-1 to C_t
+\draw [->,line width=1.5]    (103,73) -- (462.5,73) ;
+%Curve Lines [id:da3367787516778076] Line from x_t
+\draw [line width=1.5]    (151,238.75) .. controls (150,190.75) and (151,195) .. (195,194) ;
+%Straight Lines [id:da5929019634203202] arrow up to f_t
+\draw [->,line width=1.5]   (195,195) -- (195,150.5) ;
+%Straight Lines [id:da17125461561429178] line up to x C_t-1
+\draw [->,line width=1.5]   (195,120.5) -- (195,83.5) ;
+%Shape: Circle [id:dp9295484095314784] Circle around left \times
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (186,73.5) .. controls (186,68.25) and (190.25,64) .. (195.5,64) .. controls (200.75,64) and (205,68.25) .. (205,73.5) .. controls (205,78.75) and (200.75,83) .. (195.5,83) .. controls (190.25,83) and (186,78.75) .. (186,73.5) -- cycle ;
+
+%Straight Lines [id:da3944470267506499] horizontal line from h,x
+\draw [line width=1.5]    (109,194) -- (303,194) ;
+%Straight Lines [id:da7236433019764783] line up to y_t
+\draw [->,line width=1.5]    (408,194) -- (408,37.75) ;
+
+%Shape: Circle [id:dp8374646905801614] Circle around \times middle
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (267,133.5) .. controls (267,128.25) and (271.25,124) .. (276.5,124) .. controls (281.75,124) and (286,128.25) .. (286,133.5) .. controls (286,138.75) and (281.75,143) .. (276.5,143) .. controls (271.25,143) and (267,138.75) .. (267,133.5) -- cycle ;
+%Curve Lines [id:da4778295405705043] Line through i_t
+\draw  [->,line width=1.5]  (223.5,194.35) .. controls (222.5,146.35) and (222.5,133.35) .. (266.5,132.35) ;
+%Straight Lines [id:da18814499707001964] line h,x through tilde C
+\draw [->,line width=1.5]   (276.5,194.25) -- (276.5,145) ;
+%Shape: Circle [id:dp9707702312229181] Circle around + at top middle
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (267.5,73.5) .. controls (267.5,68.25) and (271.75,64) .. (277,64) .. controls (282.25,64) and (286.5,68.25) .. (286.5,73.5) .. controls (286.5,78.75) and (282.25,83) .. (277,83) .. controls (271.75,83) and (267.5,78.75) .. (267.5,73.5) -- cycle ;
+
+%Straight Lines [id:da03029505734985216] line from i*C up to +
+\draw [->,line width=1.5]   (276.5,124) -- (276.5,85) ;
+
+
+%Shape: Circle [id:dp34929333608983726] Circle around \times on far right
+\draw  [fill={rgb, 255:red, 0; green, 60; blue, 30 }  ,fill opacity=1 ] (363.5,142.5) .. controls (363.5,137.25) and (367.75,133) .. (373,133) .. controls (378.25,133) and (382.5,137.25) .. (382.5,142.5) .. controls (382.5,147.75) and (378.25,152) .. (373,152) .. controls (367.75,152) and (363.5,147.75) .. (363.5,142.5) -- cycle ;
+\draw [->,line width=1.5]    (303,194) .. controls (340.73,193.76) and (316.03,143.33) .. (359.27,141.31) ;
+%Curve Lines [id:da6111376777240172] arrow down into x near o_t
+\draw [->,line width=1.5]    (324,73) .. controls (366.53,72.25) and (372.44,110.87) .. (372.96,128.2) ;
+%Curve Lines [id:da15408938295050778] arrow to h_t
+\draw [->,line width=1.5]    (372.5,153.75) .. controls (372.99,199.81) and (417.18,202.17) .. (462.24,201.31) ;
+%Straight Lines [id:da7236433019764783] line up to y_t
+\draw [->,line width=1.5]    (408,197.25) -- (408,37.75) ;
+
+\draw (323.5,129.4) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{o}_t$};
+\draw (328,158.4) node [anchor=north west][inner sep=0.75pt]    {$\sigma(\cdot)$};
+\node at (373,142.5) {$\times$};
+\draw (323,98) node [anchor=north west][inner sep=0.75pt]    {$\tanh(\cdot)$};
+
+\draw (225,117.4) node [anchor=north west][inner sep=0.75pt]  {$\mathbf{i}_t$};
+\draw (280,153) node [anchor=north west][inner sep=0.75pt]  {$\tilde{\mathbf{C}}_t$};
+\node at (277,133.5) {$\times$};
+\node at (277,73.5) {$+$};
+\draw (225,158.4) node [anchor=north west][inner sep=0.75pt]  {$\sigma(\cdot)$};
+\draw (280,171) node [anchor=north west][inner sep=0.75pt]    {$\tanh(\cdot)$};
+
+% Text Node
+\draw (186,123.4) node [anchor=north west][inner sep=0.75pt]  {$\mathbf{f}_t$};
+\draw (170,163) node [anchor=north west][inner sep=0.75pt]    {$\sigma(\cdot)$};
+\node at (195.5, 73.5) {$\times$};
+
+\draw (93,49.5) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{C}_{t-1}$};
+\draw (462,49.5) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{C}_t$};
+\draw (142.5,244.4) node [anchor=north west][inner sep=0.75pt]{$\mathbf{x}_t$};
+\draw (93,173) node [anchor=north west][inner sep=0.75pt]     {$\mathbf{h}_{t-1}$};
+\draw (462,173) node [anchor=north west][inner sep=0.75pt]    {$\mathbf{h}_t$};
+\draw (398,11.4) node [anchor=north west][inner sep=0.75pt]   {$\mathbf{y}_t=g(\mathbf{h}_t)$};
+
+\begin{pgfonlayer}{background}
+  \fill[darklybg] (current bounding box.south west) rectangle (current bounding box.north east);
+\end{pgfonlayer}
+
+\end{tikzpicture}
+```
+Lastly, we need to make a prediction for time $t$. The prediction is simply a transformation of $\mathbf{h}_t$.
+
+
+# Building an SLM (*small* language model)
+
+While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a small language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will convince you about the direction that an LSTM model can take you. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.
+
+Here's how we will proceed. I will have R read in a lengthy book, Fyodor Dostoyevsky's *Crime and Punishment*. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character. 
+
+We can use the fitted neural network to "write" by seeding it with a new block of text and have it draw from the next-character distribution. Let's say I start off with the 50-character sequence
+
+"On an exceptionally hot evening early in July a yo"
+
+The next character could be a "d" (if the word were to become "yodel") or a "u" (if the word were to become "youth" or "young" or "your"). Let's say that it picked a "u". Our new 50-character block would become
+
+"n an exceptionally hot evening early in July a you"
+
+Note that I have cut off the first character (the "O") and appended the newly drawn character "u" at the end. We can repeat the process of drawing the next character and sliding the 50-character window forward. If we had an amazingly good LSTM, then it would write like Dostoyevsky himself and write the famous first line
+
+"On an exceptionally hot evening early in July a young man came out of the garret in which he lodged in S. Place and walked slowly, as though in hesitation, towards K. bridge."
+
+As I warned, our small language model will be more likely to produce something like 
+
+"on an exceptionally hot evening early in July a your mount of a forget of a street and laughing at him and the street."
+
+
+So let's get started.
+
+## Preparing the text
+
+As usual, we will start up the necessary packages.
+```{r}
+#| message: false
+#| warning: false
+library(dplyr)
+library(purrr)
+library(keras)
+```
+
+Now let's have R quickly read in the 140,000 words that make up *Crime and Punishment* from the Gutenberg.org website. I will collapse the entire text into a single long character string and convert all characters to lowercase. In several places there are multiple space characters in a row. I will use `gsub()` to turn any such set of spaces into a single space.
+```{r}
+# Crime & Punishment
+url  <- "https://www.gutenberg.org/cache/epub/2554/pg2554.txt"   
+
+text <- readLines(url, warn = FALSE, encoding = "UTF-8") |>
+  paste(collapse = " ") |>
+  tolower() |>
+  gsub(" +", " ", x=_)
+```
+
+We end up with a single text string with `r nchar(text) |> format(big.mark=",")` characters.
+```{r}
+# this is one very long string with all of the text
+length(text)
+nchar(text)
+```
+
+Gutenberg.org includes some headers and footers and there is a long preface too. Let's strip all that out so we just have the text of the book itself. 
+```{r}
+# strip Project-Gutenberg header/footer
+start <- gregexpr("part i", text)[[1]][2]
+end <- regexpr("\\*\\*\\* end of the project gutenberg", text)
+text  <- substring(text, start, end)
+```
+
+We can have a look at the first couple lines of the book.
+
+::: {.callout-note title="First 1,000 characters"}
+```{r}
+#| results: asis
+substring(text, 1, 1000)
+```
+:::
+
+It is probably good to check what characters are in the book and how frequently they appear.
+```{r}
+# here are all the characters
+strsplit(text, "") |> table() |> sort() |> rev()
+```
+
+As previously mentioned, I will turn the entire book into blocks of 50 characters. Rather than using every single 50-character block, I am going to slide my 50-character window by three characters.
+```{r}
+# Choose sequence length and step between sequences
+maxlen <- 50      # characters fed into the model
+step   <- 3       # slide window by 3 chars to augment the data
+```
+
+We are going to need to turn every character into a number. Keras is expecting numeric data after all. Let's have `chars` store the set of 63 unique characters that appear in the book. I will also make two helper objects that will allow us to turn the letters into numbers and then translate any output numbers back into letters.
+```{r}
+# translate characters -> integers (and integers back to characters)
+chars      <- strsplit(text,"") |> unlist() |> unique() |> sort()
+
+# lookup for turning characters into numbers
+char2index <- set_names(seq_along(chars) - 1, chars)
+char2index
+
+# lookup for turning numbers back into characters
+index2char <- set_names(chars, seq_along(chars) - 1)
+index2char
+```
+
+It is time to create out data matrix $\mathbf{X}$. I'll convert all of the characters in the book into their numeric equivalent. Here you can see the first 100 characters in the book and how they get turned into numbers.
+```{r}
+# convert all characters to numbers 0-63
+ids <- char2index[strsplit(text, "")[[1]]]
+ids[1:100]
+```
+
+Next we will chop this sequence of numbers into blocks of length `maxlen` (`r maxlen`). `starts` contains the starting index of each block. Remember that we are going to slide the 50-character window by `step` (`r step`) each time. That is why you see the starting index skips by 3 (1, 4, 7, ...).
+```{r}
+# get the starting character location for each block
+starts <- seq(1, length(ids)-maxlen, by=step)
+starts[1:100]
+```
+
+Next we will take each of the starting indices from `starts` and add the sequence `0:49` to them so that each row of `matIDs` will contain the indices for the 50-character block of text we want to extract. Note that each row shows a sequence of 50 indices in order. Each subsequent row is the same as the previous one but shifted by 3.
+```{r}
+# take all "starts" and adds 0:(maxlen-1) to them
+matIDs <- outer(starts, 0:(maxlen - 1), `+`)
+head(matIDs, 3)
+```
+
+Lastly, we will store in `X` the numeric codes for the associated characters indexed by `matIDs`.
+```{r}
+# recode blocks into numbers
+X <- matrix(ids[matIDs], ncol = maxlen)
+head(X, 3)
+```
+
+To double check our work, let's check that the first values in `ids` matches the first row in `X`.
+```{r}
+# note first line numbers match first line of text
+ids[1:36]
+```
+
+Time to extract our outcome value, the character that comes after the 50-character block stored in `X`. That's going to be character in position 51 for our first block, character 54 for our second block (remember shifting by 3 each time).
+```{r}
+# create y (next character)
+y <- ids[starts + maxlen]
+```
+
+Let's double check our work here. The first line is "On an exceptionally hot evening early in July". Let's translate the first row of the numeric `X` back into characters using `index2char`. The first 50 characters ends just before completing the work "early". Correctly, `y[1]` equals the letter "a" to continue the spelling of "early". So ideally, we will train our neural network that when it sees text like "...on an exceptionally hot evening e" that it will be likely to predict the letter "a" next, at least that is what Dostoyevsky would do.
+```{r}
+# first line: "on an e..."
+index2char[as.character(X[1,])]
+# next character is 
+y[1]
+# "on an exceptionally hot evening early in July
+```
+
+## LSTM model of text
+
+```{r}
+#| echo: false
+model <- load_model_hdf5("lstm_nextcharV2.keras")
+```
+
+If you already have a neural network in memory, then it is best to clear it all out before proceeding.
+```{r}
+#| eval: false
+keras::k_clear_session()
+gc()
+```
+
+Now we need to explain to Keras what kind of neural network we want to use on these data. I will walk us through the three layers of this network.
+
+1.  `layer_embedding()` is a lookup table that turns the integer IDs into a short, numeric vector of length 64. Internally Keras creates a $65 \times 64$ (number of unique characters in the book $\times$ output dimension) weight matrix. When the model sees, say, the integer 42, it simply grabs row 42 of that matrix and passes the 64-number output vector on to the LSTM. No arithmetic is done on the integer IDs themselves. They are treated as pure categorical labels.
+
+2.  `layer_lstm()` sets up the LSTM. We are asking Keras to set up 128 LSTM cells. Each cell keeps its own long-term, $C_t$, and short-term memory, $h_t$. During training these 128 cells learn to capture the dependencies between the characters that flow through the sequence.
+
+3.  That length 128 vector from the LSTM is then fed into the dense layer, whose softmax turns it into a probability distribution over possible characters.
+
+```{r}
+#| eval: false
+# fitting this model takes about 2.5 hours on a laptop
+model <- keras_model_sequential() |>
+  layer_embedding(input_dim = length(chars) + 1, output_dim = 64) |>
+  layer_lstm(128, dropout=0.2) |>
+  layer_dense(length(chars) + 1, activation = "softmax")
+```
+
+Here's another version with two LSTM layers that has a lot more parameters, but this one will take about 24 hours on a laptop. I might try this someday.
+```{r}
+#| eval: false
+# 20 hours
+# model <- keras_model_sequential() |>
+#   layer_embedding(input_dim = length(chars)+1, output_dim = 40) |>
+#   layer_lstm(256, return_sequences = TRUE,
+#              dropout = 0.2, recurrent_dropout = 0.2) |>
+#   layer_lstm(128) |>
+#   layer_dense(length(chars)+1, activation = "softmax")
+```
+
+We will ask Keras to fit the neural network to optimize a multinomial log-likelihood (a generalization of the Bernoulli log-likelihood to more than 0/1).
+```{r}
+#| eval: false
+model |> compile(
+  loss      = "sparse_categorical_crossentropy",
+  optimizer = "rmsprop"
+)
+```
+
+Finally, estimate all the parameters. This model has `r model$count_params() |> format(big.mark=",")` parameters. Note that ChatGPT has roughly 10 million times more parameters. This is another warning that you may be disappointed by the results from this model.
+```{r}
+#| eval: false
+# about 2.5 hours
+model |> fit(x = X,
+             y = y,
+             batch_size = 128,
+             epochs      = 20,
+             validation_split = 0.1)
+```
+
+If you save the model in a file, then you can always load it up later.
+```{r}
+#| eval: false
+model$save("lstm_nextcharV2.keras")
+```
+
+## Generate text
+
+Have we encapsulated Dostoevsky in our LSTM? Let's find out.
+
+This first function we will use to draw the next character. `nextSample()` takes in a vector of predicted probabilities (of length 63) and samples one with probability equal to `preds`. The value of `temperature` can make the resulting text more "creative" (temperature > 1) or more "conservative" (temperature < 1).
+
+```{r}
+nextSample <- function(preds, temperature = 1) 
+{
+  # sharpen / soften distribution
+  preds <- log(preds + 1e-8) / temperature
+  # sum to 1
+  probs <- exp(preds) / sum(exp(preds))
+  # return 0-based ID
+  sample.int(length(probs), size=1, prob=probs) - 1
+}
+```
+
+`generateText()` will take in an initial prompt (`seed`) and begin "writing" based on what the LSTM predicts will be consistent with Dostoevsky's style... we'll see about that. It just draws the next character, drops the first character in the seed, appends the newly drawn character, and repeats.
+```{r}
+generateText <- function(seed,
+                         nChars2Generate = 400,
+                         temperature = 0.7) 
+{
+  # remember our model uses lowercase only
+  seed <- tolower(seed)
+  
+  ## ensure seed is at least maxlen; if longer, keep the tail
+  seedIDs <- char2index[strsplit(seed, "")[[1]]] |>
+    tail(maxlen)
+
+  generated <- seed
+  
+  for(i in 1:nChars2Generate)
+  {
+    # format for our model
+    xPred <- matrix(seedIDs, nrow = 1)  # 1 x maxlen matrix
+    
+    preds  <- model |>
+      predict(xPred, verbose = 0)
+    nextID   <- nextSample(preds[1, ], temperature)
+    nextChar <- index2char[[as.character(nextID)]]
+    
+    generated <- paste0(generated, nextChar)
+    seedIDs  <- c(seedIDs[-1], nextID)         # slide window
+  }
+  generated
+}
+```
+
+What if we start with a famous like from Dickens' *Tale of Two Cities*.
+
+::: {.callout-note title="SLM trying to complete Dickens"}
+```{r}
+#| results: asis
+cat(generateText(
+  seed = "It was the best of times, it was the worst of times, it was the age of wisdom, ",
+  nChars2Generate = 300,
+  temperature = 1
+))
+```
+:::
+
+Yikes! Let's ease up on the creativity.
+
+::: {.callout-note title="SLM trying to complete Dickens, less creative"}
+```{r}
+#| results: asis
+cat(generateText(
+  seed = "It was the best of times, it was the worst of times, it was the age of wisdom, ",
+  nChars2Generate = 300,
+  temperature = 0.5
+))
+```
+:::
+
+I think Dicken's said it better: "it was the epoch of belief, it was the epoch of incredulity..."
+
+Can this help me improve my LSTM?
+
+::: {.callout-note title="A plea that ChatGPT would understand"}
+```{r}
+#| results: asis
+cat(generateText(
+  seed = "What advice would you give me for improving my LSTM model? ",
+  nChars2Generate = 300,
+  temperature = 0.4
+))
+```
+:::
+
+# Conclusion
+
+Recurrent Neural Networks and their variants such as LSTMs provide a powerful framework for modeling sequential data. While RNNs are simpler and easier to understand, LSTMs are typically more effective for learning long-term dependencies thanks to their gated architecture.
+
+If only we had 10 million laptops that we could all chain together and had rapid access to the universe of books, articles, github sites, then we might have something useful.
+
+In spite of the gibberish, there is evidence that such models could potentially work. Even though we are only predicting one character at a time, we get many correct words. We get prepositional phrases. We get subject and verb compatibility. Frankly, I was rather surprised that with relatively few parameters the LSTM learns a few important parts of the English language. No doubt this is insufficient for any practical use, but I hope you see the direction this leads. We now know with more complex neural network designs and larger datasets, LLMs can be incredibly useful and powerful. The basics covered here give you the foundation for the next steps. Transformers have been the key for LLMs to become so effective. Surely, there are more architectures yet undiscovered that will make deep learning even more powerful.

@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Greg Ridgeway">
+<meta name="dcterms.date" content="2025-04-29">
+
+<title>L12 Recurrent and Long Short-Term Memory Neural Networks</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="L12-RNN_files/libs/clipboard/clipboard.min.js"></script>
+<script src="L12-RNN_files/libs/quarto-html/quarto.js"></script>
+<script src="L12-RNN_files/libs/quarto-html/popper.min.js"></script>
+<script src="L12-RNN_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="L12-RNN_files/libs/quarto-html/anchor.min.js"></script>
+<link href="L12-RNN_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="L12-RNN_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L12-RNN_files/libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<script src="L12-RNN_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="L12-RNN_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="L12-RNN_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L12-RNN_files/libs/bootstrap/bootstrap-dark.min.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#basic-recurrent-neural-network" id="toc-basic-recurrent-neural-network" class="nav-link active" data-scroll-target="#basic-recurrent-neural-network"><span class="header-section-number">1</span> Basic Recurrent Neural Network</a>
+  <ul class="collapse">
+  <li><a href="#rnn-activation-functions" id="toc-rnn-activation-functions" class="nav-link" data-scroll-target="#rnn-activation-functions"><span class="header-section-number">1.1</span> RNN activation functions</a></li>
+  <li><a href="#challenges-with-rnns" id="toc-challenges-with-rnns" class="nav-link" data-scroll-target="#challenges-with-rnns"><span class="header-section-number">1.2</span> Challenges with RNNs</a></li>
+  </ul></li>
+  <li><a href="#long-short-term-memory-lstm" id="toc-long-short-term-memory-lstm" class="nav-link" data-scroll-target="#long-short-term-memory-lstm"><span class="header-section-number">2</span> Long Short-Term Memory (LSTM)</a>
+  <ul class="collapse">
+  <li><a href="#long-term-memory" id="toc-long-term-memory" class="nav-link" data-scroll-target="#long-term-memory"><span class="header-section-number">2.1</span> Long-term memory</a></li>
+  <li><a href="#forget-gate" id="toc-forget-gate" class="nav-link" data-scroll-target="#forget-gate"><span class="header-section-number">2.2</span> Forget gate</a></li>
+  <li><a href="#input-gate-gate" id="toc-input-gate-gate" class="nav-link" data-scroll-target="#input-gate-gate"><span class="header-section-number">2.3</span> Input gate gate</a></li>
+  <li><a href="#output-gate" id="toc-output-gate" class="nav-link" data-scroll-target="#output-gate"><span class="header-section-number">2.4</span> Output gate</a></li>
+  </ul></li>
+  <li><a href="#building-an-slm-small-language-model" id="toc-building-an-slm-small-language-model" class="nav-link" data-scroll-target="#building-an-slm-small-language-model"><span class="header-section-number">3</span> Building an SLM (<em>small</em> language model)</a>
+  <ul class="collapse">
+  <li><a href="#preparing-the-text" id="toc-preparing-the-text" class="nav-link" data-scroll-target="#preparing-the-text"><span class="header-section-number">3.1</span> Preparing the text</a></li>
+  <li><a href="#lstm-model-of-text" id="toc-lstm-model-of-text" class="nav-link" data-scroll-target="#lstm-model-of-text"><span class="header-section-number">3.2</span> LSTM model of text</a></li>
+  <li><a href="#generate-text" id="toc-generate-text" class="nav-link" data-scroll-target="#generate-text"><span class="header-section-number">3.3</span> Generate text</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion"><span class="header-section-number">4</span> Conclusion</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="L12-RNN.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">L12 Recurrent and Long Short-Term Memory Neural Networks</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Author</div>
+  <div class="quarto-title-meta-heading">Affiliation</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Greg Ridgeway <a href="mailto:gridge@upenn.edu" class="quarto-title-author-email"><i class="bi bi-envelope"></i></a> </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            University of Pennsylvania
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 29, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- Check Keras results. Might need to clear cache  -->
+<!-- In terminal -->
+<!-- quarto render L12-RNN.qmd -->
+<!-- quarto render L12-RNN.qmd --cache-refresh  -->
+<!-- git commit L12-* -m "commit message" -->
+<!-- git status -->
+<!-- git push -->
+<p>Recurrent neural networks (RNNs) are a class of neural networks designed to model sequential data. Unlike feedforward networks, RNNs maintain an internal state (memory) that captures information about prior elements in the sequence, making them well-suited to time series, natural language, and other sequential tasks.</p>
+<section id="basic-recurrent-neural-network" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Basic Recurrent Neural Network</h1>
+<p>First, let’s look at the basic form of a recurrent neural network. As shown in <a href="#fig-rnn" class="quarto-xref">Figure&nbsp;1</a>, we observe at time <span class="math inline">\(t\)</span> the input features <span class="math inline">\(\mathbf{x}_t\)</span> and want to predict the output features <span class="math inline">\(\mathbf{y}_t\)</span>. Between the input and output layers is a hidden layer, <span class="math inline">\(\mathbf{h}_t\)</span>. The length of the vector <span class="math inline">\(\mathbf{h}\)</span> does not need to match the lengths of <span class="math inline">\(\mathbf{y}\)</span> or <span class="math inline">\(\mathbf{x}\)</span>. The hidden layer is intended to capture patterns or memories that need to persist over time, possibly modified by the current input <span class="math inline">\(\mathbf{x}_t\)</span>.</p>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-rnn" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-rnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-rnn-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: A recurrent neural network
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="rnn-activation-functions" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="rnn-activation-functions"><span class="header-section-number">1.1</span> RNN activation functions</h2>
+<p>First, we need to do a quick refresh on activation functions. RNNs are going to depend on two primary activation functions: the sigmoid and hyperbolic tangent functions.</p>
+<ol type="1">
+<li><p>sigmoid function</p>
+<ol type="a">
+<li><p>transforms its argument into a value that is between 0 and 1</p></li>
+<li><p>useful in RNNs for tagging memories that the RNN should remember (a value near 1) or can forget (a value near 0)</p></li>
+</ol></li>
+<li><p>hyperbolic tangent</p>
+<ol type="a">
+<li><p><span class="math inline">\(\tanh(x)\)</span>, often pronounced “tanch” or “tan-h”</p></li>
+<li><p>similar shape to the sigmoid except that it stretches from -1 to 1</p></li>
+<li><p>squashes large values into a narrow range but allows for outputs to have a positive or negative sign</p></li>
+<li><p>In RNNs, past values may increase or decrease the chance that something happens at future time points. The hyperbolic tangent’s ability to output positive or negative values makes it a good candidate</p></li>
+</ol></li>
+</ol>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div id="fig-sigmoidtanh" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sigmoidtanh-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-sigmoidtanh-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sigmoidtanh-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Sigmoid and hyperbolic tangent activation functions
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The sigmoid function is like a smooth version of an on/off switch, while the hyperbolic tangent is like a knob that can increase or decrease a signal.</p>
+<p>Something to pay attention to… the math notation becomes a little awkward when dealing with RNNs. We will apply functions to vectors, but intend to mean applying that function to each element of the vector. So you may see something like <span class="math inline">\(\tanh(\mathbf{x})\)</span>, where <span class="math inline">\(\mathbf{x}\)</span> is a vector. The mathematical intention is</p>
+<p><span class="math display">\[
+\begin{split}
+\tanh(\mathbf{x}) &amp;= \tanh(\begin{bmatrix} x_1 &amp; x_2 &amp; \ldots &amp; x_n \end{bmatrix}) \\
+  &amp;= \begin{bmatrix} \tanh(x_1) &amp; \tanh(x_2) &amp; \ldots &amp; \tanh(x_n) \end{bmatrix})
+\end{split}
+\]</span> This is somewhat an abuse of mathematical notation, but try to remember these as element-wise calculations. In mathematics these are generally called “Hadamard operations” or in computer science “vectorized functions.”</p>
+<p>With that in mind, we can turn to how the RNN blends the hidden layer memory, <span class="math inline">\(\mathbf{h}_{t-1}\)</span>, and the new input <span class="math inline">\(\mathbf{x}_t\)</span>. Traditionally, RNNs use the hyperbolic tangent function as the activation function in the hidden memory layer.</p>
+<p><span class="math display">\[
+\begin{split}
+\mathbf{h}_t &amp;= \tanh(W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1}) \\
+             &amp;=
+\begin{bmatrix}
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_1\right) \\
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_2\right) \\
+\vdots \\
+\tanh\left((W_{hx} \mathbf{x}_t + W_{hh} \mathbf{h}_{t-1})_n\right)
+\end{bmatrix}
+\end{split}
+\]</span></p>
+<p>RNN’s compute the output <span class="math inline">\(y_t\)</span> at each time point as:</p>
+<p><span class="math display">\[
+y_t = W_{hy} h_t
+\]</span> or <span class="math display">\[
+y_t = g(W_{hy} h_t)
+\]</span> where <span class="math inline">\(\sigma(\cdot)\)</span> is some activation function.</p>
+<p><span class="math inline">\(W_{hx}\)</span>, <span class="math inline">\(W_{hh}\)</span>, <span class="math inline">\(W_{hy}\)</span> are weight matrices that we would estimate using backpropation.</p>
+</section>
+<section id="challenges-with-rnns" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="challenges-with-rnns"><span class="header-section-number">1.2</span> Challenges with RNNs</h2>
+<p>While Recurrent Neural Networks offer a powerful framework for modeling sequential data, they suffer from fundamental training challenges, most notably the <em>vanishing gradient</em> and <em>exploding gradient</em> problems. These arise during backpropagation, where gradients are repeatedly multiplied by weight matrices at each time step. If the weights are small, the gradients shrink exponentially, leading to vanishing gradients, which prevent the network from learning long-range dependencies. Conversely, if the weights are large, gradients can grow exponentially, resulting in exploding gradients, which cause unstable parameter updates and numerical overflow.</p>
+<p>These issues make it difficult for standard RNNs to retain or learn dependencies that span many time steps, limiting their effectiveness in tasks such as language modeling or long-horizon forecasting (e.g.&nbsp;30 days ago, 30 words previously).</p>
+<p>Long Short-Term Memory (LSTM) neural networks were specifically designed to address these problems through gating mechanisms that regulate information flow.</p>
+</section>
+</section>
+<section id="long-short-term-memory-lstm" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Long Short-Term Memory (LSTM)</h1>
+<p>LSTMs are a version of RNNs that address the vanishing gradient problem and are able to retain long-term dependencies through a gating mechanism. They make use of clever combinations of the sigmoid and hyperbolic tangent functions to keep and discard memories and up date long-term memory with new concepts.</p>
+<p>LSTMs look just like <a href="#fig-rnn" class="quarto-xref">Figure&nbsp;1</a>, but add more complexity to the cell between <span class="math inline">\(\mathbf{x}_t\)</span> and <span class="math inline">\(\mathbf{y}_t\)</span>. We will through the components, long-term memory, forget gates, input gates, and output gates.</p>
+<section id="long-term-memory" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="long-term-memory"><span class="header-section-number">2.1</span> Long-term memory</h2>
+<p>Throughout the LSTM model there is a kind of long-term memory, denoted <span class="math inline">\(\mathbf{C}_t\)</span>, that captures important, durable concepts. For example, if we were modeling text and a sentence begins with “Greg went…”, then the long-term memory needs to store the gender of the subject of the sentence so that the rest of the sentence conforms to traditional English grammar for pronouns. The gender concept needs to stay in long term memory until there’s some kind of change, like the introduction of a new subject.</p>
+<p>Like the standard RNN, the cell for timepoint <span class="math inline">\(t\)</span> has an input, <span class="math inline">\(\mathbf{x}_t\)</span>, a hidden “short-term” memory, <span class="math inline">\(\mathbf{h}_t\)</span>, and an output, <span class="math inline">\(\mathbf{y}_t\)</span>. In addition to those standard features, LSTMs add a long-term memory component, <span class="math inline">\(\mathbf{C}_t\)</span>. All of these components are vectors. In deep learning applications <span class="math inline">\(\mathbf{C}_t\)</span> can be a vector of dimension 1,024 or more. In simpler applications or for time series forecasting, <span class="math inline">\(\mathbf{C}_t\)</span> can be a smaller vector with dimension like 64 or 128. The dimension of <span class="math inline">\(\mathbf{C}_t\)</span> does need to match the dimension of <span class="math inline">\(\mathbf{h}_t\)</span>.</p>
+<div class="cell" data-layout-align="center" data-format-pdf="default">
+<div class="cell-output-display">
+<div id="fig-lstm-longterm" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lstm-longterm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-lstm-longterm-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lstm-longterm-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Modification of an RNN cell to have LSTM’s long term memory
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The remaining cell components work to modify the short term memory in <span class="math inline">\(\mathbf{h}\)</span> and the long-term memory in <span class="math inline">\(\mathbf{C}\)</span> and produce accurate outputs in <span class="math inline">\(\mathbf{y}\)</span>. Those components are three gates: forget, input, and output. We will walk through each of these gates separately.</p>
+</section>
+<section id="forget-gate" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="forget-gate"><span class="header-section-number">2.2</span> Forget gate</h2>
+<p>The forget gate take a linear combination of the values in <span class="math inline">\(\mathbf{x}_t\)</span> and <span class="math inline">\(\mathbf{h}_{t-1}\)</span>, passes them through the sigmoid function, and then multiples the result elementwise with the <span class="math inline">\(\mathbf{C}_{t-1}\)</span>. Recall the sigmoid function’s shape from <a href="#fig-sigmoidtanh" class="quarto-xref">Figure&nbsp;2</a>. If there’s a concept that the long-term memory needs to forget, then argument to the sigmoid fucntion will be a large negative number and push the sigmoid function toward 0. Then when we multiple <span class="math inline">\(\mathbf{f}_t\)</span> and <span class="math inline">\(\mathbf{C}_{t-1}\)</span> <em>elementwise</em> (the <span class="math inline">\(\odot\)</span> symbolizes multiplying element by element) <span class="math inline">\(\mathbf{f}_t\)</span> will zero out the concept that needed to be forgotten. In the same way, the forget gate and keep components in memory by passing a large positive value through the sigmoid so that <span class="math inline">\(\mathbf{f}_t\)</span> is close to 1 and keeps the long-term memory relatively unchanged in the elementwise multiplication.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbf{f}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &amp;= \sigma\left(\mathbf{W}_{xf}\mathbf{x}_t + \mathbf{W}_{hf}\mathbf{h}_{t-1}\right) \\
+\mathbf{C}_t &amp;= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \text{more to come here...}
+\end{aligned}
+\]</span></p>
+<div class="cell" data-layout-align="center" data-format-pdf="default">
+<div class="cell-output-display">
+<div id="fig-lstm-forget" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lstm-forget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-lstm-forget-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lstm-forget-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The forget gate
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="input-gate-gate" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="input-gate-gate"><span class="header-section-number">2.3</span> Input gate gate</h2>
+<p>The input gate handles the process of forming <em>new</em> long-term memories.</p>
+<p>Like the forget gate, the input gate also takes a linear combination of the values in <span class="math inline">\(\mathbf{x}_t\)</span> and <span class="math inline">\(\mathbf{h}_{t-1}\)</span>, passes them through the sigmoid function, and uses the result to determine how much of the candidate cell state <span class="math inline">\(\tilde{\mathbf{C}}_t\)</span> should be written into long-term memory. The candidate <span class="math inline">\(\tilde{\mathbf{C}}_t\)</span> is computed separately by passing a linear combination of <span class="math inline">\(\mathbf{x}_t\)</span> and <span class="math inline">\(\mathbf{h}_{t-1}\)</span> through the hyperbolic tangent activation function. Just like in the forget gate, the input gate’s sigmoid output <span class="math inline">\(\mathbf{i}_t\)</span> ranges between 0 and 1, controlling the degree of update for each element. If a new concept should be added to long-term memory, the linear input to the sigmoid will be strongly positive, pushing <span class="math inline">\(\mathbf{i}_t\)</span> close to 1. In contrast, if no update is needed in that dimension, the sigmoid output will be near 0, and the corresponding element in <span class="math inline">\(\tilde{\mathbf{C}}_t\)</span> will be ignored during the elementwise multiplication with <span class="math inline">\(\mathbf{i}_t\)</span>. The product <span class="math inline">\(\mathbf{i}_t \odot \tilde{\mathbf{C}}_t\)</span> is then added into <span class="math inline">\(\mathbf{C}_t\)</span>, forming the additive update to long-term memory.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbf{i}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &amp;= \sigma\left(\mathbf{W}_{xi}\mathbf{x}_t + \mathbf{W}_{hi}\mathbf{h}_{t-1}\right) \\
+\tilde{\mathbf{C}}_t &amp;= \tanh\left(\mathbf{W}_{xc}\mathbf{x}_t + \mathbf{W}_{hc}\mathbf{h}_{t-1}\right) \\
+\mathbf{C}_t &amp;= \mathbf{f}_t \odot \mathbf{C}_{t-1} + \mathbf{i}_t \odot \tilde{\mathbf{C}}_t
+\end{aligned}
+\]</span></p>
+<div class="cell" data-layout-align="center" data-format-pdf="default">
+<div class="cell-output-display">
+<div id="fig-lstm-input" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lstm-input-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-lstm-input-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lstm-input-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: The input gate
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="output-gate" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="output-gate"><span class="header-section-number">2.4</span> Output gate</h2>
+<p>The output gate determines how much of the current long-term memory <span class="math inline">\(\mathbf{C}_t\)</span> should be exposed to the rest of the network at time <span class="math inline">\(t\)</span>. Like the other gates, it takes a linear combination of <span class="math inline">\(\mathbf{x}_t\)</span> and <span class="math inline">\(\mathbf{h}_{t-1}\)</span>, passes the result through a sigmoid function, and uses that to control the final output. But instead of applying this gate directly to <span class="math inline">\(\mathbf{C}_t\)</span>, the cell state is first passed through the hyperbolic tangent to squash its values between <span class="math inline">\(-1\)</span> and <span class="math inline">\(1\)</span>, producing a bounded signal. Then the gate value <span class="math inline">\(\mathbf{o}_t\)</span> is multiplied elementwise with the transformed memory, yielding the hidden state <span class="math inline">\(\mathbf{h}_t\)</span>. This means the output gate decides how much of each component in the memory vector is allowed to influence the next time step. If the sigmoid pushes a value in <span class="math inline">\(\mathbf{o}_t\)</span> close to 0, the corresponding element in <span class="math inline">\(\mathbf{C}_t\)</span> will be suppressed. If it is close to 1, the full strength of that memory component will be stored in <span class="math inline">\(\mathbf{h}_t\)</span>.</p>
+<p><span class="math display">\[
+\begin{aligned}
+\mathbf{o}_t(\mathbf{x}_t,\mathbf{h}_{t-1}) &amp;= \sigma\left(\mathbf{W}_{xo}\mathbf{x}_t + \mathbf{W}_{ho}\mathbf{h}_{t-1}\right) \\
+\mathbf{h}_t &amp;= \mathbf{o}_t \odot \tanh\left(\mathbf{C}_t\right) \\
+\mathbf{y}_t &amp;= g(\mathbf{h}_t)
+\end{aligned}
+\]</span></p>
+<div class="cell" data-layout-align="center" data-format-pdf="default">
+<div class="cell-output-display">
+<div id="fig-lstm-output" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lstm-output-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="L12-RNN_files/figure-html/fig-lstm-output-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lstm-output-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: The output gate
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Lastly, we need to make a prediction for time <span class="math inline">\(t\)</span>. The prediction is simply a transformation of <span class="math inline">\(\mathbf{h}_t\)</span>.</p>
+</section>
+</section>
+<section id="building-an-slm-small-language-model" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Building an SLM (<em>small</em> language model)</h1>
+<p>While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a small language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will convince you about the direction that an LSTM model can take you. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.</p>
+<p>Here’s how we will proceed. I will have R read in a lengthy book, Fyodor Dostoyevsky’s <em>Crime and Punishment</em>. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character.</p>
+<p>We can use the fitted neural network to “write” by seeding it with a new block of text and have it draw from the next-character distribution. Let’s say I start off with the 50-character sequence</p>
+<p>“On an exceptionally hot evening early in July a yo”</p>
+<p>The next character could be a “d” (if the word were to become “yodel”) or a “u” (if the word were to become “youth” or “young” or “your”). Let’s say that it picked a “u”. Our new 50-character block would become</p>
+<p>“n an exceptionally hot evening early in July a you”</p>
+<p>Note that I have cut off the first character (the “O”) and appended the newly drawn character “u” at the end. We can repeat the process of drawing the next character and sliding the 50-character window forward. If we had an amazingly good LSTM, then it would write like Dostoyevsky himself and write the famous first line</p>
+<p>“On an exceptionally hot evening early in July a young man came out of the garret in which he lodged in S. Place and walked slowly, as though in hesitation, towards K. bridge.”</p>
+<p>As I warned, our small language model will be more likely to produce something like</p>
+<p>“on an exceptionally hot evening early in July a your mount of a forget of a street and laughing at him and the street.”</p>
+<p>So let’s get started.</p>
+<section id="preparing-the-text" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="preparing-the-text"><span class="header-section-number">3.1</span> Preparing the text</h2>
+<p>As usual, we will start up the necessary packages.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(keras)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now let’s have R quickly read in the 140,000 words that make up <em>Crime and Punishment</em> from the Gutenberg.org website. I will collapse the entire text into a single long character string and convert all characters to lowercase. In several places there are multiple space characters in a row. I will use <code>gsub()</code> to turn any such set of spaces into a single space.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Crime &amp; Punishment</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>url  <span class="ot">&lt;-</span> <span class="st">"https://www.gutenberg.org/cache/epub/2554/pg2554.txt"</span>   </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>text <span class="ot">&lt;-</span> <span class="fu">readLines</span>(url, <span class="at">warn =</span> <span class="cn">FALSE</span>, <span class="at">encoding =</span> <span class="st">"UTF-8"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">" "</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tolower</span>() <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gsub</span>(<span class="st">" +"</span>, <span class="st">" "</span>, <span class="at">x=</span>_)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We end up with a single text string with 1,149,892 characters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># this is one very long string with all of the text</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">length</span>(text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">nchar</span>(text)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1149892</code></pre>
+</div>
+</div>
+<p>Gutenberg.org includes some headers and footers and there is a long preface too. Let’s strip all that out so we just have the text of the book itself.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># strip Project-Gutenberg header/footer</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>start <span class="ot">&lt;-</span> <span class="fu">gregexpr</span>(<span class="st">"part i"</span>, text)[[<span class="dv">1</span>]][<span class="dv">2</span>]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>end <span class="ot">&lt;-</span> <span class="fu">regexpr</span>(<span class="st">"</span><span class="sc">\\</span><span class="st">*</span><span class="sc">\\</span><span class="st">*</span><span class="sc">\\</span><span class="st">* end of the project gutenberg"</span>, text)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>text  <span class="ot">&lt;-</span> <span class="fu">substring</span>(text, start, end)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can have a look at the first couple lines of the book.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="First 1,000 characters">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+First 1,000 characters
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">substring</span>(text, <span class="dv">1</span>, <span class="dv">1000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>[1] “part i chapter i on an exceptionally hot evening early in july a young man came out of the garret in which he lodged in s. place and walked slowly, as though in hesitation, towards k. bridge. he had successfully avoided meeting his landlady on the staircase. his garret was under the roof of a high, five-storied house and was more like a cupboard than a room. the landlady who provided him with garret, dinners, and attendance, lived on the floor below, and every time he went out he was obliged to pass her kitchen, the door of which invariably stood open. and each time he passed, the young man had a sick, frightened feeling, which made him scowl and feel ashamed. he was hopelessly in debt to his landlady, and was afraid of meeting her. this was not because he was cowardly and abject, quite the contrary; but for some time past he had been in an overstrained irritable condition, verging on hypochondria. he had become so completely absorbed in himself, and isolated from his fellows that he d”</p>
+</div>
+</div>
+<p>It is probably good to check what characters are in the book and how frequently they appear.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># here are all the characters</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">strsplit</span>(text, <span class="st">""</span>) <span class="sc">|&gt;</span> <span class="fu">table</span>() <span class="sc">|&gt;</span> <span class="fu">sort</span>() <span class="sc">|&gt;</span> <span class="fu">rev</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+            e      t      a      o      n      i      h      s      r      d 
+202708 102758  79018  72797  70581  61860  61287  55265  52476  47089  38511 
+     l      u      m      y      w      c      g      f      ,      .      p 
+ 35272  27166  22013  20884  20634  18196  17927  16722  16004  15791  13485 
+     b      v      k      ’      “      ”      !      ?      -      x      z 
+ 11952  10948   9589   4034   3971   3922   2363   2277   2257   1297   1086 
+     ;      q      j      _      ‘      :      ï      )      (      *      é 
+  1046    775    743    506    275    233    222    156    156     32     17 
+     ]      [      ô      æ      ê      ä      4      1      à      8      7 
+     6      6      4      4      3      3      3      3      2      2      2 
+     ü      ö      î      è      ç      9      6      5      3 
+     1      1      1      1      1      1      1      1      1 </code></pre>
+</div>
+</div>
+<p>As previously mentioned, I will turn the entire book into blocks of 50 characters. Rather than using every single 50-character block, I am going to slide my 50-character window by three characters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Choose sequence length and step between sequences</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>maxlen <span class="ot">&lt;-</span> <span class="dv">50</span>      <span class="co"># characters fed into the model</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>step   <span class="ot">&lt;-</span> <span class="dv">3</span>       <span class="co"># slide window by 3 chars to augment the data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We are going to need to turn every character into a number. Keras is expecting numeric data after all. Let’s have <code>chars</code> store the set of 63 unique characters that appear in the book. I will also make two helper objects that will allow us to turn the letters into numbers and then translate any output numbers back into letters.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># translate characters -&gt; integers (and integers back to characters)</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>chars      <span class="ot">&lt;-</span> <span class="fu">strsplit</span>(text,<span class="st">""</span>) <span class="sc">|&gt;</span> <span class="fu">unlist</span>() <span class="sc">|&gt;</span> <span class="fu">unique</span>() <span class="sc">|&gt;</span> <span class="fu">sort</span>()</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># lookup for turning characters into numbers</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>char2index <span class="ot">&lt;-</span> <span class="fu">set_names</span>(<span class="fu">seq_along</span>(chars) <span class="sc">-</span> <span class="dv">1</span>, chars)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>char2index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> -     !  (  )  *  ,  .  :  ;  ?  [  ]  _  ‘  ’  “  ”  1  3  4  5  6  7  8  9 
+ 0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 
+ a  à  ä  æ  b  c  ç  d  e  é  è  ê  f  g  h  i  î  ï  j  k  l  m  n  o  ô  ö 
+26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 
+ p  q  r  s  t  u  ü  v  w  x  y  z 
+52 53 54 55 56 57 58 59 60 61 62 63 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># lookup for turning numbers back into characters</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>index2char <span class="ot">&lt;-</span> <span class="fu">set_names</span>(chars, <span class="fu">seq_along</span>(chars) <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>index2char</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19 
+"-" " " "!" "(" ")" "*" "," "." ":" ";" "?" "[" "]" "_" "‘" "’" "“" "”" "1" "3" 
+ 20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39 
+"4" "5" "6" "7" "8" "9" "a" "à" "ä" "æ" "b" "c" "ç" "d" "e" "é" "è" "ê" "f" "g" 
+ 40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59 
+"h" "i" "î" "ï" "j" "k" "l" "m" "n" "o" "ô" "ö" "p" "q" "r" "s" "t" "u" "ü" "v" 
+ 60  61  62  63 
+"w" "x" "y" "z" </code></pre>
+</div>
+</div>
+<p>It is time to create out data matrix <span class="math inline">\(\mathbf{X}\)</span>. I’ll convert all of the characters in the book into their numeric equivalent. Here you can see the first 100 characters in the book and how they get turned into numbers.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># convert all characters to numbers 0-63</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ids <span class="ot">&lt;-</span> char2index[<span class="fu">strsplit</span>(text, <span class="st">""</span>)[[<span class="dv">1</span>]]]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ids[<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> p  a  r  t     i     c  h  a  p  t  e  r     i     o  n     a  n     e  x  c 
+52 26 54 56  1 41  1 31 40 26 52 56 34 54  1 41  1 49 48  1 26 48  1 34 61 31 
+ e  p  t  i  o  n  a  l  l  y     h  o  t     e  v  e  n  i  n  g     e  a  r 
+34 52 56 41 49 48 26 46 46 62  1 40 49 56  1 34 59 34 48 41 48 39  1 34 26 54 
+ l  y     i  n     j  u  l  y     a     y  o  u  n  g     m  a  n     c  a  m 
+46 62  1 41 48  1 44 57 46 62  1 26  1 62 49 57 48 39  1 47 26 48  1 31 26 47 
+ e     o  u  t     o  f     t  h  e     g  a  r  r  e  t     i  n 
+34  1 49 57 56  1 49 38  1 56 40 34  1 39 26 54 54 34 56  1 41 48 </code></pre>
+</div>
+</div>
+<p>Next we will chop this sequence of numbers into blocks of length <code>maxlen</code> (50). <code>starts</code> contains the starting index of each block. Remember that we are going to slide the 50-character window by <code>step</code> (3) each time. That is why you see the starting index skips by 3 (1, 4, 7, …).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the starting character location for each block</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>starts <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">length</span>(ids)<span class="sc">-</span>maxlen, <span class="at">by=</span>step)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>starts[<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  [1]   1   4   7  10  13  16  19  22  25  28  31  34  37  40  43  46  49  52
+ [19]  55  58  61  64  67  70  73  76  79  82  85  88  91  94  97 100 103 106
+ [37] 109 112 115 118 121 124 127 130 133 136 139 142 145 148 151 154 157 160
+ [55] 163 166 169 172 175 178 181 184 187 190 193 196 199 202 205 208 211 214
+ [73] 217 220 223 226 229 232 235 238 241 244 247 250 253 256 259 262 265 268
+ [91] 271 274 277 280 283 286 289 292 295 298</code></pre>
+</div>
+</div>
+<p>Next we will take each of the starting indices from <code>starts</code> and add the sequence <code>0:49</code> to them so that each row of <code>matIDs</code> will contain the indices for the 50-character block of text we want to extract. Note that each row shows a sequence of 50 indices in order. Each subsequent row is the same as the previous one but shifted by 3.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># take all "starts" and adds 0:(maxlen-1) to them</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>matIDs <span class="ot">&lt;-</span> <span class="fu">outer</span>(starts, <span class="dv">0</span><span class="sc">:</span>(maxlen <span class="sc">-</span> <span class="dv">1</span>), <span class="st">`</span><span class="at">+</span><span class="st">`</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(matIDs, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+[1,]    1    2    3    4    5    6    7    8    9    10    11    12    13    14
+[2,]    4    5    6    7    8    9   10   11   12    13    14    15    16    17
+[3,]    7    8    9   10   11   12   13   14   15    16    17    18    19    20
+     [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23] [,24] [,25] [,26]
+[1,]    15    16    17    18    19    20    21    22    23    24    25    26
+[2,]    18    19    20    21    22    23    24    25    26    27    28    29
+[3,]    21    22    23    24    25    26    27    28    29    30    31    32
+     [,27] [,28] [,29] [,30] [,31] [,32] [,33] [,34] [,35] [,36] [,37] [,38]
+[1,]    27    28    29    30    31    32    33    34    35    36    37    38
+[2,]    30    31    32    33    34    35    36    37    38    39    40    41
+[3,]    33    34    35    36    37    38    39    40    41    42    43    44
+     [,39] [,40] [,41] [,42] [,43] [,44] [,45] [,46] [,47] [,48] [,49] [,50]
+[1,]    39    40    41    42    43    44    45    46    47    48    49    50
+[2,]    42    43    44    45    46    47    48    49    50    51    52    53
+[3,]    45    46    47    48    49    50    51    52    53    54    55    56</code></pre>
+</div>
+</div>
+<p>Lastly, we will store in <code>X</code> the numeric codes for the associated characters indexed by <code>matIDs</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># recode blocks into numbers</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(ids[matIDs], <span class="at">ncol =</span> maxlen)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(X, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+[1,]   52   26   54   56    1   41    1   31   40    26    52    56    34    54
+[2,]   56    1   41    1   31   40   26   52   56    34    54     1    41     1
+[3,]    1   31   40   26   52   56   34   54    1    41     1    49    48     1
+     [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23] [,24] [,25] [,26]
+[1,]     1    41     1    49    48     1    26    48     1    34    61    31
+[2,]    49    48     1    26    48     1    34    61    31    34    52    56
+[3,]    26    48     1    34    61    31    34    52    56    41    49    48
+     [,27] [,28] [,29] [,30] [,31] [,32] [,33] [,34] [,35] [,36] [,37] [,38]
+[1,]    34    52    56    41    49    48    26    46    46    62     1    40
+[2,]    41    49    48    26    46    46    62     1    40    49    56     1
+[3,]    26    46    46    62     1    40    49    56     1    34    59    34
+     [,39] [,40] [,41] [,42] [,43] [,44] [,45] [,46] [,47] [,48] [,49] [,50]
+[1,]    49    56     1    34    59    34    48    41    48    39     1    34
+[2,]    34    59    34    48    41    48    39     1    34    26    54    46
+[3,]    48    41    48    39     1    34    26    54    46    62     1    41</code></pre>
+</div>
+</div>
+<p>To double check our work, let’s check that the first values in <code>ids</code> matches the first row in <code>X</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># note first line numbers match first line of text</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>ids[<span class="dv">1</span><span class="sc">:</span><span class="dv">36</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> p  a  r  t     i     c  h  a  p  t  e  r     i     o  n     a  n     e  x  c 
+52 26 54 56  1 41  1 31 40 26 52 56 34 54  1 41  1 49 48  1 26 48  1 34 61 31 
+ e  p  t  i  o  n  a  l  l  y 
+34 52 56 41 49 48 26 46 46 62 </code></pre>
+</div>
+</div>
+<p>Time to extract our outcome value, the character that comes after the 50-character block stored in <code>X</code>. That’s going to be character in position 51 for our first block, character 54 for our second block (remember shifting by 3 each time).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create y (next character)</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> ids[starts <span class="sc">+</span> maxlen]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s double check our work here. The first line is “On an exceptionally hot evening early in July”. Let’s translate the first row of the numeric <code>X</code> back into characters using <code>index2char</code>. The first 50 characters ends just before completing the work “early”. Correctly, <code>y[1]</code> equals the letter “a” to continue the spelling of “early”. So ideally, we will train our neural network that when it sees text like “…on an exceptionally hot evening e” that it will be likely to predict the letter “a” next, at least that is what Dostoyevsky would do.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first line: "on an e..."</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>index2char[<span class="fu">as.character</span>(X[<span class="dv">1</span>,])]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> 52  26  54  56   1  41   1  31  40  26  52  56  34  54   1  41   1  49  48   1 
+"p" "a" "r" "t" " " "i" " " "c" "h" "a" "p" "t" "e" "r" " " "i" " " "o" "n" " " 
+ 26  48   1  34  61  31  34  52  56  41  49  48  26  46  46  62   1  40  49  56 
+"a" "n" " " "e" "x" "c" "e" "p" "t" "i" "o" "n" "a" "l" "l" "y" " " "h" "o" "t" 
+  1  34  59  34  48  41  48  39   1  34 
+" " "e" "v" "e" "n" "i" "n" "g" " " "e" </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># next character is </span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>y[<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> a 
+26 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># "on an exceptionally hot evening early in July</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="lstm-model-of-text" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="lstm-model-of-text"><span class="header-section-number">3.2</span> LSTM model of text</h2>
+<p>If you already have a neural network in memory, then it is best to clear it all out before proceeding.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>keras<span class="sc">::</span><span class="fu">k_clear_session</span>()</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we need to explain to Keras what kind of neural network we want to use on these data. I will walk us through the three layers of this network.</p>
+<ol type="1">
+<li><p><code>layer_embedding()</code> is a lookup table that turns the integer IDs into a short, numeric vector of length 64. Internally Keras creates a <span class="math inline">\(65 \times 64\)</span> (number of unique characters in the book <span class="math inline">\(\times\)</span> output dimension) weight matrix. When the model sees, say, the integer 42, it simply grabs row 42 of that matrix and passes the 64-number output vector on to the LSTM. No arithmetic is done on the integer IDs themselves. They are treated as pure categorical labels.</p></li>
+<li><p><code>layer_lstm()</code> sets up the LSTM. We are asking Keras to set up 128 LSTM cells. Each cell keeps its own long-term, <span class="math inline">\(C_t\)</span>, and short-term memory, <span class="math inline">\(h_t\)</span>. During training these 128 cells learn to capture the dependencies between the characters that flow through the sequence.</p></li>
+<li><p>That length 128 vector from the LSTM is then fed into the dense layer, whose softmax turns it into a probability distribution over possible characters.</p></li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fitting this model takes about 2.5 hours on a laptop</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">keras_model_sequential</span>() <span class="sc">|&gt;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_embedding</span>(<span class="at">input_dim =</span> <span class="fu">length</span>(chars) <span class="sc">+</span> <span class="dv">1</span>, <span class="at">output_dim =</span> <span class="dv">64</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_lstm</span>(<span class="dv">128</span>, <span class="at">dropout=</span><span class="fl">0.2</span>) <span class="sc">|&gt;</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">layer_dense</span>(<span class="fu">length</span>(chars) <span class="sc">+</span> <span class="dv">1</span>, <span class="at">activation =</span> <span class="st">"softmax"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here’s another version with two LSTM layers that has a lot more parameters, but this one will take about 24 hours on a laptop. I might try this someday.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 20 hours</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co"># model &lt;- keras_model_sequential() |&gt;</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">#   layer_embedding(input_dim = length(chars)+1, output_dim = 40) |&gt;</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co">#   layer_lstm(256, return_sequences = TRUE,</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co">#              dropout = 0.2, recurrent_dropout = 0.2) |&gt;</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co">#   layer_lstm(128) |&gt;</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   layer_dense(length(chars)+1, activation = "softmax")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will ask Keras to fit the neural network to optimize a multinomial log-likelihood (a generalization of the Bernoulli log-likelihood to more than 0/1).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span> <span class="fu">compile</span>(</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">loss      =</span> <span class="st">"sparse_categorical_crossentropy"</span>,</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">optimizer =</span> <span class="st">"rmsprop"</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Finally, estimate all the parameters. This model has 111,361 parameters. Note that ChatGPT has roughly 10 million times more parameters. This is another warning that you may be disappointed by the results from this model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># about 2.5 hours</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>model <span class="sc">|&gt;</span> <span class="fu">fit</span>(<span class="at">x =</span> X,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">y =</span> y,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">batch_size =</span> <span class="dv">128</span>,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">epochs      =</span> <span class="dv">20</span>,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">validation_split =</span> <span class="fl">0.1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>If you save the model in a file, then you can always load it up later.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">save</span>(<span class="st">"lstm_nextcharV2.keras"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="generate-text" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="generate-text"><span class="header-section-number">3.3</span> Generate text</h2>
+<p>Have we encapsulated Dostoevsky in our LSTM? Let’s find out.</p>
+<p>This first function we will use to draw the next character. <code>nextSample()</code> takes in a vector of predicted probabilities (of length 63) and samples one with probability equal to <code>preds</code>. The value of <code>temperature</code> can make the resulting text more “creative” (temperature &gt; 1) or more “conservative” (temperature &lt; 1).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>nextSample <span class="ot">&lt;-</span> <span class="cf">function</span>(preds, <span class="at">temperature =</span> <span class="dv">1</span>) </span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sharpen / soften distribution</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  preds <span class="ot">&lt;-</span> <span class="fu">log</span>(preds <span class="sc">+</span> <span class="fl">1e-8</span>) <span class="sc">/</span> temperature</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sum to 1</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  probs <span class="ot">&lt;-</span> <span class="fu">exp</span>(preds) <span class="sc">/</span> <span class="fu">sum</span>(<span class="fu">exp</span>(preds))</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return 0-based ID</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample.int</span>(<span class="fu">length</span>(probs), <span class="at">size=</span><span class="dv">1</span>, <span class="at">prob=</span>probs) <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><code>generateText()</code> will take in an initial prompt (<code>seed</code>) and begin “writing” based on what the LSTM predicts will be consistent with Dostoevsky’s style… we’ll see about that. It just draws the next character, drops the first character in the seed, appends the newly drawn character, and repeats.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>generateText <span class="ot">&lt;-</span> <span class="cf">function</span>(seed,</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">nChars2Generate =</span> <span class="dv">400</span>,</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">temperature =</span> <span class="fl">0.7</span>) </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remember our model uses lowercase only</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  seed <span class="ot">&lt;-</span> <span class="fu">tolower</span>(seed)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="do">## ensure seed is at least maxlen; if longer, keep the tail</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>  seedIDs <span class="ot">&lt;-</span> char2index[<span class="fu">strsplit</span>(seed, <span class="st">""</span>)[[<span class="dv">1</span>]]] <span class="sc">|&gt;</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">tail</span>(maxlen)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  generated <span class="ot">&lt;-</span> seed</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nChars2Generate)</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># format for our model</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>    xPred <span class="ot">&lt;-</span> <span class="fu">matrix</span>(seedIDs, <span class="at">nrow =</span> <span class="dv">1</span>)  <span class="co"># 1 x maxlen matrix</span></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>    preds  <span class="ot">&lt;-</span> model <span class="sc">|&gt;</span></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">predict</span>(xPred, <span class="at">verbose =</span> <span class="dv">0</span>)</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>    nextID   <span class="ot">&lt;-</span> <span class="fu">nextSample</span>(preds[<span class="dv">1</span>, ], temperature)</span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>    nextChar <span class="ot">&lt;-</span> index2char[[<span class="fu">as.character</span>(nextID)]]</span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>    generated <span class="ot">&lt;-</span> <span class="fu">paste0</span>(generated, nextChar)</span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>    seedIDs  <span class="ot">&lt;-</span> <span class="fu">c</span>(seedIDs[<span class="sc">-</span><span class="dv">1</span>], nextID)         <span class="co"># slide window</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>  generated</span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>What if we start with a famous like from Dickens’ <em>Tale of Two Cities</em>.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="SLM trying to complete Dickens">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SLM trying to complete Dickens
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">generateText</span>(</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="st">"It was the best of times, it was the worst of times, it was the age of wisdom, "</span>,</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nChars2Generate =</span> <span class="dv">300</span>,</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">temperature =</span> <span class="dv">1</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>it was the best of times, it was the worst of times, it was the age of wisdom, that here? come at into of roomor that’s as he could’n take than inte me at live (of it? i must have cole one were to gazuminess, and ro halself are aboutriagh marmal. he gonsest had not trembling reppivencence in the clonk and only sucherid apsing only might at all the depvilial visserped!” he reec</p>
+</div>
+</div>
+<p>Yikes! Let’s ease up on the creativity.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="SLM trying to complete Dickens, less creative">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+SLM trying to complete Dickens, less creative
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">generateText</span>(</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="st">"It was the best of times, it was the worst of times, it was the age of wisdom, "</span>,</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nChars2Generate =</span> <span class="dv">300</span>,</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">temperature =</span> <span class="fl">0.5</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>it was the best of times, it was the worst of times, it was the age of wisdom, and i was the strued them for him. he had no to pay work of the convince dispuction of a gene and a her to speak and sho go raskolnikov would be are some a decound his hands when i would be not her all man as a long to the room to the secide that he was all that anything the things of the room and t</p>
+</div>
+</div>
+<p>I think Dicken’s said it better: “it was the epoch of belief, it was the epoch of incredulity…”</p>
+<p>Can this help me improve my LSTM?</p>
+<div class="callout callout-style-default callout-note callout-titled" title="A plea that ChatGPT would understand">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+A plea that ChatGPT would understand
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">generateText</span>(</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="st">"What advice would you give me for improving my LSTM model? "</span>,</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">nChars2Generate =</span> <span class="dv">300</span>,</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">temperature =</span> <span class="fl">0.4</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>what advice would you give me for improving my lstm model? i was a moment her and yet with a street again, and with a little had have a sirter and a for a him. “i will have been to the pole of the police, and he had seemed to him to him and he was a strange him and hands for the one of the same some more and the strange so and all all and all the palice and</p>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Conclusion</h1>
+<p>Recurrent Neural Networks and their variants such as LSTMs provide a powerful framework for modeling sequential data. While RNNs are simpler and easier to understand, LSTMs are typically more effective for learning long-term dependencies thanks to their gated architecture.</p>
+<p>If only we had 10 million laptops that we could all chain together and had rapid access to the universe of books, articles, github sites, then we might have something useful.</p>
+<p>In spite of the gibberish, there is evidence that such models could potentially work. Even though we are only predicting one character at a time, we get many correct words. We get prepositional phrases. We get subject and verb compatibility. Frankly, I was rather surprised that with relatively few parameters the LSTM learns a few important parts of the English language. No doubt this is insufficient for any practical use, but I hope you see the direction this leads. We now know with more complex neural network designs and larger datasets, LLMs can be incredibly useful and powerful. The basics covered here give you the foundation for the next steps. Transformers have been the key for LLMs to become so effective. Surely, there are more architectures yet undiscovered that will make deep learning even more powerful.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
+    }
+  }
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
+    }
+  }
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+  const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+    const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+    const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+    let newTheme = '';
+    if(darkModeDefault) {
+      newTheme = isAlternate ? baseTheme : alternateTheme;
+    } else {
+      newTheme = isAlternate ? alternateTheme : baseTheme;
+    }
+    const changeGiscusTheme = () => {
+      // From: https://github.com/giscus/giscus/issues/336
+      const sendMessage = (message) => {
+        const iframe = document.querySelector('iframe.giscus-frame');
+        if (!iframe) return;
+        iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+      }
+      sendMessage({
+        setConfig: {
+          theme: newTheme
+        }
+      });
+    }
+    const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+    if (isGiscussLoaded) {
+      changeGiscusTheme();
+    }
+  }
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('#quarto-margin-sidebar .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+      for (const sheetNode of alternateStylesheets) {
+        if (sheetNode.id === "quarto-bootstrap") {
+          toggleBodyColorMode(sheetNode);
+        }
+      }
+    } else {
+      disableStylesheet(alternateStylesheets);
+      toggleBodyColorPrimary();
+    }
+    manageTransitions('#quarto-margin-sidebar .nav-link', true);
+    // Switch the toggles
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        if (alternate) {
+          toggle.classList.add("alternate");     
+        } else {
+          toggle.classList.remove("alternate");
+        }
+      }
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455)
+    if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+      manageTransitions("body", false);
+      window.scrollTo(0, 1);
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        manageTransitions("body", true);
+      }, 40);  
+    }
+  }
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
+    } else {
+      return false;
+    }
+  }
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localAlternateSentinel = value;
+    }
+  }
+  const getColorSchemeSentinel = () => {
+    if (!isFileUrl()) {
+      const storageValue = window.localStorage.getItem("quarto-color-scheme");
+      return storageValue != null ? storageValue : localAlternateSentinel;
+    } else {
+      return localAlternateSentinel;
+    }
+  }
+  const darkModeDefault = true;
+  let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
+    toggleGiscusIfUsed(toAlternate, darkModeDefault);
+  };
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.classList.add('top-right');
+    a.classList.add('quarto-color-scheme-toggle');
+    a.href = "";
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+    window.document.body.appendChild(a);
+  }
+  // Switch to dark mode if need be
+  if (hasAlternateSentinel()) {
+    toggleColorMode(true);
+  } else {
+    toggleColorMode(false);
+  }
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
