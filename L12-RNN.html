@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-05-01">
+<meta name="dcterms.date" content="2025-05-02">
 
 <title>L12 Recurrent and Long Short-Term Memory Neural Networks</title>
 <style>
@@ -162,7 +162,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 1, 2025</p>
+      <p class="date">May 2, 2025</p>
     </div>
   </div>
   
@@ -369,8 +369,8 @@ Figure&nbsp;6: The output gate
 </section>
 <section id="building-an-slm-small-language-model" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Building an SLM (<em>small</em> language model)</h1>
-<p>While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a small language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will convince you about the direction that an LSTM model can take you. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.</p>
-<p>Here’s how we will proceed. I will have R read in a lengthy book, Fyodor Dostoyevsky’s <em>Crime and Punishment</em>. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character.</p>
+<p>While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a <em>small</em> language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use some correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will give you insight into how a LLM could work. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.</p>
+<p>Here’s how we will proceed. I will have R read in a lengthy book appropriate for this class, Fyodor Dostoyevsky’s <em>Crime and Punishment</em>. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character.</p>
 <p>We can use the fitted neural network to “write” by seeding it with a new block of text and have it draw from the next-character distribution. Let’s say I start off with the 50-character sequence</p>
 <p>“On an exceptionally hot evening early in July a yo”</p>
 <p>The next character could be a “d” (if the word were to become “yodel”) or a “u” (if the word were to become “youth” or “young” or “your”). Let’s say that it picked a “u”. Our new 50-character block would become</p>
@@ -605,9 +605,9 @@ First 1,000 characters
 </section>
 <section id="lstm-model-of-text" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="lstm-model-of-text"><span class="header-section-number">3.2</span> LSTM model of text</h2>
-<p>To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .keras file. The code below shows all the steps, including how to save the neural network parameters.</p>
+<p>To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .h5 file. The code below shows all the steps, including how to save the neural network parameters.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">load_model_hdf5</span>(<span class="st">"data/L12_LSTM_v3.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">load_model_hdf5</span>(<span class="st">"data/LSTM_CrimeAndPunishment.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>If you already have a neural network in memory, then it is best to clear it all out before proceeding.</p>
 <div class="cell">
@@ -655,7 +655,7 @@ First 1,000 characters
 </div>
 <p>If you save the model in a file, then you can always load it up later.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">save</span>(<span class="st">"LSTM_CrimeAndPunishment.keras"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>model<span class="sc">$</span><span class="fu">save</span>(<span class="st">"LSTM_CrimeAndPunishment.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="generate-text" class="level2" data-number="3.3">

@@ -559,9 +559,9 @@ Lastly, we need to make a prediction for time $t$. The prediction is simply a tr
 
 # Building an SLM (*small* language model)
 
-While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a small language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will convince you about the direction that an LSTM model can take you. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.
+While large language models (LLMs) have revolutionized our relationships with computers, they require a massive amount of data and compute power. Here we are going to build a *small* language model, the kind that your computer can learn in a couple of hours with no special computing hardware. I am warning you in advance that you should not expect much from this exercise. It will not be able to write an essay, compose a limerick, or debug your code. It will produce real words and add punctuation and use some correct grammar in very short bursts. And it will produce complete gibberish too. However, I think it will give you insight into how a LLM could work. You will be able to conceive how the modern LLMs (those emerging after 2023) are possible with more data and a more complex neural network.
 
-Here's how we will proceed. I will have R read in a lengthy book, Fyodor Dostoyevsky's *Crime and Punishment*. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character. 
+Here's how we will proceed. I will have R read in a lengthy book appropriate for this class, Fyodor Dostoyevsky's *Crime and Punishment*. I will chop it up into blocks of 50 characters. I will train on those 50-character blocks an LSTM neural network to predict the very next character. So with any 50-character block, the neural network will give a probability distribution over the next character. 
 
 We can use the fitted neural network to "write" by seeding it with a new block of text and have it draw from the next-character distribution. Let's say I start off with the 50-character sequence
 
@@ -578,7 +578,6 @@ Note that I have cut off the first character (the "O") and appended the newly dr
 As I warned, our small language model will be more likely to produce something like 
 
 "on an exceptionally hot evening early in July a your mount of a forget of a street and laughing at him and the street."
-
 
 So let's get started.
 
@@ -706,7 +705,7 @@ y[1]
 
 ## LSTM model of text
 
-To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .keras file. The code below shows all the steps, including how to save the neural network parameters.
+To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .h5 file. The code below shows all the steps, including how to save the neural network parameters.
 ```{r}
 #| label: loadKerasModel
 model <- load_model_hdf5("data/LSTM_CrimeAndPunishment.h5")
