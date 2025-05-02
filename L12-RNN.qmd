@@ -706,9 +706,10 @@ y[1]
 
 ## LSTM model of text
 
+To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .keras file. The code below shows all the steps, including how to save the neural network parameters.
 ```{r}
-#| echo: false
-model <- load_model_hdf5("lstm_nextcharV2.keras")
+#| label: loadKerasModel
+model <- load_model_hdf5("data/LSTM_CrimeAndPunishment.h5")
 ```
 
 If you already have a neural network in memory, then it is best to clear it all out before proceeding.
@@ -735,16 +736,16 @@ model <- keras_model_sequential() |>
   layer_dense(length(chars) + 1, activation = "softmax")
 ```
 
-Here's another version with two LSTM layers that has a lot more parameters, but this one will take about 24 hours on a laptop. I might try this someday.
+Here's another version with two LSTM layers, adding to the complexity of the model. The first LSTM layer captures the character-level patterns. The second LSTM should be better at learning entire phrases.
 ```{r}
 #| eval: false
-# 20 hours
-# model <- keras_model_sequential() |>
-#   layer_embedding(input_dim = length(chars)+1, output_dim = 40) |>
-#   layer_lstm(256, return_sequences = TRUE,
-#              dropout = 0.2, recurrent_dropout = 0.2) |>
-#   layer_lstm(128) |>
-#   layer_dense(length(chars)+1, activation = "softmax")
+# this version takes about 4.5 hours on a laptop
+model <- keras_model_sequential() |>
+ layer_embedding(input_dim = length(chars)+1, output_dim = 64) |>
+   layer_lstm(256, return_sequences = TRUE,
+              dropout = 0.2, recurrent_dropout = 0.2) |>
+   layer_lstm(128, dropout = 0.2) |>
+   layer_dense(length(chars)+1, activation = "softmax")
 ```
 
 We will ask Keras to fit the neural network to optimize a multinomial log-likelihood (a generalization of the Bernoulli log-likelihood to more than 0/1).
@@ -770,7 +771,7 @@ model |> fit(x = X,
 If you save the model in a file, then you can always load it up later.
 ```{r}
 #| eval: false
-model$save("lstm_nextcharV2.keras")
+model$save("LSTM_CrimeAndPunishment.h5")
 ```
 
 ## Generate text
