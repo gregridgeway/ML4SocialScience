@@ -24,9 +24,9 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
 <!-- In terminal -->
-<!-- quarto render L1-probability-review.qmd -->
+<!-- quarto render L01-probability-review.qmd -->
 
-<!-- git commit L1-* -m "commit message" -->
+<!-- git commit L01-* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
 
@@ -92,9 +92,11 @@ the probability that $Y=1$ given a set of case features, $\mathbf{x}$.
 
 Sometimes, for example when we study the naïve Bayes classifier, we will be interested in $P(x_j|Y=1)$. Pay attention to which events are on which side of the vertical bar.
 
-It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The "prosecutor's fallacy" is to give $P(\mathrm{evidence}|\mathrm{innocence})$ but interpret it as $P(\mathrm{innocence}|\mathrm{evidence})$. In Philadelphia the District Attorney correctly claimed that of those arrested for illegal gun possession, very few of them go on to shoot someone ($P(\mathrm{shoot}|\mathrm{VUFA\,arrest})$ is small), but the police department argued that almost all the shooters have been previously arrested for illegal gun possession ($P(\mathrm{VUFA\,arrest}|\mathrm{shooter})$ is large). Both are correct statements, but essentially they are arguing about which probability is more important for public safety.
+It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The "prosecutor's fallacy" is to give $P(\mathrm{evidence}|\mathrm{innocence})$ but interpret it as $P(\mathrm{innocence}|\mathrm{evidence})$. 
 
-Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know 
+**Example 1: Shooters and illegal weapons possession**. In Philadelphia the District Attorney correctly claimed that of those arrested for illegal gun possession, very few of them go on to shoot someone ($P(\mathrm{shoot}|\mathrm{VUFA\,arrest})$ is small, about 0.01), but the police department argued that almost all the shooters have been previously arrested for illegal gun possession ($P(\mathrm{VUFA\,arrest}|\mathrm{shooter})$ is large, about 0.40). Both are correct statements, but essentially they are arguing about which probability is more important for public safety.
+
+**Example 2: Murdered by batterer**. Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know 
 $$
 P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})
 $$ 
@@ -103,6 +105,34 @@ $$
 P(\mathrm{murdered\,by\,batterer}|\mathrm{battered})=\frac{1}{2500}
 $$
 The useful probability, $P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})$, turns out to be 0.29.
+
+
+**Example 3: Calls that are frauds or frauds that are calls?**. On March 12, 2025, the Social Security Administration noted: "Approximately 40 percent of Social Security direct deposit fraud is associated with someone calling SSA to change direct deposit bank information."
+$$
+P(\mbox{initiated by someone calling SSA}|\mbox{direct deposit fraud})=0.40
+$$
+
+![SSA post screenshot](SSApost.png){#fig-ssapost 
+fig-cap="March 12 SSA post"}
+
+March 27, 2025, DOGE engineer says: "We learned 40 percent of the calls that they get are from fraudsters."
+$$
+P(\mbox{fraudster}|\mbox{call to SSA})=0.40
+$$
+
+![Fox Business SSA report](DOGESSApost.png){#fig-dogessapost 
+fig-cap="March 28 Fox Business article on DOGE analysis"}
+
+April 1, 2025 SSA staff draft a clarification with updated analysis, "...between 25\% and 30\% of direct deposit allegations are for direct deposit changes initiated over the phone."
+$$
+P(\mbox{fraud initiated over the phone}|\mbox{direct deposit fraud allegation}) = [0.25, 0.30]
+$$
+April 3, 2025, Vice President Vance says: "40 percent of the people who are calling in are actually committing fraud."
+$$
+P(\mbox{fraudster}|\mbox{call to SSA})=0.40
+$$
+
+
 
 ## Exercises
 
