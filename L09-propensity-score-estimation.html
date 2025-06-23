@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-04-08">
+<meta name="dcterms.date" content="2025-06-22">
 
 <title>L9 Boosted propensity score estimation</title>
 <style>
@@ -186,7 +186,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 8, 2025</p>
+      <p class="date">June 22, 2025</p>
     </div>
   </div>
   
@@ -680,7 +680,8 @@ x2    -0.448517 0.0091104  1.0000000</code></pre>
 </div>
 </div>
 <p>Now it seems that we need 4 different weights for control cases to deal with all the <span class="math inline">\((x_1,x_2)\)</span> combinations. You can probably see that this is going to get exponentially more complex as we add more features, possibly discrete features with many categorical levels (like state or country) or continuous features (like age, SES, test scores).</p>
-<p>Let’s rework the weight for control cases where <span class="math inline">\(\mathbf{x}'=[0\; 0]\)</span>. From the table above we can see that this weight should be 48/3. <span class="math display">\[
+<p>Let’s rework the weight for control cases where <span class="math inline">\(\mathbf{x}'=[0\; 0]\)</span>. From the table above we can see that this weight should be 48/3.</p>
+<p><span class="math display">\[
 \begin{split}
 w(x_1=0,x_2=0) &amp;= \frac{48}{3} \\
                &amp;= \frac{48}{3}\frac{\frac{1}{48+3}}{\frac{1}{48+3}} \\
@@ -857,9 +858,11 @@ Propensity score
 </section>
 <section id="average-treatment-effect-ate-and-the-average-treatment-effect-on-the-treated-att" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Average Treatment Effect (ATE) and the Average Treatment Effect on the Treated (ATT)</h1>
-<p>In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as <span class="math display">\[
+<p>In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as</p>
+<p><span class="math display">\[
 w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
-\]</span> This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.</p>
+\]</span></p>
+<p>This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.</p>
 <p>Because these weights make the control cases “look like” the treatment cases, the overall distribution of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> match the distribution among the treatment cases. As a result, our treatment effect estimate describes what the treatment effect would be for the kinds of individuals that receive the treatment. If there is a particular value of <span class="math inline">\(\mathbf{x}\)</span> that made it impossible for someone to be in the treatment group, then <span class="math inline">\(P(t=1|\mathbf{x})=0\)</span> and any control case with that feature would receive weight 0 and be eliminated from the analysis.</p>
 <p>Since these weights make the control cases resemble the treatment cases, our treatment effect estimate is called the <em>average treatment effect on the treated</em> (ATT). The ATE compares what actually happened to the treatment group to what would have happened had they not been treated. In the majority of social science inquiries, this is the primary quantity of interest.</p>
 <ol type="1">

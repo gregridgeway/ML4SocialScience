@@ -285,7 +285,9 @@ a
 
 Now it seems that we need 4 different weights for control cases to deal with all the $(x_1,x_2)$ combinations. You can probably see that this is going to get exponentially more complex as we add more features, possibly discrete features with many categorical levels (like state or country) or continuous features (like age, SES, test scores).
 
-Let's rework the weight for control cases where $\mathbf{x}'=[0\; 0]$. From the table above we can see that this weight should be `r a$n[2]`/`r a$n[1]`. $$
+Let's rework the weight for control cases where $\mathbf{x}'=[0\; 0]$. From the table above we can see that this weight should be `r a$n[2]`/`r a$n[1]`. 
+
+$$
 \begin{split}
 w(x_1=0,x_2=0) &= \frac{48}{3} \\
                &= \frac{48}{3}\frac{\frac{1}{48+3}}{\frac{1}{48+3}} \\
@@ -371,9 +373,13 @@ The propensity score is the probability of assignment to treatment conditional o
 
 # Average Treatment Effect (ATE) and the Average Treatment Effect on the Treated (ATT)
 
-In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as $$
+In the previous simulated example, we reweighted the control cases so that the distribution of their features aligned with the feature distribution of the treated cases. We accomplished by weighting cases as 
+
+$$
 w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
-$$ This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.
+$$ 
+
+This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.
 
 Because these weights make the control cases "look like" the treatment cases, the overall distribution of $x_1$ and $x_2$ match the distribution among the treatment cases. As a result, our treatment effect estimate describes what the treatment effect would be for the kinds of individuals that receive the treatment. If there is a particular value of $\mathbf{x}$ that made it impossible for someone to be in the treatment group, then $P(t=1|\mathbf{x})=0$ and any control case with that feature would receive weight 0 and be eliminated from the analysis.
 
@@ -439,11 +445,13 @@ $$
 \end{split}
 $$
 
-In general $$ 
+In general 
+$$ 
 \mathbb{E}(Y(0)|t=0) \neq \mathbb{E}(Y(0)|t=1) 
 $$
 
-But if cases are randomized to treatment then $$ 
+But if cases are randomized to treatment then 
+$$ 
 \mathbb{E}(Y(0)|t=0) = \mathbb{E}(Y(0)|t=1) 
 $$
 
