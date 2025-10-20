@@ -15,7 +15,7 @@ These are the class notes for my course on machine learning for social science (
    -  building a *small* language model based only on *Crime and Punishment*
 
 Table of contents
-1. [Probability review](https://gregridgeway.github.io/ML4SocialScience/main/L01-probability-review.html)
+1. [Probability review](https://gregridgeway.github.io/ML4SocialScience/L01-probability-review.html)
 2. [Naïve Bayes classifier](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L02-naive-Bayes.html)
 3. [Prediction, bias, variance, and noise](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L03-prediction-bias-variance.html)
     -   k-nearest neighbor regression and classification
