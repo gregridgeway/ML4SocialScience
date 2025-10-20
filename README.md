@@ -1,4 +1,7 @@
 # ML4SocialScience
+
+These notes are best viewed at the [ML4SocialScience github.io site](https://gregridgeway.github.io/ML4SocialScience).
+
 These are the class notes for my course on machine learning for social science (CRIM6012/SOCI6012) that I have taught at the University of Pennsylvania since 2024. The course aims to 
 -  build foundational skills essential for machine learning (calculus, linear algebra, probability)
 -  cover a range of machine learning methods, primarily supervised learning methods
@@ -10,8 +13,6 @@ These are the class notes for my course on machine learning for social science (
    -  measure racial disparities in pedestrian stop outcomes
    -  text analysis of officer-involved shooting incident reports
    -  building a *small* language model based only on *Crime and Punishment*
-
-These notes are best viewed at the [ML4SocialScience github.io site](https://gregridgeway.github.io/ML4SocialScience).
 
 Table of contents
 1. [Probability review](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L01-probability-review.html)
