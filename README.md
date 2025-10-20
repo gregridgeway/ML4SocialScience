@@ -16,40 +16,40 @@ These are the class notes for my course on machine learning for social science (
 
 Table of contents
 1. [Probability review](https://gregridgeway.github.io/ML4SocialScience/L01-probability-review.html)
-2. [Naïve Bayes classifier](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L02-naive-Bayes.html)
-3. [Prediction, bias, variance, and noise](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L03-prediction-bias-variance.html)
+2. [Naïve Bayes classifier](https://gregridgeway.github.io/ML4SocialScience/L02-naive-Bayes.html)
+3. [Prediction, bias, variance, and noise](https://gregridgeway.github.io/ML4SocialScience/L03-prediction-bias-variance.html)
     -   k-nearest neighbor regression and classification
     -   Example: Predict dropout risk from the NELS88 data
     -   Spam example
-4. [Differential calculus review](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L04-calculus-review.html)
-5. [Classification and regression trees](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L05-trees.html)
-6. [Linear algebra](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L06-linear-algebra.html)
+4. [Differential calculus review](https://gregridgeway.github.io/ML4SocialScience/L04-calculus-review.html)
+5. [Classification and regression trees](https://gregridgeway.github.io/ML4SocialScience/L05-trees.html)
+6. [Linear algebra](https://gregridgeway.github.io/ML4SocialScience/L06-linear-algebra.html)
     -   Basic matrix operations, including matrix derivatives
     -   Ordinary least squares and ridge regression
     -   Multivariate Taylor series, Newton-Raphson, logistic regression, iteratively reweighted least squares (IRLS)
-7. [Singular value decomposition](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L07-svd.html)
+7. [Singular value decomposition](https://gregridgeway.github.io/ML4SocialScience/L07-svd.html)
     -   Image compression
     -   Image classification with emojis
-8. [Boosting and L1 regularization](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L08-boosting.html)
+8. [Boosting and L1 regularization](https://gregridgeway.github.io/ML4SocialScience/L08-boosting.html)
     - Lasso
     - Forward stagewise selection
     - Gradient boosting
-9. [Propensity score estimation](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L09-propensity-score-estimation.html)
+9. [Propensity score estimation](https://gregridgeway.github.io/ML4SocialScience/L09-propensity-score-estimation.html)
     - Simpson's paradox and confounders
     - Neyman-Rubin causal model
     - Propensity score weighting
        - using machine learning to estimate propensity scores
        - `fastDR` package
-10. [Neural networks](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L10-neural-nets.html)
+10. [Neural networks](https://gregridgeway.github.io/ML4SocialScience/L10-neural-nets.html)
     - Backpropagation "by hand"
     - `neuralnet` package
     - `Tensorflow` and `Keras`
     - Convolutional layers
     - MNIST postal digits dataset
-11. [Text analysis](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L11-text.html)
+11. [Text analysis](https://gregridgeway.github.io/ML4SocialScience/L11-text.html)
     - Working with `text2vec`
     - DTM and TFIDF
     - SVD for text
-12. [Long short-term memory (LSTM) neural networks](https://raw.githack.com/gregridgeway/ML4SocialScience/main/L12-RNN.html)
+12. [Long short-term memory (LSTM) neural networks](https://gregridgeway.github.io/ML4SocialScience/L12-RNN.html)
     - LSTM models
     - a *small* language model
