@@ -986,7 +986,7 @@ pHat <- predict(gbm1, newdata=nels0, n.trees = bestNTree, type = "response")
 
 It may take some effort to determine a good choice for `shrinkage`. Remember that these models tend to work best when `shrinkage` (that is, $\lambda$) is small. But setting it too small means that the model will learn very slowly and require a lot more iterations (trees) to get to the optimal number of iterations. You might run 3,000 iterations and the performance plot still shows that the cross-validated error is still declining. You have two choices 1) increase the number of iterations, which will require more computation time, or 2) increase `shrinkage` so that the model learns a little faster. In general, small datasets will require small values of `shrinkage` (like 0.001) and larger datasets can get good performance with larger values of `shrinkage` like 0.1. Let's try running this with a `shrinkage` that is too small.
 
-```{r gbmtNELSTooSlow}
+```{r}
 #| warning: false
 #| cache: true
 #| label: fig-gbmCVperf2
@@ -1018,7 +1018,7 @@ Here you see that the GBM model with the lowest cross-validated error requires 3
 
 
 What happens if we err in the other direction and have `gbmt()` try to learn quickly with few iterations. Here I have set $\lambda=0.03$. 
-```{r gbmtNELSTooFast}
+```{r}
 #| warning: false
 #| cache: true
 #| label: fig-gbmCVperf3
