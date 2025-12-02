@@ -28,7 +28,7 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- In terminal -->
 <!-- quarto render L10-neural-nets.qmd -->
 <!-- quarto render L10-neural-nets.qmd --cache-refresh  -->
-<!-- Include C:\cygwin64\bin in path to get to rsvg-convert -->
+<!-- 2025/12 no longer needed? Include C:\cygwin64\bin in path to get to rsvg-convert -->
 
 <!-- git commit L10-* -m "commit message" -->
 <!-- git status -->
@@ -1031,17 +1031,17 @@ Challenge: Using only $X_1$ and $X_2$ as inputs, can you alter the number of the
 First, we will do a one-time installation. 
 ```{r}
 #| eval: false
-install.packages("keras")
-library(keras)
-# March 2024, Keras works with 3.12... sticking with 3.11 for now
-install_keras(python_version="3.11") 
+install.packages("keras3")
+# March 2024, Keras works with 3.11, even though current is 3.14
+reticulate::install_python(version = '3.11')
+keras3::install_keras(backend = "tensorflow")
 ```
 You will need to restart R one last time after this installation.
 
 Now we can get busy with Keras by loading the library. If all is installed correctly, then this line will run with no errors.
 ```{r}
 #| warning: false
-library(keras)
+library(keras3)
 ```
 
 ## MNIST postal digits data
@@ -1166,7 +1166,9 @@ fitHx |>
 
 We can predict on `xTest`, the held out test dataset and create a confusion matrix to see how our neural network performed.
 ```{r}
-yPredVal <- predict(keras1, xTest) |> k_argmax() |> as.numeric()
+yPredVal <- predict(keras1, xTest) |> 
+  op_argmax(axis=2, zero_indexed = TRUE) |> 
+  as.numeric()
 yTestVal <- apply(yTest, 1, which.max)-1
 table(yPredVal, yTestVal)
 ```
@@ -1260,22 +1262,21 @@ The maximum 2D pooling layer carves up the inputs from the second convolution la
 `layer_flatten()` turns the 2D inputs into one long vector containing all the features from the previous layer. These go into a hidden layer wih 1000 nodes with the ReLU activation function. `layer_dropout(0.5)` randomly sets half of the inputs to 0 during training. This is believed to reduce the risk of overfitting and encourage the optimizer to explore other "versions" to find parameters that perform well. When predicting on future observations, all nodes are activated. The final layer, `layer_dense(10, activation = "softmax")`, is the output layer set to 10 nodes, one for each of the digits we are trying to predict. `softmax` forces the output values to sum to 1 so that they represent a probability distribution over the possible predictions.
 
 ```{r}
-kerasCNN <- keras_model_sequential() |>
-  layer_conv_2d(filters = 32, 
-                kernel_size = c(3, 3), 
-                padding = "same",  
-                input_shape = c(28, 28, 1)) |>
+inputs <- layer_input(shape = c(28, 28, 1))
+
+outputs <- inputs |>
+  layer_conv_2d(filters = 32, kernel_size = c(3,3), padding = "same") |>
   layer_activation("relu") |>
-  layer_conv_2d(filters = 16, 
-                kernel_size = c(2, 2), 
-                dilation_rate = c(1,1), 
-                activation = "softplus", 
+  layer_conv_2d(filters = 16, kernel_size = c(2,2),
+                dilation_rate = c(1,1), activation = "softplus",
                 padding = "same") |>
-  layer_max_pooling_2d(pool_size=c(2, 2)) |>
+  layer_max_pooling_2d(pool_size = c(2,2)) |>
   layer_flatten() |>
   layer_dense(1000, activation = "relu") |>
   layer_dropout(0.5) |>
   layer_dense(10, activation = "softmax")
+
+kerasCNN <- keras_model(inputs = inputs, outputs = outputs)
 
 summary(kerasCNN)
 ```
@@ -1306,8 +1307,12 @@ plot(fitHx)
 Lastly, we predict on the test dataset.
 ```{r}
 # predict on test dataset
-yPredVal <- predict(kerasCNN, xTest) |> k_argmax() |> as.numeric()
-yTestVal <- yTest |> k_argmax() |> as.numeric()
+yPredVal <- predict(kerasCNN, xTest) |> 
+  op_argmax(axis=2, zero_indexed = TRUE) |> 
+  as.numeric()
+yTestVal <- yTest |> 
+  op_argmax(axis=2, zero_indexed = TRUE) |> 
+  as.numeric()
 table(yPredVal, yTestVal)
 ```
 
