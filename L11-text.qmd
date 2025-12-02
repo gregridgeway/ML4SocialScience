@@ -879,14 +879,15 @@ oisLasso <- cv.glmnet(as.matrix(oisDTM),
 
 @tbl-lassocoef shows the terms with the largest coefficients.
 ```{r}
-#| tbl-cap: "Top 10 terms  with the largest coefficients"
+#| tbl-cap: "Terms with the largest coefficients"
 #| label: tbl-lassocoef
 coef(oisLasso, s = "lambda.min") |>
   as.matrix() |>
   as.data.frame() |>
   tibble::rownames_to_column("Term") |>
-  arrange(desc(s1)) |>
+  arrange(desc(lambda.min)) |>
   slice_head(n = 10) |>
+  filter(lambda.min > 0) |>
   kable(digits = 2, 
         col.names = c("Term", "LASSO Coefficient")) %>%
   kable_styling(full_width = FALSE, 
@@ -980,6 +981,8 @@ In addition to binary positive/negative sentiment, we can use the NRC lexicon [@
 The NRC lexicon associates individual words with up to 8 emotions (anger, anticipation, disgust, fear, joy, sadness, surprise, trust) and 2 sentiments (positive and negative).
 
 ```{r}
+# First time used will ask to download lexicon, run
+#   get_sentiments("nrc")
 oisNRC <- oisTokens |>
   # same word may appear multiple times in document
   #   and same word may have multiple entries in NRC
