@@ -589,7 +589,7 @@ As usual, we will start up the necessary packages.
 #| warning: false
 library(dplyr)
 library(purrr)
-library(keras)
+library(keras3)
 ```
 
 Now let's have R quickly read in the 140,000 words that make up *Crime and Punishment* from the Gutenberg.org website. I will collapse the entire text into a single long character string and convert all characters to lowercase. In several places there are multiple space characters in a row. I will use `gsub()` to turn any such set of spaces into a single space.
@@ -708,13 +708,14 @@ y[1]
 To speed things along, I have stored the results of the LSTM models in the data folder. Unless you want to tinker with the structure and parameters, you can instantly load the LSTM model stored in the .h5 file. The code below shows all the steps, including how to save the neural network parameters.
 ```{r}
 #| label: loadKerasModel
-model <- load_model_hdf5("data/LSTM_CrimeAndPunishment.h5")
+#| echo: false
+model <- load_model("LSTM_CrimeAndPunishment.keras")
 ```
 
 If you already have a neural network in memory, then it is best to clear it all out before proceeding.
 ```{r}
 #| eval: false
-keras::k_clear_session()
+clear_session()
 gc()
 ```
 
@@ -759,7 +760,7 @@ model |> compile(
 Finally, estimate all the parameters. This model has `r model$count_params() |> format(big.mark=",")` parameters. Note that ChatGPT has roughly 10 million times more parameters. This is another warning that you may be disappointed by the results from this model.
 ```{r}
 #| eval: false
-# about 2.5 hours
+# about 4.5 hours
 model |> fit(x = X,
              y = y,
              batch_size = 128,
@@ -770,7 +771,7 @@ model |> fit(x = X,
 If you save the model in a file, then you can always load it up later.
 ```{r}
 #| eval: false
-model$save("LSTM_CrimeAndPunishment.h5")
+save_model(model, "LSTM_CrimeAndPunishment.keras")
 ```
 
 ## Generate text
