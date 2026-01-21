@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-12-01">
+<meta name="dcterms.date" content="2026-01-20">
 
 <title>L1 Probability Review</title>
 <style>
@@ -63,16 +63,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="L01-probability-review_files/libs/clipboard/clipboard.min.js"></script>
 <script src="L01-probability-review_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="L01-probability-review_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="L01-probability-review_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="L01-probability-review_files/libs/quarto-html/popper.min.js"></script>
 <script src="L01-probability-review_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="L01-probability-review_files/libs/quarto-html/anchor.min.js"></script>
 <link href="L01-probability-review_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L01-probability-review_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="L01-probability-review_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="L01-probability-review_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="L01-probability-review_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="L01-probability-review_files/libs/bootstrap/bootstrap-dark-1c59215f878e034bd7426c637fa661ac.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="L01-probability-review_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L01-probability-review_files/libs/bootstrap/bootstrap-dark-7c823468029c3b379f9b90e418026680.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -88,7 +89,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -334,7 +335,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">December 1, 2025</p>
+      <p class="date">January 20, 2026</p>
     </div>
   </div>
   
@@ -402,7 +403,7 @@ window.Quarto = {
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Conditional probability
+<span class="screen-reader-only">Tip</span>Conditional probability
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -415,7 +416,7 @@ P(A|B)=\frac{P(A \cap B)}{P(B)}
 P(Y=1|x_1,x_2,\ldots,x_d)
 \]</span> the probability that <span class="math inline">\(Y=1\)</span> given a set of case features, <span class="math inline">\(\mathbf{x}\)</span>.</p>
 <p>Sometimes, for example when we study the naïve Bayes classifier, we will be interested in <span class="math inline">\(P(x_j|Y=1)\)</span>. Pay attention to which events are on which side of the vertical bar.</p>
-<p>It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The “prosecutor’s fallacy” is to give <span class="math inline">\(P(\mathrm{evidence}|\mathrm{innocence})\)</span> but interpret it as <span class="math inline">\(P(\mathrm{innocence}|\mathrm{evidence})\)</span>.</p>
+<p>Part of the challenge in working with conditional probability is the linguistic ambiguity inherent in natural language descriptions of conditioning. There are numerous ways to describe conditional probability in English. What goes to the right of the vertical bar is associated with phrases like “given that…”, “of the…”, “among the…”, “conditional on…”, “in cases where…”, “subsequent to…”, and “if…”. It is common (possibly intentional at times) to flip conditional probabilities when making arguments. The “prosecutor’s fallacy” is to give <span class="math inline">\(P(\mathrm{evidence}|\mathrm{innocence})\)</span> but interpret it as <span class="math inline">\(P(\mathrm{innocence}|\mathrm{evidence})\)</span>.</p>
 <p><strong>Example 1: Shooters and illegal weapons possession</strong>. In Philadelphia the District Attorney correctly claimed that of those arrested for illegal gun possession, very few of them go on to shoot someone (<span class="math inline">\(P(\mathrm{shoot}|\mathrm{VUFA\,arrest})\)</span> is small, about 0.01), but the police department argued that almost all the shooters have been previously arrested for illegal gun possession (<span class="math inline">\(P(\mathrm{VUFA\,arrest}|\mathrm{shooter})\)</span> is large, about 0.40). Both are correct statements, but essentially they are arguing about which probability is more important for public safety.</p>
 <p><strong>Example 2: Murdered by batterer</strong>. Famously, Alan Dershowitz defended OJ Simpson claiming that one in 2500 men who beat their intimate partners eventually kill them. We want to know <span class="math display">\[
 P(\mathrm{murdered\,by\,batterer}|\mathrm{murdered})
@@ -455,17 +456,17 @@ P(\mbox{fraudster}|\mbox{call to SSA})=0.40
 \]</span></p>
 <section id="exercises" class="level2" data-number="3.1">
 <h2 data-number="3.1" class="anchored" data-anchor-id="exercises"><span class="header-section-number">3.1</span> Exercises</h2>
-<table class="caption-top table" data-quarto-postprocess="true">
+<table class="caption-top table">
 <caption>Probability of cheating on taxes and mom’s birthday month</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th colspan="2" style="text-align: center;">Mom's birthday</th>
+<td></td>
+<td colspan="2" style="text-align: center;">Mom's birthday</td>
 </tr>
 <tr class="even">
-<th></th>
-<th style="text-align: right;">Jan-Mar</th>
-<th style="text-align: right;">Apr-Dec</th>
+<td></td>
+<td style="text-align: right;">Jan-Mar</td>
+<td style="text-align: right;">Apr-Dec</td>
 </tr>
 </thead>
 <tbody>
@@ -499,17 +500,17 @@ P(\mbox{fraudster}|\mbox{call to SSA})=0.40
 <section id="randomized-response-design" class="level2" data-number="3.2">
 <h2 data-number="3.2" class="anchored" data-anchor-id="randomized-response-design"><span class="header-section-number">3.2</span> Randomized response design</h2>
 <p>Assume we do not know the probability that a randomly selected person cheats on their taxes. Let <span class="math inline">\(p=P(\mbox{tax cheat})\)</span>.</p>
-<table class="caption-top table" data-quarto-postprocess="true">
+<table class="caption-top table">
 <caption>Probability of cheating on taxes and mom’s birthday month</caption>
 <thead>
 <tr class="header">
-<th></th>
-<th colspan="2" style="text-align: center;">Mom's birthday</th>
+<td></td>
+<td colspan="2" style="text-align: center;">Mom's birthday</td>
 </tr>
 <tr class="even">
-<th></th>
-<th style="text-align: right;">Jan-Mar</th>
-<th style="text-align: right;">Apr-Dec</th>
+<td></td>
+<td style="text-align: right;">Jan-Mar</td>
+<td style="text-align: right;">Apr-Dec</td>
 </tr>
 </thead>
 <tbody>
@@ -545,7 +546,7 @@ P(A \cup B) &amp;= P(A) + P(B) - P(A \cap B) \\
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Bayes’ Theorem
+<span class="screen-reader-only">Tip</span>Bayes’ Theorem
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -659,7 +660,7 @@ P(B|A)=\frac{P(A|B)P(B)}{P(A)}
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Expected value of discrete random variables
+<span class="screen-reader-only">Tip</span>Expected value of discrete random variables
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -673,7 +674,7 @@ Expected value of discrete random variables
 <h2 data-number="6.1" class="anchored" data-anchor-id="examples"><span class="header-section-number">6.1</span> Examples:</h2>
 <ul>
 <li><p>Starting with the classic coin flip, if <span class="math inline">\(Y\)</span> counts the number of tails that occurs in a single coin flip, then we have <span class="math inline">\(\mathbb{E}(Y) = 0\times 0.5 + 1\times 0.5 = 0.5\)</span>. Note that the expected value does not necessarily have to equal one of the possible values of <span class="math inline">\(Y\)</span></p></li>
-<li><p>In the US, of mothers over age 40, assume that the distribution of the number of children is</p></li>
+<li><p>In the US, of women over age 40, assume that the distribution of the number of children is</p></li>
 </ul>
 <table class="caption-top table">
 <thead>
@@ -708,7 +709,7 @@ Expected value of discrete random variables
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Expected value of continuous random variables
+<span class="screen-reader-only">Tip</span>Expected value of continuous random variables
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -726,7 +727,7 @@ p(t) = \lambda e^{-\lambda t},\, t\geq 0
 \mathbb{E}(T) = \int_0^\infty t\lambda e^{-\lambda t}\,dt = \frac{1}{\lambda}
 \]</span></li>
 </ul>
-<p>For this class, feel free to use <a href="https://www.wolframalpha.com/examples/mathematics/calculus-and-analysis">Wolfram Alpha</a> or <a href="https://www.integral-calculator.com/">Integral Calculator</a> or similar sites to help you solve any problems in this class.</p>
+<p>To derive this, you could either use integration by parts or recognize that the integrand is proportional to the <a href="https://en.wikipedia.org/wiki/Gamma_distribution">gamma distribution</a>. For this class, feel free to use <a href="https://www.wolframalpha.com/examples/mathematics/calculus-and-analysis">Wolfram Alpha</a> or <a href="https://www.integral-calculator.com/">Integral Calculator</a> or similar sites to help you solve any problems in this class.</p>
 </section>
 <section id="properties-of-expected-value" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="properties-of-expected-value"><span class="header-section-number">6.2</span> Properties of expected value</h2>
@@ -737,7 +738,7 @@ p(t) = \lambda e^{-\lambda t},\, t\geq 0
 </ul>
 <p>Example:</p>
 <ul>
-<li>You have two randomly selected 40-year-old mothers. What is the expected total number of children that they have? <span class="math display">\[
+<li>You have two randomly selected 40-year-old women. What is the expected total number of children that they have? <span class="math display">\[
 \mathbb{E}(Y_1+Y_2)=\mathbb{E}(Y_1)+\mathbb{E}(Y_2)=1.87+1.87=3.74
 \]</span></li>
 </ul>
@@ -751,7 +752,7 @@ p(t) = \lambda e^{-\lambda t},\, t\geq 0
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Law of Large Numbers
+<span class="screen-reader-only">Tip</span>Law of Large Numbers
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -766,12 +767,12 @@ Law of Large Numbers
 <li>Returning to the example with the number of children, we can write an R script to estimate the expected value.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    nChildren <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">10000</span>,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>    nChildren <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">10000</span>,</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">prob=</span><span class="fu">c</span>(<span class="fl">0.18</span>,<span class="fl">0.19</span>,<span class="fl">0.32</span>,<span class="fl">0.20</span>,<span class="fl">0.11</span>),</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">replace=</span><span class="cn">TRUE</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(nChildren)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mean</span>(nChildren)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1.859</code></pre>
+<pre><code>[1] 1.8874</code></pre>
 </div>
 </div>
 </section>
@@ -784,7 +785,7 @@ Law of Large Numbers
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Variance
+<span class="screen-reader-only">Tip</span>Variance
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -876,13 +877,14 @@ Variance
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
