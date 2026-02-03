@@ -24,9 +24,9 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
 <!-- In terminal -->
-<!-- quarto render L2-naive-Bayes.qmd -->
+<!-- quarto render L02-naive-Bayes.qmd -->
 
-<!-- git commit L2* -m "commit message" -->
+<!-- git commit L02* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
 
@@ -449,11 +449,12 @@ datRecid |>
   summarize(falseNeg=mean(p < 0.5))
 ```
 
+There are numerous other measures of performance. The [Table of Confusion](https://en.wikipedia.org/wiki/Confusion_matrix#Table_of_confusion) organizes them in their relationship to true positives, false positives, true negatives, and false negatives.
 
 ## Receiver Operating Characteristic (ROC)
 It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.
 
-To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. @fig-roc shows the result. The red dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.5)$, the equal misclassification cost decision rule.  The blue dot in @fig-roc corresponds to the decision $\hat y=I(p > 0.25)$, the equal misclassification cost decision rule.
+To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. @fig-roc shows the result. The red dot in @fig-roc corresponds to the decision $\hat y=I(\hat p > 0.5)$, the equal misclassification cost decision rule.  The blue dot in @fig-roc corresponds to the decision $\hat y=I(\hat p > 0.25)$, the equal misclassification cost decision rule.
 
 ```{r}
 #| label: fig-roc

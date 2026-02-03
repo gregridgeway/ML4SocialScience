@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-12-01">
+<meta name="dcterms.date" content="2026-02-02">
 
 <title>L2 Naïve Bayes Classifier</title>
 <style>
@@ -83,16 +83,17 @@ div.csl-indent {
 <script src="L02-naive-Bayes_files/libs/clipboard/clipboard.min.js"></script>
 <script src="L02-naive-Bayes_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="L02-naive-Bayes_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="L02-naive-Bayes_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="L02-naive-Bayes_files/libs/quarto-html/popper.min.js"></script>
 <script src="L02-naive-Bayes_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="L02-naive-Bayes_files/libs/quarto-html/anchor.min.js"></script>
 <link href="L02-naive-Bayes_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="L02-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="L02-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="L02-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L02-naive-Bayes_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="L02-naive-Bayes_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="L02-naive-Bayes_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="L02-naive-Bayes_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="L02-naive-Bayes_files/libs/bootstrap/bootstrap-dark-1c59215f878e034bd7426c637fa661ac.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="L02-naive-Bayes_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L02-naive-Bayes_files/libs/bootstrap/bootstrap-dark-7c823468029c3b379f9b90e418026680.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 <script src="L02-naive-Bayes_files/libs/kePrint-0.0.1/kePrint.js"></script>
 
 <link href="L02-naive-Bayes_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
@@ -112,7 +113,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -351,7 +352,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">December 1, 2025</p>
+      <p class="date">February 2, 2026</p>
     </div>
   </div>
   
@@ -463,22 +464,22 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 <p>We will demonstrate the naïve Bayes classifier using data on Georgia parolees. These data were used as part of the National Institute of Justice’s <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">recidivism prediction challenge</a>. The recidivism outcome, <code>Recidivism_Within_3years</code> takes the value <code>true</code> if the parolee is arrested for a new felony or misdemeanor crime within three years of the supervision start date. Everyone in the dataset has been released on parole, but Georgia parole officers need to decide how much supervision each parolee needs. The parole officers have a number of features about the parolees that may be informative about who is at risk of reoffending.</p>
 <p>We will start by loading some necessary R packages and the dataset.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/NIJ_s_Recidivism_Challenge_Full_Dataset.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"data/NIJ_s_Recidivism_Challenge_Full_Dataset.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="estimating-weights-of-evidence" class="level2" data-number="4.1">
 <h2 data-number="4.1" class="anchored" data-anchor-id="estimating-weights-of-evidence"><span class="header-section-number">4.1</span> Estimating weights of evidence</h2>
 <p>We compute the prior weight of evidence, <span class="math inline">\(w_0\)</span>, as <span class="math inline">\(\log\frac{P(Y=1)}{P(Y=0)}\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(datRecid<span class="sc">$</span>Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>w0 <span class="co"># P(Y=1)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> <span class="fu">mean</span>(datRecid<span class="sc">$</span>Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>w0 <span class="co"># P(Y=1)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.5768918</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> <span class="fu">log</span>(w0<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>w0))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>w0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> <span class="fu">log</span>(w0<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>w0))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>w0</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.3100268</code></pre>
 </div>
@@ -486,27 +487,27 @@ P(Y = 1|\mathbf{x}) = \frac{P(\mathbf{x}|Y = 1)P(Y = 1)}{P(\mathbf{x})}
 <p>Since <span class="math inline">\(w_0\)</span> is positive, this suggests that without any other information, the evidence indicates that Georgia parolees are more likely to recidivate than not.</p>
 <p>Let’s now compute the weights of evidence for <code>Gender</code>. Since this feature takes on two values, we will need to compute two weights of evidence, <span class="math inline">\(w_{\mathrm{Gender}}(M)=\log\frac{P(M|Y=1)}{P(M|Y=0)}\)</span> and <span class="math inline">\(w_{\mathrm{Gender}}(F)=\log\frac{P(F|Y=1)}{P(F|Y=0)}\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. create a 2x2 table Y and Gender</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. create a 2x2 table Y and Gender</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>wGender <span class="ot">&lt;-</span> <span class="fu">with</span>(datRecid, <span class="fu">table</span>(Recidivism_Within_3years, Gender))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        Gender
 Recidivism_Within_3years     F     M
                    false  1725  9206
                    true   1442 13462</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. make the rows sum to 1</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. make the rows sum to 1</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>wGender <span class="ot">&lt;-</span> wGender<span class="sc">/</span><span class="fu">rowSums</span>(wGender)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        Gender
 Recidivism_Within_3years          F          M
                    false 0.15780807 0.84219193
                    true  0.09675255 0.90324745</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. convert to log relative risk, log of 2nd row/1st row</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. convert to log relative risk, log of 2nd row/1st row</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>wGender <span class="ot">&lt;-</span> <span class="fu">log</span>(wGender[<span class="dv">2</span>,]<span class="sc">/</span>wGender[<span class="dv">1</span>,])</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>wGender</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>          F           M 
 -0.48922286  0.06998861 </code></pre>
@@ -515,16 +516,16 @@ Recidivism_Within_3years          F          M
 <p>Knowing that parolee is female decreases the evidence in favor of reoffending, while knowing a parolee is male slightly increases the evidence for reoffending.</p>
 <p>The same calculations we did for <code>Gender</code> we can apply to <code>Age_at_Release</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> <span class="fu">with</span>(datRecid, <span class="fu">table</span>(Recidivism_Within_3years, Age_at_Release))</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> <span class="fu">with</span>(datRecid, <span class="fu">table</span>(Recidivism_Within_3years, Age_at_Release))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        Age_at_Release
 Recidivism_Within_3years 18-22 23-27 28-32 33-37 38-42 43-47 48 or older
                    false   579  1738  1920  1826  1408  1294        2166
                    true   1487  3438  3062  2445  1585  1326        1561</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> wAge<span class="sc">/</span><span class="fu">rowSums</span>(wAge)</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> wAge<span class="sc">/</span><span class="fu">rowSums</span>(wAge)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                        Age_at_Release
 Recidivism_Within_3years      18-22      23-27      28-32      33-37      38-42
@@ -535,8 +536,8 @@ Recidivism_Within_3years      43-47 48 or older
                    false 0.11837892  0.19815204
                    true  0.08896940  0.10473698</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> <span class="fu">log</span>(wAge[<span class="dv">2</span>,]<span class="sc">/</span>wAge[<span class="dv">1</span>,])</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>wAge <span class="ot">&lt;-</span> <span class="fu">log</span>(wAge[<span class="dv">2</span>,]<span class="sc">/</span>wAge[<span class="dv">1</span>,])</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>wAge</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      18-22       23-27       28-32       33-37       38-42       43-47 
   0.6331866   0.3721280   0.1567163  -0.0181095  -0.1916127  -0.2855981 
@@ -547,16 +548,16 @@ Recidivism_Within_3years      43-47 48 or older
 <p>Generally, we see decreasing risk of reoffending with increasing age at release from prison.</p>
 <p>Let’s take a step toward simplifying our code by making a weight of evidence function,</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>WoE <span class="ot">&lt;-</span> <span class="cf">function</span>(x,y)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>WoE <span class="ot">&lt;-</span> <span class="cf">function</span>(x,y)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>{</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> <span class="fu">table</span>(y, x)</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  w <span class="ot">&lt;-</span> w<span class="sc">/</span><span class="fu">rowSums</span>(w)</span>
 <span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>( <span class="fu">log</span>(w[<span class="dv">2</span>,]<span class="sc">/</span>w[<span class="dv">1</span>,]) )</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>and let’s test it out on <code>Age_at_Release</code> to make sure it works the way we think it is supposed to work.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">WoE</span>(datRecid<span class="sc">$</span>Age_at_Release, datRecid<span class="sc">$</span>Recidivism_Within_3years)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">WoE</span>(datRecid<span class="sc">$</span>Age_at_Release, datRecid<span class="sc">$</span>Recidivism_Within_3years)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      18-22       23-27       28-32       33-37       38-42       43-47 
   0.6331866   0.3721280   0.1567163  -0.0181095  -0.1916127  -0.2855981 
@@ -566,11 +567,11 @@ Recidivism_Within_3years      43-47 48 or older
 </div>
 <p>Now we can turn our <code>WoE()</code> loose on all the columns that interest us.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>modNB <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>modNB <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Gender, Age_at_Release, Education_Level, </span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>         Prior_Conviction_Episodes_Viol, Prison_Offense, Prison_Years) <span class="sc">|&gt;</span></span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lapply</span>(WoE, <span class="at">y=</span>datRecid<span class="sc">$</span>Recidivism_Within_3years)</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>modNB</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>modNB</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$Gender
           F           M 
@@ -602,7 +603,7 @@ $Prison_Years
         More than 3 years 
                -0.4477989 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># collect weights into long form</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># collect weights into long form</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>modNB <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">var=</span><span class="fu">rep</span>(<span class="fu">names</span>(modNB), <span class="fu">lengths</span>(modNB)),</span>
 <span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">value=</span><span class="fu">unlist</span>(<span class="fu">sapply</span>(modNB, names)),</span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">woe=</span><span class="fu">unlist</span>(modNB),</span>
@@ -612,14 +613,14 @@ $Prison_Years
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>modNB <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">var=</span><span class="st">"Prior"</span>, <span class="at">value=</span><span class="cn">NA</span>, <span class="at">woe=</span>w0) <span class="sc">|&gt;</span></span>
 <span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(modNB) <span class="sc">|&gt;</span></span>
 <span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">ifelse</span>(value<span class="sc">==</span><span class="st">""</span>, <span class="st">"NA"</span>, value),</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">woe =</span> <span class="fu">round</span>(<span class="dv">100</span><span class="sc">*</span>woe))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">woe =</span> <span class="fu">round</span>(<span class="dv">100</span><span class="sc">*</span>woe))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><a href="#tbl-woe" class="quarto-xref">Table&nbsp;1</a> shows the weights of evidence. Note that I have multiplied the weights of evidence by 100 to make them easier to read.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>modNB <span class="sc">|&gt;</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>modNB <span class="sc">|&gt;</span> </span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">var =</span> <span class="fu">ifelse</span>(<span class="fu">duplicated</span>(var), <span class="st">""</span>, var)) <span class="sc">|&gt;</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kbl</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div id="tbl-woe" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -627,7 +628,7 @@ Table&nbsp;1: NIJ Challenge weights of evidence
 </figcaption>
 <div aria-describedby="tbl-woe-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<table class="lightable-material-dark lightable-striped do-not-create-environment cell caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="lightable-material-dark lightable-striped do-not-create-environment cell caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">var</th>
@@ -912,11 +913,11 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <h2 data-number="4.3" class="anchored" data-anchor-id="prediction-1"><span class="header-section-number">4.3</span> Prediction</h2>
 <p>To make a prediction for each parolee, we are going to take each parolee’s data and “pivot” it into a long form. For example,</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ID, Gender, Age_at_Release, Education_Level,</span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>         Prior_Conviction_Episodes_Viol,</span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>         Prison_Offense,Prison_Years) <span class="sc">|&gt;</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>ID, <span class="at">names_to=</span><span class="st">"var"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>ID, <span class="at">names_to=</span><span class="st">"var"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 155,010 × 3
       ID var                            value                
@@ -936,14 +937,14 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </div>
 <p>In this way each row contains one feature for each parolee. Putting it in this form will allow us to join these features with their associated weights of evidence.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>predNBwoe <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>predNBwoe <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ID, Gender, Age_at_Release, Education_Level,</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>         Prior_Conviction_Episodes_Viol,</span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>         Prison_Offense,Prison_Years) <span class="sc">|&gt;</span></span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>ID, <span class="at">names_to=</span><span class="st">"var"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">ifelse</span>(value<span class="sc">==</span><span class="st">""</span>, <span class="st">"NA"</span>, value)) <span class="sc">|&gt;</span></span>
 <span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(modNB, <span class="fu">join_by</span>(var, value))</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>predNBwoe</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>predNBwoe</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 155,010 × 4
       ID var                            value                   woe
@@ -963,12 +964,12 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </div>
 <p>Note that after the <code>left_join()</code> we have the correct weights of evidence for the associated feature and its value. To make a prediction we just need to add all of the weights of evidence for each <code>ID</code> plus the prior weight of evidence.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get predictions</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get predictions</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>predNB <span class="ot">&lt;-</span> predNBwoe <span class="sc">|&gt;</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(ID) <span class="sc">|&gt;</span></span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">totalWoE=</span>modNB<span class="sc">$</span>woe[<span class="dv">1</span>] <span class="sc">+</span> <span class="fu">sum</span>(woe), <span class="co"># add prior WoE to WoE sum</span></span>
 <span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">p=</span><span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span><span class="sc">+</span><span class="fu">exp</span>(<span class="sc">-</span>totalWoE<span class="sc">/</span><span class="dv">100</span>)))</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>predNB</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>predNB</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 25,835 × 3
       ID totalWoE     p
@@ -988,7 +989,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </div>
 <p>Here’s some R code assemble an evidence balance sheet for a parolee, here arbitrarily selected to be <code>ID==40</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># evidence balance sheets</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># evidence balance sheets</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>ebs <span class="ot">&lt;-</span> </span>
 <span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  predNBwoe <span class="sc">|&gt;</span> </span>
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ID<span class="sc">==</span><span class="dv">40</span>) <span class="sc">|&gt;</span></span>
@@ -1021,9 +1022,9 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <span id="cb31-31"><a href="#cb31-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">row.names =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb31-32"><a href="#cb31-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">align=</span><span class="st">"lrlr"</span>,</span>
 <span id="cb31-33"><a href="#cb31-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits=</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
-<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-34"><a href="#cb31-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material_opt</span>(<span class="at">lightable_options=</span><span class="st">"striped"</span>, <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<table class="lightable-material-dark lightable-striped caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<table class="lightable-material-dark lightable-striped caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
 <th style="text-align: left;" data-quarto-table-cell-role="th">Feature</th>
@@ -1093,7 +1094,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <p>Of fundamental importance is evaluating the classifier on data that was not used in training the classifier. We will always evaluate “out-of-sample performance,” performance on data held back from the model fitting process, sometimes called a “validation dataset” or “test set”. Particularly for more complex machine learning methods, they can become “overfit” to a training dataset to the point that they do not predict well on a validation dataset.</p>
 <p>Previously, we used all of the parolee data to estimate our weights of evidence. In reality, the dataset is split between a “training” set and a “test” set.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(datRecid<span class="sc">$</span>Training_Sample)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(datRecid<span class="sc">$</span>Training_Sample)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     0     1 
@@ -1102,7 +1103,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 </div>
 <p>Let’s start by re-estimating our weights of evidence using only the training dataset and make predictions based on those weights.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prior weight of evidence</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prior weight of evidence</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">1</span>) <span class="sc">|&gt;</span></span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">w0 =</span> <span class="fu">mean</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>),</span>
@@ -1122,11 +1123,11 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>                       <span class="at">woe=</span><span class="fu">unlist</span>(modNB),</span>
 <span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>                       <span class="at">row.names =</span> <span class="cn">NULL</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">value =</span> <span class="fu">ifelse</span>(value<span class="sc">==</span><span class="st">""</span>, <span class="st">"NA"</span>, value),</span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">woe =</span> woe)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">woe =</span> woe)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Here I have not rounded or multiplied the weights of evidence by 100 since now we are going for precision rather than readability. <code>modNB</code> contains weights of evidence constructed only from the parolees included in the training dataset. Let’s make predictions on everyone now using those weights.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>predNB <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>predNB <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ID,Gender, Age_at_Release, Education_Level,</span>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>         Prior_Conviction_Episodes_Viol,</span>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>         Prison_Offense, Prison_Years) <span class="sc">|&gt;</span></span>
@@ -1140,7 +1141,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co"># add predictions to original data for all parolees</span></span>
 <span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span> </span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(predNB, <span class="fu">join_by</span>(ID<span class="sc">==</span>ID))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(predNB, <span class="fu">join_by</span>(ID<span class="sc">==</span>ID))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <section id="misclassification-rate-and-misclassification-cost" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="misclassification-rate-and-misclassification-cost"><span class="header-section-number">6.1</span> Misclassification rate and misclassification cost</h2>
@@ -1151,7 +1152,7 @@ Table&nbsp;3: Conversion from probability to total weight of evidence
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Misclassification rate
+<span class="screen-reader-only">Tip</span>Misclassification rate
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -1162,10 +1163,10 @@ Misclassification rate
 </div>
 <p>Baked into this calculation is some decision on where to set the threshold for predicting <span class="math inline">\(\hat y=1\)</span>. If we decided that <span class="math inline">\(\hat y=I(\hat p&gt;\frac{1}{2})\)</span>, equivalent to believing that false positives and false negatives had equal costs, then we could compute the misclassification rate for the Georgia parolee data as</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass=</span><span class="fu">mean</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.5</span>) <span class="sc">|</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>                          (Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span> <span class="sc">&amp;</span> p<span class="sc">&lt;</span><span class="fl">0.5</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>                          (Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span> <span class="sc">&amp;</span> p<span class="sc">&lt;</span><span class="fl">0.5</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   Training_Sample misclass
@@ -1182,7 +1183,7 @@ Misclassification rate
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-False positive rate
+<span class="screen-reader-only">Tip</span>False positive rate
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -1200,7 +1201,7 @@ False positive rate
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-False negative rate
+<span class="screen-reader-only">Tip</span>False negative rate
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -1213,11 +1214,11 @@ False negative rate
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false positive</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false positive</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
 <span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(p <span class="sc">&gt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falsePos=</span><span class="fu">mean</span>(p <span class="sc">&gt;</span> <span class="fl">0.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   Training_Sample falsePos
@@ -1225,11 +1226,11 @@ False negative rate
 1               0    0.604
 2               1    0.591</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false negative</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false negative</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span> </span>
 <span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Training_Sample) <span class="sc">|&gt;</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falseNeg=</span><span class="fu">mean</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">falseNeg=</span><span class="fu">mean</span>(p <span class="sc">&lt;</span> <span class="fl">0.5</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   Training_Sample falseNeg
@@ -1238,13 +1239,14 @@ False negative rate
 2               1    0.198</code></pre>
 </div>
 </div>
+<p>There are numerous other measures of performance. The <a href="https://en.wikipedia.org/wiki/Confusion_matrix#Table_of_confusion">Table of Confusion</a> organizes them in their relationship to true positives, false positives, true negatives, and false negatives.</p>
 </section>
 <section id="receiver-operating-characteristic-roc" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="receiver-operating-characteristic-roc"><span class="header-section-number">6.2</span> Receiver Operating Characteristic (ROC)</h2>
 <p>It is easy to make either the false positive rate or the false negative rate equal to 0. We can just predict everyone to be a 0 to eliminate all of our false positive errors. Or we can predict everyone to be 1s and eliminate all of our false negative errors. Clearly, there is a trade-off in these two kinds of errors. Reducing one invariably results in increasing the other. The Receiver Operating Characteristic, or ROC, curve shows this tradeoff.</p>
-<p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.5)\)</span>, the equal misclassification cost decision rule. The blue dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(p &gt; 0.25)\)</span>, the equal misclassification cost decision rule.</p>
+<p>To construct the ROC curve, we vary the probability threshold used to classify a case as a 1. For numerous values of the threshold, we compute the false positive rate and the true positive rate (1-false negative rate). Along the x-axis we plot the false positive rate and along the y-axis we plot the false negative rate. <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> shows the result. The red dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(\hat p &gt; 0.5)\)</span>, the equal misclassification cost decision rule. The blue dot in <a href="#fig-roc" class="quarto-xref">Figure&nbsp;1</a> corresponds to the decision <span class="math inline">\(\hat y=I(\hat p &gt; 0.25)\)</span>, the equal misclassification cost decision rule.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Receiver Operating Characteristic (ROC) plots FPR vs TPR</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Receiver Operating Characteristic (ROC) plots FPR vs TPR</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>threshold <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fu">min</span>(datRecid<span class="sc">$</span>p), <span class="fu">max</span>(datRecid<span class="sc">$</span>p), </span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">length=</span><span class="dv">100</span>)</span>
 <span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">sapply</span>(threshold, <span class="cf">function</span>(p0)</span>
@@ -1265,7 +1267,7 @@ False negative rate
 <span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(a[<span class="dv">1</span>,i], a[<span class="dv">2</span>,i], <span class="at">col=</span><span class="st">"red"</span>, <span class="at">pch=</span><span class="dv">19</span>, <span class="at">cex=</span><span class="dv">2</span>)</span>
 <span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a><span class="co"># mark threshold at 0.5</span></span>
 <span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>i <span class="ot">&lt;-</span> <span class="fu">which.min</span>(<span class="fu">abs</span>(threshold<span class="fl">-0.25</span>))</span>
-<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(a[<span class="dv">1</span>,i], a[<span class="dv">2</span>,i], <span class="at">col=</span><span class="st">"blue"</span>, <span class="at">pch=</span><span class="dv">19</span>, <span class="at">cex=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(a[<span class="dv">1</span>,i], a[<span class="dv">2</span>,i], <span class="at">col=</span><span class="st">"blue"</span>, <span class="at">pch=</span><span class="dv">19</span>, <span class="at">cex=</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-roc" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1283,25 +1285,25 @@ Figure&nbsp;1: Receiver Operating Characteristic (ROC) curve for the Naïve Baye
 <p>Different machine learning methods can produce different ROC curves. Ideally, we would like it to be pushed well up into the top left corner, low false positive rate with high true positive rate.</p>
 <p>The Area Under the ROC Curve (AUC) is a common summary measure for overall performance, rather than judging the classifier’s performance at only one threshold the way misclassification rate does. It is sometimes called the “concordance index”. AUC turns out to be equal to the probability that the classifier ranks a random selected case with <span class="math inline">\(y_i=1\)</span> to have higher probability than a random selected <span class="math inline">\(y_i=0\)</span> case. We can compute the integral under the ROC curve numerically using the trapezoid rule.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rev</span>(a[<span class="dv">1</span>,])</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rev</span>(a[<span class="dv">1</span>,])</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">rev</span>(a[<span class="dv">2</span>,])</span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>AUC <span class="ot">&lt;-</span> <span class="fu">sum</span>( <span class="fl">0.5</span><span class="sc">*</span>(y[<span class="sc">-</span><span class="dv">1</span>]<span class="sc">+</span>y[<span class="sc">-</span><span class="fu">length</span>(y)]) <span class="sc">*</span> <span class="fu">diff</span>(x) )</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>AUC</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>AUC</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.6488289</code></pre>
 </div>
 </div>
 <p>In R, the <code>pROC</code> package calculates AUC and displays ROC curves. You do not need to compute it “by hand” as we have done here.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pROC)</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>nbROC <span class="ot">&lt;-</span> <span class="fu">roc</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>p, </span>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">data=</span><span class="fu">subset</span>(datRecid, Training_Sample<span class="sc">==</span><span class="dv">0</span>))</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>nbROC<span class="sc">$</span>auc</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Area under the curve: 0.6512</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># note x-axis is specificity, 1-FPR, and labeled from 1 down to 0</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># note x-axis is specificity, 1-FPR, and labeled from 1 down to 0</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(nbROC)    </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-rocpackage" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1321,7 +1323,7 @@ Figure&nbsp;2: Receiver Operating Characteristic (ROC) produced from the <code>p
 <p>If we consider all of the parolees that we predicted to have a 70% chance of reoffending, then if our probabilities are meaningful 70% of those parolees should reoffend and 30% should not. Calibration gets at this concept. Are our predicted probabilities meaningful as probabilities? We will explore this characteristic of our naïve Bayes classifier graphically.</p>
 <p>I first create bins for the predicted probabilities, <span class="math inline">\((0.1,0.2], \ldots, (0.8,0.9]\)</span>. For each parolee with predicted probability of reoffending in <span class="math inline">\((0.1,0.2]\)</span> I computed the fraction that actually reoffended. As you can see in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a>, in reality 20% of the parolees with predicted probabilities in this range reoffended. So the calibration of the predicted probabilities in this range is a little off. The predicted probabilities are a little too low. I repeated this process for each of the other bins. The eight red dots in <a href="#fig-calibration1" class="quarto-xref">Figure&nbsp;3</a> show the actual rate of reoffending within each bin.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pCat =</span> <span class="fu">cut</span>(p, <span class="at">breaks=</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pCat)) <span class="sc">|&gt;</span> <span class="co"># for the few with p&lt;0.1</span></span>
@@ -1331,7 +1333,7 @@ Figure&nbsp;2: Receiver Operating Characteristic (ROC) produced from the <code>p
 <span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(phat<span class="sc">~</span>p, <span class="at">data=</span>_, <span class="at">pch=</span><span class="dv">16</span>, <span class="at">col=</span><span class="st">"red"</span>,</span>
 <span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlim=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">ylim=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
 <span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">"Predicted probability"</span>,</span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab=</span><span class="st">"Actual probability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab=</span><span class="st">"Actual probability"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-calibration1" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1347,7 +1349,7 @@ Figure&nbsp;3: Calibration plot, binned to deciles
 </div>
 <p>Binning the predictions into deciles is rather rough, so in <a href="#fig-calibration2" class="quarto-xref">Figure&nbsp;4</a> I created a blue curve that is a smooth version of the red dots using natural splines. If the probabilities from the naïve Bayes classifier were perfectly calibrated, then they would fall along the black diagonal line. It is not perfectly calibrated, but also the predicted probabilities are off by at most 0.05.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample<span class="sc">==</span><span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">pCat =</span> <span class="fu">cut</span>(p, <span class="at">breaks=</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(pCat)) <span class="sc">|&gt;</span> <span class="co"># for the few with p&lt;0.1</span></span>
@@ -1371,7 +1373,7 @@ Figure&nbsp;3: Calibration plot, binned to deciles
 <span id="cb49-22"><a href="#cb49-22" aria-hidden="true" tabindex="-1"></a><span class="co"># what perfectly calibrated looks like</span></span>
 <span id="cb49-23"><a href="#cb49-23" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>)</span>
 <span id="cb49-24"><a href="#cb49-24" aria-hidden="true" tabindex="-1"></a><span class="co"># mark the deciles of the probabilities</span></span>
-<span id="cb49-25"><a href="#cb49-25" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(datRecid<span class="sc">$</span>p, <span class="at">prob=</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb49-25"><a href="#cb49-25" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(datRecid<span class="sc">$</span>p, <span class="at">prob=</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-calibration2" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1394,33 +1396,33 @@ Figure&nbsp;4: Calibration plot, smoothed calibration curve
 <p>In practice, you do not need to do all the “hand calculations” we did in the previous sections to construct the naïve Bayes classifier. Like most methods we will discuss, someone has written a package that does all the calculations for you. There are actually several packages with implementations of the naïve Bayes classifier (<code>e1071</code> and <code>klaR</code>, for example). We will use the package <code>naivebayes</code> for this class, but you are welcome to experiment with the other versions.</p>
 <p>Let’s start with loading the package.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naivebayes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(naivebayes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>One feature (bug? quirk? complication?) of <code>naivebayes()</code> is that its <code>predict()</code> function has trouble handling categorical features variables with a blank (<code>""</code>) category. If you get an error like this</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>Error <span class="cf">in</span> <span class="st">`</span><span class="at">[.default</span><span class="st">`</span>(tab, V, ) <span class="sc">:</span> subscript out of bounds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>Error <span class="cf">in</span> <span class="st">`</span><span class="at">[.default</span><span class="st">`</span>(tab, V, ) <span class="sc">:</span> subscript out of bounds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>then it is caused by one of your variables having a blank (<code>""</code>) value. So, let’s fix this issue before we go any further.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Prison_Offense=</span><span class="fu">case_match</span>(Prison_Offense,</span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>                                   <span class="st">""</span> <span class="sc">~</span> <span class="cn">NA</span>,</span>
 <span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>                                   <span class="co"># "" ~ "Missing", # alternately</span></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">.default=</span>Prison_Offense))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">.default=</span>Prison_Offense))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we can fit the naïve Bayes classifier to our data. Note here that the function allows us to set <code>laplace=1</code> so that all probability estimates have a +1 in the numerator and a +2 in the denominator.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>nb1 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>nb1 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
 <span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
 <span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>                     Prison_Years,</span>
 <span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Inside the <code>nb1</code>, R stores all the required prior probabilities and conditional probabilities. Let’s explore the model object</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ================================= Naive Bayes ================================== 
@@ -1439,13 +1441,13 @@ Figure&nbsp;4: Calibration plot, smoothed calibration curve
 
 -------------------------------------------------------------------------------- </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>prior</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>prior</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     FALSE      TRUE 
 0.4219547 0.5780453 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>-------------------------------------------------------------------------------- 
 :: Gender (Bernoulli) 
@@ -1508,14 +1510,14 @@ Prison_Years                    FALSE      TRUE
 
 --------------------------------------------------------------------------------</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables<span class="sc">$</span>Gender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>nb1<span class="sc">$</span>tables<span class="sc">$</span>Gender</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      
 Gender      FALSE       TRUE
      F 0.15862794 0.09709297
      M 0.84137206 0.90290703</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tables</span>(nb1, <span class="st">"Gender"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tables</span>(nb1, <span class="st">"Gender"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>-------------------------------------------------------------------------------- 
 :: Gender (Bernoulli) 
@@ -1530,7 +1532,7 @@ Gender      FALSE       TRUE
 </div>
 <p>Let’s make some predictions now. You can safely ignore the warning message saying “predict.naive_bayes(): more features in the newdata are provided as there are probability tables in the object. Calculation is performed based on features to be found in the tables.” It is just letting you know that the <code>nb1</code> model did not use all of the parolee features that are available in <code>datRecid</code>. We just used six of those features for now.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>datRecid<span class="sc">$</span>pNBpack <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb1, <span class="at">newdata=</span>datRecid, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>datRecid<span class="sc">$</span>pNBpack <span class="ot">&lt;-</span> <span class="fu">predict</span>(nb1, <span class="at">newdata=</span>datRecid, <span class="at">type=</span><span class="st">"prob"</span>)[,<span class="dv">2</span>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: predict.naive_bayes(): more features in the newdata are provided as
 there are probability tables in the object. Calculation is performed based on
@@ -1540,9 +1542,9 @@ features to be found in the tables.</code></pre>
 <p>Although we trained <code>nb1</code> on only the parolees where <code>Training_Sample==1</code>, we are making predictions for everyone in the dataset, training and test set parolees.</p>
 <p>Let’s check that the predicted probabilities are nearly the same</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p<span class="sc">~</span>pNBpack, <span class="at">data=</span>datRecid,</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(p<span class="sc">~</span>pNBpack, <span class="at">data=</span>datRecid,</span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab=</span><span class="st">"Predictions from naivebayes package"</span>,</span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Predictions from homemade naïve Bayes"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-predprobsSame" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1558,12 +1560,12 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 </div>
 <p>We can check the predictive performance of <code>nb1</code> using all the previous metrics we discussed like misclassification rate, classification cost, false positive rate, false negative rate, calibration, and AUC. Let’s say a false negative costs $9,000 and a false positive costs $1,000 (so a classification threshold at <span class="math inline">\(p=0.1\)</span>). We can compute the classification cost on the test set cases as</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the average misclassification cost</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the average misclassification cost</span></span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="sc">|&gt;</span></span>
 <span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Training_Sample <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|&gt;</span>  <span class="co"># evaluate only on the test set</span></span>
 <span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> </span>
 <span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mean</span>(<span class="dv">9000</span><span class="sc">*</span>(pNBpack<span class="sc">&lt;</span><span class="fl">0.1</span> <span class="sc">&amp;</span> Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>) <span class="sc">+</span></span>
-<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>                   <span class="dv">1000</span><span class="sc">*</span>(pNBpack<span class="sc">&gt;</span><span class="fl">0.1</span> <span class="sc">&amp;</span> Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>                   <span class="dv">1000</span><span class="sc">*</span>(pNBpack<span class="sc">&gt;</span><span class="fl">0.1</span> <span class="sc">&amp;</span> Recidivism_Within_3years<span class="sc">==</span><span class="st">"false"</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  misclassCost
 1     427.1807</code></pre>
@@ -1574,7 +1576,7 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 <p>The naïve Bayes classifier is really designed with categorical features in mind. Note that features like <code>Prison_Years</code> and <code>Age_at_Release</code> have been discretized into categorical features. The <code>naive_bayes()</code> function will happily accept continuous features, but then either assumes that the conditional distribution <code>P(x_j|y)</code> is a normal distribution or, if <code>usekernel=TRUE</code> will fit a density estimate to the data. It is equivalent to assuming that the associated weight of evidence is a quadratic function, <span class="math inline">\(\log\frac{P(x_j|y=1)}{P(x_j|y=0)}=ax_j^2 + bx_j + c\)</span>, but the approach to estimating <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, and <span class="math inline">\(c\)</span> is not particularly efficient.</p>
 <p>For example, we can add <code>Percent_Days_Employed</code> to our naïve Bayes model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
 <span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
 <span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
 <span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
@@ -1582,7 +1584,7 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 <span id="cb69-6"><a href="#cb69-6" aria-hidden="true" tabindex="-1"></a>                     Percent_Days_Employed,</span>
 <span id="cb69-7"><a href="#cb69-7" aria-hidden="true" tabindex="-1"></a>                   <span class="at">data=</span><span class="fu">subset</span>(datRecid,Training_Sample<span class="sc">==</span><span class="dv">1</span>),</span>
 <span id="cb69-8"><a href="#cb69-8" aria-hidden="true" tabindex="-1"></a>                   <span class="at">laplace=</span><span class="dv">1</span>)</span>
-<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb69-9"><a href="#cb69-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(nb2)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 ================================= Naive Bayes ================================== 
@@ -1606,7 +1608,7 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 <p>Note that the summary of the model indicates “Gaussian: 1,” meaning that the model has assumed that one of the parolee features is normally distributed.</p>
 <p>Let’s see the effect of this. I’ll make 99 copies of the first parolee in the dataset. Then I’ll vary this parolee’s value for <code>Percent_Days_Employed</code> from 0.01 to 0.99. Lastly, we can plot the relationship.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 99 copies of row #1, fill Percent_Days_Employed with 0.01, 0.02, ... </span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 99 copies of row #1, fill Percent_Days_Employed with 0.01, 0.02, ... </span></span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">rep</span>(<span class="dv">1</span>,<span class="dv">99</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Percent_Days_Employed =</span> <span class="fu">row_number</span>()<span class="sc">/</span><span class="dv">100</span>)</span>
@@ -1614,7 +1616,7 @@ Figure&nbsp;5: Plot showing predicted probabilities from models are the same
 <span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a><span class="co"># plot predictions on the log odds scale</span></span>
 <span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">I</span>(<span class="fu">log</span>(pNorm<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>pNorm))) <span class="sc">~</span> Percent_Days_Employed, <span class="at">data=</span>a, </span>
 <span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">ylim=</span><span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>,<span class="fl">0.1</span>), </span>
-<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Weight of evidence"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Weight of evidence"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-nbGaussian" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1631,7 +1633,7 @@ Figure&nbsp;6: Weight of evidence function using a Gaussian distribution for <sp
 <p>The result is nearly a line, but with a little curvature.</p>
 <p>With <code>usekernel=TRUE</code>, <code>naive_bayes()</code> allows for more complex (but smooth) relationships between continuous features and weights of evidence.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>nb2 <span class="ot">&lt;-</span> <span class="fu">naive_bayes</span>((Recidivism_Within_3years<span class="sc">==</span><span class="st">"true"</span>)<span class="sc">~</span>Gender<span class="sc">+</span></span>
 <span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>                     Age_at_Release<span class="sc">+</span>Education_Level<span class="sc">+</span></span>
 <span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>                     Prior_Conviction_Episodes_Viol<span class="sc">+</span></span>
 <span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a>                     Prison_Offense<span class="sc">+</span></span>
@@ -1655,7 +1657,7 @@ Figure&nbsp;6: Weight of evidence function using a Gaussian distribution for <sp
 <span id="cb72-22"><a href="#cb72-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rug</span>()</span>
 <span id="cb72-23"><a href="#cb72-23" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>, <span class="dv">0</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Normal"</span>, <span class="st">"Kernel"</span>),</span>
 <span id="cb72-24"><a href="#cb72-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"orange"</span>),</span>
-<span id="cb72-25"><a href="#cb72-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb72-25"><a href="#cb72-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-nbKernel" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1671,27 +1673,27 @@ Figure&nbsp;7: Weight of evidence function using a non-parametric kernel density
 </div>
 <p>Lastly, we can discretize (chop up) continuous features, transforming them into categorical features like <code>Age</code> and <code>Prison_Years</code> are in the dataset. The function <code>classIntervals()</code> is a handy tool for choosing where to set the breaks between categories.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># find good cut points to discretize Percent_Days_Employed</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb73"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="co"># find good cut points to discretize Percent_Days_Employed</span></span>
 <span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(classInt)</span>
 <span id="cb73-3"><a href="#cb73-3" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks <span class="ot">&lt;-</span> </span>
 <span id="cb73-4"><a href="#cb73-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">classIntervals</span>(datRecid<span class="sc">$</span>Percent_Days_Employed, <span class="at">style=</span><span class="st">"fisher"</span>)</span>
-<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb73-5"><a href="#cb73-5" aria-hidden="true" tabindex="-1"></a>Percent_Days_EmployedBreaks</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>style: fisher
-         [0,0.0293234) [0.0293234,0.08887499) [0.08887499,0.1461903) 
-                  8422                    606                    584 
- [0.1461903,0.2128437)   [0.2128437,0.289811)   [0.289811,0.3589363) 
-                   653                    725                    636 
- [0.3589363,0.4329315)  [0.4329315,0.5008091)  [0.5008091,0.5782119) 
-                   655                    627                    684 
- [0.5782119,0.6539781)  [0.6539781,0.7214347)  [0.7214347,0.7885068) 
-                   707                    770                    825 
- [0.7885068,0.8560657)  [0.8560657,0.9187426)  [0.9187426,0.9742763) 
-                   943                   1090                   1241 
-         [0.9742763,1] 
-                  6205 </code></pre>
+        [0,0.04573265) [0.04573265,0.1116466)  [0.1116466,0.1732721) 
+                  8572                    668                    630 
+ [0.1732721,0.2404614)  [0.2404614,0.3114167)  [0.3114167,0.3778437) 
+                   669                    637                    637 
+ [0.3778437,0.4488376)  [0.4488376,0.5118837)  [0.5118837,0.5822856) 
+                   607                    586                    615 
+ [0.5822856,0.6501057)  [0.6501057,0.7283585)  [0.7283585,0.7916522) 
+                   629                    887                    796 
+ [0.7916522,0.8509608)  [0.8509608,0.9148686)  [0.9148686,0.9725515) 
+                   815                   1109                   1261 
+         [0.9725515,1] 
+                  6255 </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create discretized version of Percent_Days_Employed</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb75"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create discretized version of Percent_Days_Employed</span></span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>datRecid <span class="ot">&lt;-</span> datRecid <span class="sc">|&gt;</span></span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Percent_Days_Employed_cat =</span> </span>
 <span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>           <span class="fu">cut</span>(Percent_Days_Employed,</span>
@@ -1727,7 +1729,7 @@ Figure&nbsp;7: Weight of evidence function using a non-parametric kernel density
 <span id="cb75-34"><a href="#cb75-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rug</span>()</span>
 <span id="cb75-35"><a href="#cb75-35" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="fl">0.7</span>, <span class="dv">0</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Normal"</span>, <span class="st">"Kernel"</span>, <span class="st">"Discretized"</span>),</span>
 <span id="cb75-36"><a href="#cb75-36" aria-hidden="true" tabindex="-1"></a>       <span class="at">col=</span> <span class="fu">c</span>(<span class="st">"black"</span>, <span class="st">"orange"</span>, <span class="st">"#CC79A7"</span>),</span>
-<span id="cb75-37"><a href="#cb75-37" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb75-37"><a href="#cb75-37" aria-hidden="true" tabindex="-1"></a>       <span class="at">lwd=</span><span class="dv">7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-nbCat" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1832,13 +1834,14 @@ Spiegelhalter, D. J., and R. P. Knill-Jones. 1984. <span>“Statistical and Know
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
