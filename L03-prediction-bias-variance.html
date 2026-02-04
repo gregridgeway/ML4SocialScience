@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.32">
+<meta name="generator" content="quarto-1.8.25">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2025-12-01">
+<meta name="dcterms.date" content="2026-02-03">
 
 <title>L3 Prediction, Bias, Variance, and Noise</title>
 <style>
@@ -83,16 +83,17 @@ div.csl-indent {
 <script src="L03-prediction-bias-variance_files/libs/clipboard/clipboard.min.js"></script>
 <script src="L03-prediction-bias-variance_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="L03-prediction-bias-variance_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="L03-prediction-bias-variance_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="L03-prediction-bias-variance_files/libs/quarto-html/popper.min.js"></script>
 <script src="L03-prediction-bias-variance_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="L03-prediction-bias-variance_files/libs/quarto-html/anchor.min.js"></script>
 <link href="L03-prediction-bias-variance_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="L03-prediction-bias-variance_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
-<link href="L03-prediction-bias-variance_files/libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="L03-prediction-bias-variance_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="L03-prediction-bias-variance_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <script src="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap-dark-1c59215f878e034bd7426c637fa661ac.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="L03-prediction-bias-variance_files/libs/bootstrap/bootstrap-dark-7c823468029c3b379f9b90e418026680.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
 
   <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
@@ -108,7 +109,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -344,7 +345,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">December 1, 2025</p>
+      <p class="date">February 3, 2026</p>
     </div>
   </div>
   
@@ -357,8 +358,8 @@ window.Quarto = {
 
 
 <!-- In terminal -->
-<!-- quarto render L3-prediction-bias-variance.qmd -->
-<!-- quarto render L3-prediction-bias-variance.qmd --cache-refresh  -->
+<!-- quarto render L03-prediction-bias-variance.qmd -->
+<!-- quarto render L03-prediction-bias-variance.qmd --cache-refresh  -->
 <!-- git commit L3* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
@@ -453,7 +454,7 @@ J(\hat f) = \mathbb{E} \ell(y,\hat f(\mathbf{x})) = \int\hspace{-5pt}\int \ell(y
 <p>There is a true function out there, hidden from us, that we want to recover. That is the basic prediction model problem. In this case, we will simulate knowing what the true model is, then pretend we do not know what it is, and see how close we can get to matching its predictive performance.</p>
 <p>The true model is <span class="math inline">\(f(x) = (x-1)^2+2\)</span>. We do not get to observe this directly, but instead only get to observe 100 <span class="math inline">\((x,y)\)</span> pairs where <span class="math inline">\(x_i\)</span> is randomly drawn on the interval <span class="math inline">\([0,3]\)</span> and <span class="math inline">\(y_i = f(x_i) + N(0,\frac{1}{4})\)</span>, the true model plus random noise generated from a normal distribution with mean 0 and variance <span class="math inline">\(\frac{1}{4}\)</span>. Here is some R code simulating the dataset, plotting the 100 points from the observed dataset, and overlaying the true model on top.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="dv">3</span>) <span class="sc">|&gt;</span> <span class="fu">sort</span>()) <span class="sc">|&gt;</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>     <span class="co"># here is the true f(x) (normally unknown to us)</span></span>
@@ -462,7 +463,7 @@ J(\hat f) = \mathbb{E} \ell(y,\hat f(\mathbf{x})) = \int\hspace{-5pt}\int \ell(y
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>     <span class="co">#   rnorm(mean, std deviation)</span></span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">y =</span> fx <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fl">0.25</span>)))</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(fx<span class="sc">~</span>x, <span class="at">data=</span>d, <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(fx<span class="sc">~</span>x, <span class="at">data=</span>d, <span class="at">lwd=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-data" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -482,7 +483,7 @@ Figure&nbsp;1: Simulated dataset (points) with the true model, <span class="math
 \mathrm{noise} = \mathbb{E}(y-f(x))^2 = \frac{1}{4}
 \]</span> The average squared difference between the best prediction possible and <span class="math inline">\(y\)</span> is <span class="math inline">\(\frac{1}{4}\)</span>. Let’s check with our data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>d <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="at">noise =</span> <span class="fu">mean</span>((y<span class="sc">-</span>fx)<span class="sc">^</span><span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>d <span class="sc">|&gt;</span> <span class="fu">summarize</span>(<span class="at">noise =</span> <span class="fu">mean</span>((y<span class="sc">-</span>fx)<span class="sc">^</span><span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      noise
 1 0.2357729</code></pre>
@@ -490,11 +491,11 @@ Figure&nbsp;1: Simulated dataset (points) with the true model, <span class="math
 </div>
 <p>That is somewhat close to <span class="math inline">\(\frac{1}{4}\)</span>, but it is not exact because we just estimated that expected average using 100 simulated observations. A large sample will get us closer</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nLarge <span class="ot">&lt;-</span> <span class="dv">100000000</span> <span class="co"># 100 million!</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nLarge <span class="ot">&lt;-</span> <span class="dv">100000000</span> <span class="co"># 100 million!</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">runif</span>(nLarge, <span class="dv">0</span>, <span class="dv">3</span>)) <span class="sc">|&gt;</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">fx =</span> (x<span class="dv">-1</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="dv">2</span>,</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> fx <span class="sc">+</span> <span class="fu">rnorm</span>(nLarge, <span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fl">0.25</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">noise =</span> <span class="fu">mean</span>((y<span class="sc">-</span>fx)<span class="sc">^</span><span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">noise =</span> <span class="fu">mean</span>((y<span class="sc">-</span>fx)<span class="sc">^</span><span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      noise
 1 0.2499744</code></pre>
@@ -507,7 +508,7 @@ Figure&nbsp;1: Simulated dataset (points) with the true model, <span class="math
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Law of Large Numbers
+<span class="screen-reader-only">Tip</span>Law of Large Numbers
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -550,9 +551,9 @@ du &amp;= dy
 <h2 data-number="2.2" class="anchored" data-anchor-id="variance"><span class="header-section-number">2.2</span> Variance</h2>
 <p>Next, let’s explore a model’s variance, not the variance of <span class="math inline">\(y\)</span>, but how our guess for a prediction model changes depending on the dataset. We return to the real world in which we do not know the true form of <span class="math inline">\(f(x)\)</span>. We will make an all-too-common assumption and consider only linear models of the form <span class="math inline">\(\hat f(x) = \beta_0+\beta_1x\)</span>. I will add to our plot the OLS estimate for the line of best fit.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>lm1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(lm1, <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(lm1, <span class="at">lwd=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-var1" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -568,7 +569,7 @@ Figure&nbsp;2: OLS estimate <span class="math inline">\(\hat f(x)\)</span>
 </div>
 <p>This particular line’s y-intercept and slope depend on the specific collection of 100 simulated pairs <span class="math inline">\((x_i, y_i)\)</span>. There are many lines that we <em>could</em> have gotten from 100 randomly generated <span class="math inline">\(x\)</span>s and <span class="math inline">\(y\)</span>s. Let’s see what kind of lines we <em>could</em> have observed. I’ll generate 50 datasets and draw the OLS line for each of them in grey.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">50</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>coefs <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">ncol=</span><span class="dv">2</span>, <span class="at">nrow=</span>nSim)</span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nSim)</span>
@@ -584,7 +585,7 @@ Figure&nbsp;2: OLS estimate <span class="math inline">\(\hat f(x)\)</span>
 <span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co"># compute the average prediction line</span></span>
 <span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>meanfx <span class="ot">&lt;-</span> <span class="fu">colMeans</span>(coefs)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(meanfx, <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(meanfx, <span class="at">lwd=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-var2" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -603,7 +604,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 \]</span> where <span class="math inline">\(x_0\)</span> is a specific value of <span class="math inline">\(x\)</span>.</p>
 <p>Let’s use simulation to figure out <span class="math inline">\(\mathrm{Var} \hat f\left(\frac{1}{2}\right)\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>predfx0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nSim)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nSim)</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>{</span>
@@ -618,23 +619,23 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>EDfx0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">mean</span>(predfx0<span class="fl">.5</span>)</span>
 <span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># compute average squared difference (variance)</span></span>
 <span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>VarDfx0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">mean</span>((predfx0<span class="fl">.5</span> <span class="sc">-</span> EDfx0<span class="fl">.5</span>)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>VarDfx0<span class="fl">.5</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>VarDfx0<span class="fl">.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.02094196</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># or more directly</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># or more directly</span></span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   slight difference because var() divides by nSim-1 instead of nSim</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(predfx0<span class="fl">.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">var</span>(predfx0<span class="fl">.5</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.02096293</code></pre>
 </div>
 </div>
 <p>For a randomly selected dataset, we can expect our prediction at <span class="math inline">\(\frac{1}{2}\)</span> to have variance of about 0.02 (“about” because I’m using 1000 simulations to estimate this rather than doing a big integral calculation). Once again, in reality we do not know the distribution <span class="math inline">\(P(x,y)\)</span> so such simulations are never possible in reality. It turns out that we can get reasonable estimates of the variance from our original linear model fit to those 100 original observations.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict at x0 = 0.5 and ask to include standard error of prediction</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict at x0 = 0.5 and ask to include standard error of prediction</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fx0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">predict</span>(lm1, <span class="at">newdata=</span><span class="fu">data.frame</span>(<span class="at">x=</span><span class="fl">0.5</span>), <span class="at">se=</span><span class="cn">TRUE</span>)</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># square the standard error to get variance</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>fx0<span class="fl">.5</span><span class="sc">$</span>se.fit<span class="sc">^</span><span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>fx0<span class="fl">.5</span><span class="sc">$</span>se.fit<span class="sc">^</span><span class="dv">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.01403683</code></pre>
 </div>
@@ -646,7 +647,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <p>Lastly, we need to talk about the “bias”. In this example we know that the true model is a quadratic function, but our model is limited to learning linear functions. No matter how many observations we collect, our linear model will never match the best possible model. That difference is bias.</p>
 <p>We characterize bias by how far our average prediction would be from the true model.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(y<span class="sc">~</span>x, <span class="at">data=</span>d)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">200</span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>coefs <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">ncol=</span><span class="dv">2</span>, <span class="at">nrow=</span>nSim)</span>
@@ -673,7 +674,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(<span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>), </span>
 <span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">c</span>(meanfx[<span class="dv">1</span>]<span class="sc">+</span>meanfx[<span class="dv">2</span>]<span class="sc">*</span><span class="fl">0.5</span>, (<span class="fl">0.5</span><span class="dv">-1</span>)<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span><span class="dv">2</span>),</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">col=</span><span class="st">"#CC79A7"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">col=</span><span class="st">"#CC79A7"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -682,9 +683,9 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bias squared</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bias squared</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>bias2 <span class="ot">&lt;-</span> ((<span class="fl">0.5</span><span class="dv">-1</span>)<span class="sc">^</span><span class="dv">2</span><span class="sc">+</span><span class="dv">2</span> <span class="sc">-</span> (meanfx[<span class="dv">1</span>]<span class="sc">+</span>meanfx[<span class="dv">2</span>]<span class="sc">*</span><span class="fl">0.5</span>))<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>bias2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>bias2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.06353409</code></pre>
 </div>
@@ -700,7 +701,7 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 \mathbb{E}_{D,y|\mathbf{X}=\mathbf{x}_0} \left(y-\hat f(\mathbf{x}_0|D)\right)^2
 \]</span> This averages over all the distribution of datasets we might see and the values of <span class="math inline">\(y\)</span> that we might see. Let’s compute this quantity for our simulation.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>nSim <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>predfx0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nSim)</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>ytrue <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">0</span>, nSim)</span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -719,15 +720,15 @@ Figure&nbsp;3: Variation in <span class="math inline">\(\hat f(x)\)</span> from 
 <span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a><span class="co"># expected prediction error (EPE)</span></span>
 <span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>EPE0<span class="fl">.5</span> <span class="ot">&lt;-</span> <span class="fu">mean</span>((ytrue <span class="sc">-</span> predfx0<span class="fl">.5</span>)<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>EPE0<span class="fl">.5</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>EPE0<span class="fl">.5</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.3389688</code></pre>
 </div>
 </div>
 <p>On average when making predictions at <span class="math inline">\(x_0=\frac{1}{2}\)</span>, the squared difference between our prediction and the actual value will be about 0.34. There is a direct connection between the EPE and noise, variance, and squared bias.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># noise + variance + bias^2</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fl">0.25</span> <span class="sc">+</span> VarDfx0<span class="fl">.5</span> <span class="sc">+</span> bias2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># noise + variance + bias^2</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fl">0.25</span> <span class="sc">+</span> VarDfx0<span class="fl">.5</span> <span class="sc">+</span> bias2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.3344761</code></pre>
 </div>
@@ -769,7 +770,7 @@ J(f)&amp;=\mathbb{E}_{y,\mathbf{x}}(y-f(\mathbf{x}))^2 \\
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Bias/variance/noise decomposition of expected prediction error
+<span class="screen-reader-only">Tip</span>Bias/variance/noise decomposition of expected prediction error
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -821,15 +822,15 @@ EPE(\mathbf{x}_0)
 <p>The study began with a nationally representative sample of over 24,000 8th-grade students in 1988 and followed those students over multiple survey waves, in 1990 (10th grade), 1992 (12th grade), 1994 (two years post-high school), and 2000 (eight years post-high school). In each of these waves the survey captured data on students’ educational, occupational, and life trajectories. We will focus on the student-level data (test scores, socio-demographic characteristics, and attitudes and behaviors) and their relationship to dropping out of high school.</p>
 <p>I have already acquired and cleaned up the dataset. If you want to do further work with the NELS data you may want to look at the <code>NELS data prep.R</code> script. We will start by loading some necessary R packages and the cleaned up dataset.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"data/nels.RData"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"data/nels.RData"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>This will load <code>nels</code> (the complete dataset) and <code>nels0</code> a smaller cleaned up version of <code>nels</code>. Technically, the NELS data have sampling weights stored in <code>F4QWT</code>. We will not be using them correctly in this exercise to keep things simpler. Every analysis really should use the sampling weights. We will use them when you fit decision trees later in the course.</p>
 <p>Let’s take a peek at the first few rows.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(nels0, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(nels0, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>        F4QWT wave4dropout typeSchool urbanicity    region pctMinor
 1 0.003988566            0   Catholic      urban northeast     none
@@ -847,21 +848,21 @@ EPE(\mathbf{x}_0)
 </div>
 <p>We will select every third student to be a part of the test set, leaving the remaing two-thirds of the students as training data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># select every third row for test data</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># select every third row for test data</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   %% is the "mod" operator, gives remainder after dividing by 3</span></span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>dTest  <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
 <span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice</span>(<span class="fu">which</span>(<span class="fu">row_number</span>() <span class="sc">%%</span> <span class="dv">3</span> <span class="sc">==</span> <span class="dv">0</span>))</span>
 <span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># select all other rows for training data</span></span>
 <span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> nels0 <span class="sc">|&gt;</span></span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">which</span>(<span class="fu">row_number</span>() <span class="sc">%%</span> <span class="dv">3</span> <span class="sc">!=</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="fu">which</span>(<span class="fu">row_number</span>() <span class="sc">%%</span> <span class="dv">3</span> <span class="sc">!=</span> <span class="dv">0</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Since most students graduate from high school, one reasonable prediction model is to simply predict that everyone will graduate. What kind of misclassification rate do we get if we set the predicted dropout probability to 0 for all students? Let’s start with setting the decision boundary at <span class="math inline">\(P(\mathrm{dropout}) &gt; 0.5\)</span>. Recall that this is equivalent to assuming equal cost of false positives and false negatives.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict no dropouts, all graduate</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predict no dropouts, all graduate</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>dTest<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="dv">0</span></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclass =</span> <span class="fu">mean</span>( (wave4dropout<span class="sc">==</span><span class="dv">1</span> <span class="sc">&amp;</span> p <span class="sc">&lt;=</span> <span class="fl">0.5</span>) <span class="sc">|</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                             (wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p <span class="sc">&gt;</span>  <span class="fl">0.5</span>) ))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                             (wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p <span class="sc">&gt;</span>  <span class="fl">0.5</span>) ))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    misclass
 1 0.04666491</code></pre>
@@ -869,11 +870,11 @@ EPE(\mathbf{x}_0)
 </div>
 <p>Since 4.7% of students dropout and we predicted everyone to graduate, our misclassification rate is 4.7%. We were right 95% of the time by predicting that everyone graduates! Clearly, this is unhelpful because it is really important to identify the students at risk of dropping out. Just because a classifier is correct 95% of the time, this example shows you that it is not always useful. Failing to identify a high school dropout is quite expensive, much more costly than incorrectly thinking a student will dropout but they end up graduating. Let’s assume that the false negative cost is 19 times more than the false positive cost. To be concrete, let’s say the false negative cost is 19 and the false positive cost is 1. Therefore, we should predict drop out of <span class="math inline">\(P(\mathrm{dropout}|\mathbf{x}) &gt; \frac{1}{1+19} = 0.05\)</span>. We can then compute the misclassification cost as</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>misclass0 <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span> </span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>misclass0 <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span> </span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> </span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mean</span>(  <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.05</span>) <span class="sc">+</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                    <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span> <span class="sc">&amp;</span> p<span class="sc">&lt;=</span><span class="fl">0.05</span>)))</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>misclass0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>misclass0</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  misclassCost
 1    0.8866333</code></pre>
@@ -886,7 +887,7 @@ EPE(\mathbf{x}_0)
 <p>We will start our investigation of the knn classifier using on the socio-economic status variable (<code>ses</code>), a standardized score that ranges from -2.88 to 2.56. We will determine nearest neighbors by selecting for each student in the test dataset (<code>dTest</code>) the <span class="math inline">\(k\)</span> students from the training dataset (<code>dTrain</code>) with the most similar values for <code>ses</code> as measured by absolute difference. Let’s start with <span class="math inline">\(k=1000\)</span>. So for each student in the test dataset, we select the 1000 training set students most similar in terms of <code>ses</code>.</p>
 <p>In the following code, I run a for-loop through each student in the test set, find their 1000 nearest neighbors in the training set, and compute a predicted dropout probability as the percentage of dropouts in those 1000 nearest students. Note that in R, for-loops in R are very slow and should be avoided. I am only using a for-loop here so we can learn how knn works.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we will fill this in with predicted values</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># we will fill this in with predicted values</span></span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>dTest<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="dv">0</span></span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># set k to 1000 nearest </span></span>
 <span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
@@ -897,47 +898,48 @@ EPE(\mathbf{x}_0)
 <span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compute the absolute distance between SES i and all training cases</span></span>
 <span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">distance =</span> <span class="fu">abs</span>(ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i])) <span class="sc">|&gt;</span></span>
 <span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># get the k closest observations</span></span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_min</span>(distance, <span class="at">n=</span><span class="dv">1000</span>) <span class="sc">|&gt;</span></span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># use the average of these as the prediction</span></span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">p =</span> <span class="fu">mean</span>(wave4dropout)) <span class="sc">|&gt;</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_min</span>(distance, <span class="at">n=</span>k) <span class="sc">|&gt;</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># use the (laplace corrected) average of these as the prediction</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">p =</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">sum</span>(wave4dropout)<span class="sc">+</span><span class="dv">1</span>) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">+</span> k)) <span class="sc">|&gt;</span></span>
 <span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(p)</span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+<p>Note that I have used a Laplace correction when estimating computing <span class="math inline">\(\hat p\)</span>.</p>
+<p><span class="math display">\[
+\hat p = \frac{1+\sum_{\mathbf{x}_i \in N_k(\mathbf{x})} y_i}{2+k}
+\]</span> Adding 1 in the numerator and the number of outcome categories (2 in this case) to the denominator shrinks the probability estimates toward <span class="math inline">\(\frac{1}{2}\)</span>. This is particularly important when an observations nearest neighbors are all 0s or all 1s. In such cases we do not <em>really</em> think that their predicted probabilities should be 0 or 1. The Laplace correction keeps the predicted probabilities from ever equaling 0 or 1.</p>
 <p>Let’s check the average misclassification cost for our test set.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost if predicted p=0 for all students</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost if predicted p=0 for all students</span></span>
 <span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> <span class="dv">19</span><span class="sc">*</span><span class="fu">mean</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> <span class="dv">19</span><span class="sc">*</span><span class="fu">mean</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  misclassCost
 1    0.8866333</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost with 1000-nn classifier</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># test set misclassification cost with 1000-nn classifier</span></span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>misclassTest1000 <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span> </span>
 <span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">misclassCost =</span> </span>
 <span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">mean</span>(  <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span><span class="fl">0.05</span>) <span class="sc">+</span></span>
 <span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>                    <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span> <span class="sc">&amp;</span> p<span class="sc">&lt;=</span><span class="fl">0.05</span>)))</span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>misclassTest1000</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>misclassTest1000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  misclassCost
-1    0.5929344</code></pre>
+1    0.5892433</code></pre>
 </div>
 </div>
 <p>Misclassification cost is 0.59, much lower than the misclassification cost if we classify everyone as a graduate. Let’s check out what the 1000-nn classifier looks like.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ses) <span class="sc">|&gt;</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(p<span class="sc">~</span>ses, <span class="at">data=</span>_, <span class="at">type=</span><span class="st">"l"</span>, </span>
 <span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fl">0.1</span>,dTest<span class="sc">$</span>p)),</span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">"SES"</span>, <span class="at">ylab=</span><span class="st">"P(dropout)"</span>)</span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co"># add the decision boundary</span></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.05</span>)</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>))</span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in rug(quantile(dTrain$ses, probs = (0:2)/2), col = "red", lwd = 3):
-some values will be clipped</code></pre>
-</div>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlim=</span><span class="fu">range</span>(nels0<span class="sc">$</span>ses),</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">"SES"</span>, <span class="at">ylab=</span><span class="st">"P(dropout)"</span>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co"># add the decision boundary</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.05</span>)</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)<span class="sc">/</span><span class="dv">10</span>))</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">2</span>)<span class="sc">/</span><span class="dv">2</span>), <span class="at">col=</span><span class="st">"red"</span>, <span class="at">lwd=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-knn1000NELS" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -957,45 +959,45 @@ Figure&nbsp;4: Predicted probability of dropout from 1000-nn model
 <h2 data-number="5.3" class="anchored" data-anchor-id="how-many-nearest-neighbors-for-k-nearest-neighbor-classifier"><span class="header-section-number">5.3</span> How many nearest neighbors for <span class="math inline">\(k\)</span>-nearest neighbor classifier?</h2>
 <p>We were rather presumptuous in the previous section to set <span class="math inline">\(k=1000\)</span>. Perhaps there is another value of <span class="math inline">\(k\)</span> that could do even better. Let’s try a range of values for <span class="math inline">\(k\)</span> and measure their misclassification costs. I first make a <code>design</code> data frame that lists the values of <span class="math inline">\(k\)</span> that I want to try. It will take too long to try <em>every</em> choice for <span class="math inline">\(k\)</span> between 1 and 7588 (the number of students in the training dataset), so I created a selection of 36 values for <span class="math inline">\(k\)</span> in that range. This will allow us to narrow in on the best choice for <span class="math inline">\(k\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="dv">10</span><span class="sc">*</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>), <span class="dv">100</span><span class="sc">*</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">10</span>), <span class="dv">500</span><span class="sc">*</span>(<span class="dv">3</span><span class="sc">:</span><span class="dv">10</span>), <span class="dv">6000</span>, <span class="dv">7000</span>),</span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">misclassCost =</span> <span class="cn">NA</span>)</span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(iK <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design))</span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> design<span class="sc">$</span>k[iK]</span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
-<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># dTest$p[i] &lt;- dTrain |&gt;</span></span>
-<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   mutate(distance = abs(ses - dTest$ses[i])) |&gt;</span></span>
-<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   slice_min(distance, n=k) |&gt;</span></span>
-<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   summarize(p = mean(wave4dropout)) |&gt;</span></span>
-<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   pull(p)</span></span>
-<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># much faster than dplyr version</span></span>
-<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>    j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
-<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">head</span>(k)</span>
-<span id="cb36-19"><a href="#cb36-19" aria-hidden="true" tabindex="-1"></a>    dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>wave4dropout[j])</span>
-<span id="cb36-20"><a href="#cb36-20" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb36-21"><a href="#cb36-21" aria-hidden="true" tabindex="-1"></a>  design<span class="sc">$</span>misclassCost[iK] <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span></span>
-<span id="cb36-22"><a href="#cb36-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">misclassCost =</span> <span class="fu">mean</span>( <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span> <span class="fl">0.05</span>) <span class="sc">+</span></span>
-<span id="cb36-23"><a href="#cb36-23" aria-hidden="true" tabindex="-1"></a>                                  <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span> <span class="sc">&amp;</span> p<span class="sc">&lt;=</span><span class="fl">0.05</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb36-24"><a href="#cb36-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(misclassCost)</span>
-<span id="cb36-25"><a href="#cb36-25" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> <span class="fu">c</span>(<span class="dv">10</span><span class="sc">*</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>), <span class="dv">100</span><span class="sc">*</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>), <span class="dv">1000</span><span class="sc">*</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>), <span class="dv">6500</span> <span class="sc">+</span> <span class="dv">10</span><span class="sc">*</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">70</span>)),</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>                     <span class="at">misclassCost =</span> <span class="cn">NA</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(iK <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design))</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> design<span class="sc">$</span>k[iK]</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># dTest$p[i] &lt;- dTrain |&gt;</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   mutate(distance = abs(ses - dTest$ses[i])) |&gt;</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   slice_min(distance, n=k) |&gt;</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   summarize(p = (sum(wave4dropout)+1)/(k+2)) |&gt;</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   pull(p)</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># much faster than dplyr version</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>      <span class="fu">head</span>(k)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> (<span class="fu">sum</span>(dTrain<span class="sc">$</span>wave4dropout[j])<span class="sc">+</span><span class="dv">1</span>)<span class="sc">/</span>(k<span class="sc">+</span><span class="dv">2</span>)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>  design<span class="sc">$</span>misclassCost[iK] <span class="ot">&lt;-</span> dTest <span class="sc">|&gt;</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">misclassCost =</span> <span class="fu">mean</span>( <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span> <span class="sc">&amp;</span> p<span class="sc">&gt;</span> <span class="fl">0.05</span>) <span class="sc">+</span></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>                                  <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span> <span class="sc">&amp;</span> p<span class="sc">&lt;=</span><span class="fl">0.05</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(misclassCost)</span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Let’s plot the misclassification cost by <span class="math inline">\(k\)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(misclassCost<span class="sc">~</span>k, <span class="at">data=</span>design, </span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>,</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Misclassification cost"</span>)</span>
-<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># find the best value for k</span></span>
-<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>kBest <span class="ot">&lt;-</span> design <span class="sc">|&gt;</span> </span>
-<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(misclassCost) <span class="sc">|&gt;</span></span>
-<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k)</span>
-<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>kBest)</span>
-<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>kBest</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(misclassCost<span class="sc">~</span>k, <span class="at">data=</span>design, </span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>, <span class="at">log=</span><span class="st">"x"</span>,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab=</span><span class="st">"Misclassification cost"</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="co"># find the best value for k</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>kBest <span class="ot">&lt;-</span> design <span class="sc">|&gt;</span> </span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(misclassCost, <span class="at">with_ties=</span><span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>kBest)</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>kBest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 7000</code></pre>
+<pre><code>[1] 7020</code></pre>
 </div>
 <div class="cell-output-display">
 <div id="fig-MisclassCostByK" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1010,46 +1012,46 @@ Figure&nbsp;5: Misclassification cost by choice of <span class="math inline">\(k
 </div>
 </div>
 </div>
-<p>It appears that the best choice for <span class="math inline">\(k\)</span> is around 500. Let’s look at a narrower range around <span class="math inline">\(k=500\)</span>. If you ran the previous block of code, you realized that it can take a while to try the 36 values of <span class="math inline">\(k\)</span>. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of <span class="math inline">\(k\)</span> at the same time. The <code>doParallel</code> package makes this really easy. You can use <code>detectCores()</code> to learn how many cores you have available to you.</p>
+<p>It appears that the best choice for <span class="math inline">\(k\)</span> is around 7000 Let’s look at a narrower range around <span class="math inline">\(k=7000\)</span>. If you ran the previous block of code, you realized that it can take a while to try the 95 values of <span class="math inline">\(k\)</span>. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of <span class="math inline">\(k\)</span> at the same time. The <code>doParallel</code> package makes this really easy. You can use <code>detectCores()</code> to learn how many cores you have available to you.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(doParallel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(doParallel)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># give R access to 12 cores</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(<span class="dv">12</span>)</span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoParallel</span>(cl)</span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co"># look at a narrow range where performance is best</span></span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> <span class="fu">seq</span>(<span class="dv">250</span>,<span class="dv">600</span>,<span class="at">by=</span><span class="dv">3</span>), <span class="at">misclassCost =</span> <span class="cn">NA</span>)</span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a><span class="co"># run foreach() in parallel</span></span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">iK=</span><span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design), <span class="at">.combine =</span> c) <span class="sc">%dopar%</span></span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> design<span class="sc">$</span>k[iK]</span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>    j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">head</span>(k)</span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>    dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>wave4dropout[j])</span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>( <span class="fu">with</span>(dTest, <span class="fu">mean</span>( <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span>)<span class="sc">*</span>(p<span class="sc">&gt;</span> <span class="fl">0.05</span>) <span class="sc">+</span></span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>                           <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>)<span class="sc">*</span>(p<span class="sc">&lt;=</span><span class="fl">0.05</span>))) )</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a><span class="co"># shut down the parallel processing cluster</span></span>
-<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a><span class="fu">stopCluster</span>(cl)</span>
-<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a>design<span class="sc">$</span>misclassCost <span class="ot">&lt;-</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># give R access to 12 cores</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(<span class="dv">12</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="fu">registerDoParallel</span>(cl)</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="co"># look at a narrow range where performance is best</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">k =</span> <span class="fu">seq</span>(<span class="dv">6800</span>,<span class="dv">7200</span>,<span class="at">by=</span><span class="dv">3</span>), <span class="at">misclassCost =</span> <span class="cn">NA</span>)</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co"># run foreach() in parallel</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">iK=</span><span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design), <span class="at">.combine =</span> c) <span class="sc">%dopar%</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> design<span class="sc">$</span>k[iK]</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>      <span class="fu">head</span>(k)</span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>    dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> (<span class="fu">sum</span>(dTrain<span class="sc">$</span>wave4dropout[j])<span class="sc">+</span><span class="dv">1</span>)<span class="sc">/</span>(k<span class="sc">+</span><span class="dv">2</span>)</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>( <span class="fu">with</span>(dTest, <span class="fu">mean</span>( <span class="dv">1</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">0</span>)<span class="sc">*</span>(p<span class="sc">&gt;</span> <span class="fl">0.05</span>) <span class="sc">+</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>                           <span class="dv">19</span><span class="sc">*</span>(wave4dropout<span class="sc">==</span><span class="dv">1</span>)<span class="sc">*</span>(p<span class="sc">&lt;=</span><span class="fl">0.05</span>))) )</span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a><span class="co"># shut down the parallel processing cluster</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a><span class="fu">stopCluster</span>(cl)</span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>design<span class="sc">$</span>misclassCost <span class="ot">&lt;-</span> results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we can plot the misclassification cost by choice of <span class="math inline">\(k\)</span> in this narrower range.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(misclassCost<span class="sc">~</span>k, <span class="at">data=</span>design, <span class="at">type=</span><span class="st">"l"</span>)</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>kBest <span class="ot">&lt;-</span> design <span class="sc">|&gt;</span></span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(misclassCost) <span class="sc">|&gt;</span></span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k)</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>kBest)</span>
-<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>kBest</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(misclassCost<span class="sc">~</span>k, <span class="at">data=</span>design, <span class="at">type=</span><span class="st">"l"</span>)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>kBest <span class="ot">&lt;-</span> design <span class="sc">|&gt;</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_min</span>(misclassCost, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(k)</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span>kBest)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>kBest</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 493</code></pre>
+<pre><code>[1] 7115</code></pre>
 </div>
 <div class="cell-output-display">
 <div id="fig-misclassCostNarrowRange" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1058,7 +1060,7 @@ Figure&nbsp;5: Misclassification cost by choice of <span class="math inline">\(k
 <img src="L03-prediction-bias-variance_files/figure-html/fig-misclassCostNarrowRange-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-misclassCostNarrowRange-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Misclassification cost by choice of <span class="math inline">\(k\)</span> <span class="math inline">\((250\leq k\leq 600)\)</span>
+Figure&nbsp;6: Misclassification cost by choice of <span class="math inline">\(k\)</span> <span class="math inline">\((6900\leq k\leq 7100)\)</span>
 </figcaption>
 </figure>
 </div>
@@ -1066,27 +1068,24 @@ Figure&nbsp;6: Misclassification cost by choice of <span class="math inline">\(k
 </div>
 <p>Let’s have a look at what the optimal knn classifier look like.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(kBest)</span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>wave4dropout[j])</span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ses) <span class="sc">|&gt;</span></span>
-<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(p<span class="sc">~</span>ses, <span class="at">data=</span>_, </span>
-<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>,</span>
-<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fl">0.1</span>,dTest<span class="sc">$</span>p)),</span>
-<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">"SES"</span>, <span class="at">ylab=</span><span class="st">"P(dropout)"</span>)</span>
-<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a><span class="co"># add the decision boundary</span></span>
-<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.05</span>)</span>
-<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning in rug(quantile(dTrain$ses, probs = (0:10)/10)): some values will be
-clipped</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dTest))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  j <span class="ot">&lt;-</span> <span class="fu">abs</span>(dTrain<span class="sc">$</span>ses <span class="sc">-</span> dTest<span class="sc">$</span>ses[i]) <span class="sc">|&gt;</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">order</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">head</span>(kBest)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  dTest<span class="sc">$</span>p[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>wave4dropout[j])</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>dTest <span class="sc">|&gt;</span></span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(ses) <span class="sc">|&gt;</span></span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(p<span class="sc">~</span>ses, <span class="at">data=</span>_, </span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">type=</span><span class="st">"l"</span>, <span class="at">lwd=</span><span class="dv">3</span>,</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlim=</span><span class="fu">range</span>(nels0<span class="sc">$</span>ses),</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">max</span>(<span class="fl">0.1</span>,dTest<span class="sc">$</span>p)),</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">"SES"</span>, <span class="at">ylab=</span><span class="st">"P(dropout)"</span>)</span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a><span class="co"># add the decision boundary</span></span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">h=</span><span class="fl">0.05</span>)</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a><span class="fu">rug</span>(<span class="fu">quantile</span>(dTrain<span class="sc">$</span>ses, <span class="at">probs =</span> (<span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>)<span class="sc">/</span><span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-fxDropoutOptimalK" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1094,7 +1093,7 @@ clipped</code></pre>
 <img src="L03-prediction-bias-variance_files/figure-html/fig-fxDropoutOptimalK-1.png" class="img-fluid figure-img" width="672">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fxDropoutOptimalK-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Predicted probability of dropout from optimal knn model, <span class="math inline">\(k=493\)</span>
+Figure&nbsp;7: Predicted probability of dropout from optimal knn model, <span class="math inline">\(k=7115\)</span>
 </figcaption>
 </figure>
 </div>
@@ -1108,21 +1107,21 @@ Figure&nbsp;7: Predicted probability of dropout from optimal knn model, <span cl
 <p>We will start by loading the data used in one of the early efforts to create an email spam filter.</p>
 <p>L.F. Cranor and B.A. LaMacchia (1998) “Spam!,” <em>Communications of the ACM</em>, 41(8):74-83.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># download the spam dataset from the UCI machine learning archive</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>dSpam <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data'</span>,</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">header=</span><span class="cn">FALSE</span>,</span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">sep=</span><span class="st">","</span>)</span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="co"># pull the column names from the data description file</span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">scan</span>(<span class="st">'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.names'</span>,</span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">what=</span><span class="st">""</span>,<span class="at">sep=</span><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">skip =</span> <span class="dv">32</span>) <span class="sc">|&gt;</span></span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>     <span class="fu">gsub</span>(<span class="st">":.*$"</span>, <span class="st">""</span>, <span class="at">x=</span>_)</span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a><span class="co"># fix the variable names</span></span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(dSpam) <span class="ot">&lt;-</span> <span class="fu">c</span>(a, <span class="st">"spam"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># download the spam dataset from the UCI machine learning archive</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>dSpam <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data'</span>,</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>                    <span class="at">header=</span><span class="cn">FALSE</span>,</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>                    <span class="at">sep=</span><span class="st">","</span>)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="co"># pull the column names from the data description file</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">scan</span>(<span class="st">'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.names'</span>,</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">what=</span><span class="st">""</span>,<span class="at">sep=</span><span class="st">"</span><span class="sc">\n</span><span class="st">"</span>,</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">skip =</span> <span class="dv">32</span>) <span class="sc">|&gt;</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>     <span class="fu">gsub</span>(<span class="st">":.*$"</span>, <span class="st">""</span>, <span class="at">x=</span>_)</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="co"># fix the variable names</span></span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(dSpam) <span class="ot">&lt;-</span> <span class="fu">c</span>(a, <span class="st">"spam"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>As usual, we will take a peek at the first few rows.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dSpam, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dSpam, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  word_freq_make word_freq_address word_freq_all word_freq_3d word_freq_our
 1           0.00              0.64          0.64            0          0.32
@@ -1189,12 +1188,12 @@ Figure&nbsp;7: Predicted probability of dropout from optimal knn model, <span cl
 </ul>
 <p>Load <code>ggplot2</code> so we can make some interesting figures.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dSpam, <span class="fu">aes</span>(<span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>, <span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>, <span class="at">color =</span> <span class="fu">factor</span>(spam))) <span class="sc">+</span></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dSpam, <span class="fu">aes</span>(<span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>, <span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>, <span class="at">color =</span> <span class="fu">factor</span>(spam))) <span class="sc">+</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-plotDollarExclamation" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1211,36 +1210,36 @@ Figure&nbsp;8: Plot of spam and non-spam emails based on $ and !
 <p>Already from <a href="#fig-plotDollarExclamation" class="quarto-xref">Figure&nbsp;8</a> you can see some separation between spam and non-spam emails. Spam emails tend to have a strange number of dollar signs and exclamation marks and non-spam emails tend to have none.</p>
 <p>While for the NELS88 dataset we built our knn classifier “by hand,” here we will use a more efficient implementation from the R package <code>FNN</code>, Fast Nearest Neighbor Search Algorithms. Inside the <code>FNN</code> package is a <code>knn()</code> function that works well. So you are aware, the <code>class</code> package also has a <code>knn()</code> function but it does not handle ties gracefully and it does not like <span class="math inline">\(k &gt; 1000\)</span>. If you get errors, then you are likely calling <code>class::knn()</code> instead of <code>FNN::knn()</code>. To be sure you are using the right <code>knn()</code>, prefix it with <code>FNN::</code> like <code>FNN::knn()</code>. This way you can be sure you are using the right version.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FNN) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(FNN)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>First, we will practice using just the <code>char_freq_$</code> and <code>char_freq_!</code> as predictive features. In R, it is difficult to use features with $ and ! in their names. We’ll start by renaming them and then we will make a grid of values for <code>char_freq_$</code> and <code>char_freq_!</code> from 0 to their maximum values. We will extract predicted spam probabilities for all combinations in this range.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> dSpam <span class="sc">|&gt;</span> </span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>, <span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>, spam) <span class="sc">|&gt;</span> </span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">dollar=</span><span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>,</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span><span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>)</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a><span class="co"># make a grid of values spanning $ and ! frequency </span></span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   (equally spaced on square root scale)</span></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>dGrid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dollar=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>dollar)), <span class="at">length=</span><span class="dv">100</span>),</span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">exclam=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>exclam)), <span class="at">length=</span><span class="dv">100</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dollar=</span>dollar<span class="sc">^</span><span class="dv">2</span>,</span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span>exclam<span class="sc">^</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> dSpam <span class="sc">|&gt;</span> </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>, <span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>, spam) <span class="sc">|&gt;</span> </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">dollar=</span><span class="st">`</span><span class="at">char_freq_$</span><span class="st">`</span>,</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span><span class="st">`</span><span class="at">char_freq_!</span><span class="st">`</span>)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co"># make a grid of values spanning $ and ! frequency </span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a><span class="co">#   (equally spaced on square root scale)</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>dGrid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dollar=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>dollar)), <span class="at">length=</span><span class="dv">100</span>),</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">exclam=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>exclam)), <span class="at">length=</span><span class="dv">100</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dollar=</span>dollar<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span>exclam<span class="sc">^</span><span class="dv">2</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now let’s run the knn model to get predictions for all values in <code>dGrid</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get knn predictions</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>knnPred <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn</span>(</span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># training data X</span></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">train   =</span> dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam),</span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># test data X</span></span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">test    =</span> dGrid,</span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># training data Y</span></span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cl      =</span> dTrain<span class="sc">$</span>spam,</span>
-<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># number of neighbors for knn</span></span>
-<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">k       =</span> <span class="dv">10</span>,</span>
-<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return probability</span></span>
-<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob    =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get knn predictions</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>knnPred <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn</span>(</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># training data X</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">train   =</span> dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam),</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># test data X</span></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">test    =</span> dGrid,</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># training data Y</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cl      =</span> dTrain<span class="sc">$</span>spam,</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># number of neighbors for knn</span></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">k       =</span> <span class="dv">10</span>,</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return probability</span></span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">prob    =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>A few important things to note about predicted probabilities from <code>knn()</code>. Interpreting the predicted probability is tricky! Be careful!</p>
 <ol type="1">
@@ -1249,19 +1248,21 @@ Figure&nbsp;8: Plot of spam and non-spam emails based on $ and !
 <li>the values stored in <code>attributes(knnPred)$prob</code> are <em>not</em> the probabilities of being spam, but rather the probability of being from the neighbors’ majority class. If the majority class is a 0, then the values in <code>attributes(knnPred)$prob</code> are actually <span class="math inline">\(1-P(\mathrm{spam})\)</span></li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract the probability of predicted class from knnPred</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">attributes</span>(knnPred)<span class="sc">$</span>prob</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="co"># convert to P(spam)</span></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(knnPred<span class="sc">==</span><span class="st">"1"</span>, dGrid<span class="sc">$</span>p, <span class="dv">1</span><span class="sc">-</span>dGrid<span class="sc">$</span>p)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># extract the probability of majority class from knnPred</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">attributes</span>(knnPred)<span class="sc">$</span>prob</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="co"># convert to P(spam)</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(knnPred<span class="sc">==</span><span class="st">"1"</span>, dGrid<span class="sc">$</span>p, <span class="dv">1</span><span class="sc">-</span>dGrid<span class="sc">$</span>p)</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a><span class="co"># and apply Laplace correction</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">+</span><span class="dv">10</span><span class="sc">*</span>dGrid<span class="sc">$</span>p) <span class="sc">/</span> (<span class="dv">2</span><span class="sc">+</span><span class="dv">10</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p>Now we can see how the 10-nn model divides the space. The lighter blue areas are those more likely to be spam and the dark areas tend to be non-spam.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dGrid, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> p),</span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="st">"square"</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">alpha=</span><span class="fl">0.05</span>) <span class="sc">+</span> </span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dTrain, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> spam)) <span class="sc">+</span> </span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dGrid, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> p),</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="st">"square"</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">alpha=</span><span class="fl">0.05</span>) <span class="sc">+</span> </span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dTrain, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> spam)) <span class="sc">+</span> </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-10nnGrid" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1277,29 +1278,30 @@ Figure&nbsp;9: Predicted probability based on percentage of $ and ! using 10-nn 
 </div>
 <p>Note that there is a bit of a “scaling” issue. The percentage of characters that are dollar signs ranges from 0% to 6% while the percentage of characters that are exclamation marks ranges from 0% to 30%. Therefore, emails tend to be closer to each other in terms of dollar signs than they are in terms of exclamation marks just because of the difference in spread. Let’s regenerate the figure, but this time I am going to divide all the <code>char_freq_$</code> values by their maximum (6) and all the <code>char_freq_!</code> by their maximum (30) so that the new versions both range from 0 to 1.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span> </span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(dollar,exclam), <span class="cf">function</span>(x) x<span class="sc">/</span><span class="fu">max</span>(x)))</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>dGrid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dollar=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>dollar)), <span class="at">length=</span><span class="dv">100</span>),</span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">exclam=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>exclam)), <span class="at">length=</span><span class="dv">100</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dollar=</span>dollar<span class="sc">^</span><span class="dv">2</span>,</span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span>exclam<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>knnPred <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn</span>(<span class="at">train   =</span> dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam),</span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">test    =</span> dGrid,</span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">cl      =</span> dTrain<span class="sc">$</span>spam,</span>
-<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">k       =</span> <span class="dv">10</span>,</span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">prob    =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">attributes</span>(knnPred)<span class="sc">$</span>prob</span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(knnPred<span class="sc">==</span><span class="st">"1"</span>, dGrid<span class="sc">$</span>p, <span class="dv">1</span><span class="sc">-</span>dGrid<span class="sc">$</span>p)</span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a><span class="co"># show how knn divides the space</span></span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dGrid, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> p),</span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="st">"square"</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">alpha=</span><span class="fl">0.05</span>) <span class="sc">+</span> </span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dTrain, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> spam)) <span class="sc">+</span> </span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
-<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span> </span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(dollar,exclam), <span class="cf">function</span>(x) x<span class="sc">/</span><span class="fu">max</span>(x)))</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>dGrid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">dollar=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>dollar)), <span class="at">length=</span><span class="dv">100</span>),</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">exclam=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fu">sqrt</span>(<span class="fu">max</span>(dTrain<span class="sc">$</span>exclam)), <span class="at">length=</span><span class="dv">100</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">dollar=</span>dollar<span class="sc">^</span><span class="dv">2</span>,</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">exclam=</span>exclam<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>knnPred <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn</span>(<span class="at">train   =</span> dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam),</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>               <span class="at">test    =</span> dGrid,</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>               <span class="at">cl      =</span> dTrain<span class="sc">$</span>spam,</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>               <span class="at">k       =</span> <span class="dv">10</span>,</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>               <span class="at">prob    =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">attributes</span>(knnPred)<span class="sc">$</span>prob</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(knnPred<span class="sc">==</span><span class="st">"1"</span>, dGrid<span class="sc">$</span>p, <span class="dv">1</span><span class="sc">-</span>dGrid<span class="sc">$</span>p)</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>dGrid<span class="sc">$</span>p <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">+</span><span class="dv">10</span><span class="sc">*</span>dGrid<span class="sc">$</span>p) <span class="sc">/</span> (<span class="dv">2</span><span class="sc">+</span><span class="dv">10</span>)</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a><span class="co"># show how knn divides the space</span></span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dGrid, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> p),</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="st">"square"</span>, <span class="at">size=</span><span class="dv">10</span>, <span class="at">alpha=</span><span class="fl">0.05</span>) <span class="sc">+</span> </span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data=</span>dTrain, <span class="fu">aes</span>(dollar, exclam, <span class="at">color =</span> spam)) <span class="sc">+</span> </span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>) <span class="sc">+</span></span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">trans=</span><span class="st">'sqrt'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-10nnGridReScale" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1326,72 +1328,72 @@ Figure&nbsp;10: Predicted probability based on percentage of $ and !, rescaled t
 <p>The last change we are going to make is to use <em>leave-one-out cross-validation</em> to test the performance. Just as it sounds, we will leave out the first email and find the <span class="math inline">\(k\)</span> nearest neighbors among the remaining emails. Those <span class="math inline">\(k\)</span> emails will “vote” on whether the first, held out email is spam or not. Then we repeat the same process for the second email, the third email, and so on, always leaving out one email and allowing its <span class="math inline">\(k\)</span> nearest emails to make predictions for it. When we do not have a separate test set, cross-validation is a convenient method for simulating what it would be like to make predictions on future emails. This is not hard to implement, but it takes some time and effort to do it well.</p>
 <p>Fortunately for us, the <code>FNN</code> package has <code>knn.cv()</code> function built-in. It gives the leave-one-out cross-validated predictions for each email in the spam dataset. For this example, we will classify using majority vote (i.e.&nbsp;equal false positive and false negative costs, prediction threshold set to <span class="math inline">\(\frac{1}{2}\)</span>). As with <code>knn()</code>, there is a <code>prob=TRUE</code> option, but remember it will return the proportion of votes for the most common class (and <em>not</em> the probability of spam).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> </span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand.grid</span>(<span class="at">kval      =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>,</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">transform =</span> <span class="fu">c</span>(<span class="st">"divideMax"</span>,<span class="st">"scale"</span>,<span class="st">"sqrt"</span>,<span class="st">"cuberoot"</span>,<span class="st">"tenthroot"</span>),</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">misclass  =</span> <span class="cn">NA</span>)</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design))</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>{</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>  dTrain <span class="ot">&lt;-</span> dSpam <span class="sc">|&gt;</span></span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">spam=</span><span class="fu">factor</span>(spam, <span class="at">levels=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"not spam"</span>,<span class="st">"spam"</span>)))</span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"divideMax"</span>)</span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">/</span><span class="fu">max</span>(x)))</span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"scale"</span>)</span>
-<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
-<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
-<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"sqrt"</span>)</span>
-<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
-<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, sqrt)) <span class="sc">|&gt;</span></span>
-<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
-<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"cuberoot"</span>)</span>
-<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
-<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
-<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"tenthroot"</span>)</span>
-<span id="cb55-34"><a href="#cb55-34" aria-hidden="true" tabindex="-1"></a>  {</span>
-<span id="cb55-35"><a href="#cb55-35" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
-<span id="cb55-36"><a href="#cb55-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>))) <span class="sc">|&gt;</span></span>
-<span id="cb55-37"><a href="#cb55-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
-<span id="cb55-38"><a href="#cb55-38" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb55-39"><a href="#cb55-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-40"><a href="#cb55-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get leave-one-out cross-validated predictions</span></span>
-<span id="cb55-41"><a href="#cb55-41" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn.cv</span>(dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam), </span>
-<span id="cb55-42"><a href="#cb55-42" aria-hidden="true" tabindex="-1"></a>                   <span class="at">cl =</span> dTrain<span class="sc">$</span>spam,</span>
-<span id="cb55-43"><a href="#cb55-43" aria-hidden="true" tabindex="-1"></a>                   <span class="at">k  =</span> design<span class="sc">$</span>kval[i])</span>
-<span id="cb55-44"><a href="#cb55-44" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb55-45"><a href="#cb55-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute misclassification rate</span></span>
-<span id="cb55-46"><a href="#cb55-46" aria-hidden="true" tabindex="-1"></a>  design<span class="sc">$</span>misclass[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>spam<span class="sc">!=</span>p)</span>
-<span id="cb55-47"><a href="#cb55-47" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>design <span class="ot">&lt;-</span> </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expand.grid</span>(<span class="at">kval      =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>,</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">transform =</span> <span class="fu">c</span>(<span class="st">"divideMax"</span>,<span class="st">"scale"</span>,<span class="st">"sqrt"</span>,<span class="st">"cuberoot"</span>,<span class="st">"tenthroot"</span>),</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">misclass  =</span> <span class="cn">NA</span>)</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(design))</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  dTrain <span class="ot">&lt;-</span> dSpam <span class="sc">|&gt;</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">spam=</span><span class="fu">factor</span>(spam, <span class="at">levels=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"not spam"</span>,<span class="st">"spam"</span>)))</span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"divideMax"</span>)</span>
+<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
+<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">/</span><span class="fu">max</span>(x)))</span>
+<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"scale"</span>)</span>
+<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
+<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
+<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"sqrt"</span>)</span>
+<span id="cb53-22"><a href="#cb53-22" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb53-23"><a href="#cb53-23" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
+<span id="cb53-24"><a href="#cb53-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, sqrt)) <span class="sc">|&gt;</span></span>
+<span id="cb53-25"><a href="#cb53-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
+<span id="cb53-26"><a href="#cb53-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb53-27"><a href="#cb53-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"cuberoot"</span>)</span>
+<span id="cb53-28"><a href="#cb53-28" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
+<span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
+<span id="cb53-32"><a href="#cb53-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb53-33"><a href="#cb53-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span> <span class="cf">if</span>(design<span class="sc">$</span>transform[i]<span class="sc">==</span><span class="st">"tenthroot"</span>)</span>
+<span id="cb53-34"><a href="#cb53-34" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb53-35"><a href="#cb53-35" aria-hidden="true" tabindex="-1"></a>    dTrain <span class="ot">&lt;-</span> dTrain <span class="sc">|&gt;</span></span>
+<span id="cb53-36"><a href="#cb53-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, <span class="cf">function</span>(x) x<span class="sc">^</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">10</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb53-37"><a href="#cb53-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">57</span>, scale))</span>
+<span id="cb53-38"><a href="#cb53-38" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb53-39"><a href="#cb53-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-40"><a href="#cb53-40" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get leave-one-out cross-validated predictions</span></span>
+<span id="cb53-41"><a href="#cb53-41" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> FNN<span class="sc">::</span><span class="fu">knn.cv</span>(dTrain <span class="sc">|&gt;</span> <span class="fu">select</span>(<span class="sc">-</span>spam), </span>
+<span id="cb53-42"><a href="#cb53-42" aria-hidden="true" tabindex="-1"></a>                   <span class="at">cl =</span> dTrain<span class="sc">$</span>spam,</span>
+<span id="cb53-43"><a href="#cb53-43" aria-hidden="true" tabindex="-1"></a>                   <span class="at">k  =</span> design<span class="sc">$</span>kval[i])</span>
+<span id="cb53-44"><a href="#cb53-44" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb53-45"><a href="#cb53-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># compute misclassification rate</span></span>
+<span id="cb53-46"><a href="#cb53-46" aria-hidden="true" tabindex="-1"></a>  design<span class="sc">$</span>misclass[i] <span class="ot">&lt;-</span> <span class="fu">mean</span>(dTrain<span class="sc">$</span>spam<span class="sc">!=</span>p)</span>
+<span id="cb53-47"><a href="#cb53-47" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>design <span class="sc">|&gt;</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> kval, <span class="at">y =</span> misclass, <span class="at">color =</span> transform, <span class="at">group =</span> transform)) <span class="sc">+</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="co"># Add points to highlight data</span></span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">""</span>,</span>
-<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"k"</span>,</span>
-<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Misclassification Rate"</span>,</span>
-<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Transformation"</span></span>
-<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
-<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
-<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
-<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"bottom"</span></span>
-<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>design <span class="sc">|&gt;</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> kval, <span class="at">y =</span> misclass, <span class="at">color =</span> transform, <span class="at">group =</span> transform)) <span class="sc">+</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span> <span class="co"># Add points to highlight data</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">""</span>,</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"k"</span>,</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Misclassification Rate"</span>,</span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"Transformation"</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="cn">NA</span>)) <span class="sc">+</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>),</span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"bottom"</span></span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div id="fig-TransformExperiment" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1495,13 +1497,14 @@ Hastie, T., R. Tibshirani, and J. H. Friedman. 2001. <em>The Elements of Statist
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy

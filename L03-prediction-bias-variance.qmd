@@ -24,8 +24,8 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
 <!-- In terminal -->
-<!-- quarto render L3-prediction-bias-variance.qmd -->
-<!-- quarto render L3-prediction-bias-variance.qmd --cache-refresh  -->
+<!-- quarto render L03-prediction-bias-variance.qmd -->
+<!-- quarto render L03-prediction-bias-variance.qmd --cache-refresh  -->
 
 <!-- git commit L3* -m "commit message" -->
 <!-- git status -->
@@ -528,12 +528,19 @@ for(i in 1:nrow(dTest))
     # compute the absolute distance between SES i and all training cases
     mutate(distance = abs(ses - dTest$ses[i])) |>
     # get the k closest observations
-    slice_min(distance, n=1000) |>
-    # use the average of these as the prediction
-    summarize(p = mean(wave4dropout)) |>
+    slice_min(distance, n=k) |>
+    # use the (laplace corrected) average of these as the prediction
+    summarize(p = (1 + sum(wave4dropout)+1) / (2 + k)) |>
     pull(p)
 }
 ```
+
+Note that I have used a Laplace correction when estimating computing $\hat p$.
+
+$$
+\hat p = \frac{1+\sum_{\mathbf{x}_i \in N_k(\mathbf{x})} y_i}{2+k}
+$$
+Adding 1 in the numerator and the number of outcome categories (2 in this case) to the denominator shrinks the probability estimates toward $\frac{1}{2}$. This is particularly important when an observations nearest neighbors are all 0s or all 1s. In such cases we do not *really* think that their predicted probabilities should be 0 or 1. The Laplace correction keeps the predicted probabilities from ever equaling 0 or 1.
 
 Let's check the average misclassification cost for our test set.
 
@@ -558,6 +565,7 @@ dTest |>
   arrange(ses) |>
   plot(p~ses, data=_, type="l", 
        ylim=c(0, max(0.1,dTest$p)),
+       xlim=range(nels0$ses),
        xlab="SES", ylab="P(dropout)")
 # add the decision boundary
 abline(h=0.05)
@@ -573,7 +581,7 @@ We were rather presumptuous in the previous section to set $k=1000$. Perhaps the
 ```{r}
 #| label: codeSearchOptimalK
 #| cache: true
-design <- data.frame(k = c(1:10, 10*(2:10), 100*(2:10), 500*(3:10), 6000, 7000),
+design <- data.frame(k = c(10*(1:9), 100*(1:9), 1000*(1:6), 6500 + 10*(0:70)),
                      misclassCost = NA)
 for(iK in 1:nrow(design))
 {
@@ -584,14 +592,14 @@ for(iK in 1:nrow(design))
     # dTest$p[i] <- dTrain |>
     #   mutate(distance = abs(ses - dTest$ses[i])) |>
     #   slice_min(distance, n=k) |>
-    #   summarize(p = mean(wave4dropout)) |>
+    #   summarize(p = (sum(wave4dropout)+1)/(k+2)) |>
     #   pull(p)
 
     # much faster than dplyr version
     j <- abs(dTrain$ses - dTest$ses[i]) |>
       order() |> 
       head(k)
-    dTest$p[i] <- mean(dTrain$wave4dropout[j])
+    dTest$p[i] <- (sum(dTrain$wave4dropout[j])+1)/(k+2)
   }
   design$misclassCost[iK] <- dTest |>
     summarize(misclassCost = mean( 1*(wave4dropout==0 & p> 0.05) +
@@ -605,30 +613,48 @@ Let's plot the misclassification cost by $k$.
 #| label: fig-MisclassCostByK
 #| fig-cap: Misclassification cost by choice of $k$
 plot(misclassCost~k, data=design, 
-     type="l", lwd=3,
+     type="l", lwd=3, log="x",
      ylab="Misclassification cost")
 # find the best value for k
 kBest <- design |> 
-  slice_min(misclassCost) |>
+  slice_min(misclassCost, with_ties=FALSE) |>
   pull(k)
 abline(v=kBest)
 kBest
 ```
-It appears that the best choice for $k$ is around 500. Let's look at a narrower range around $k=500$. If you ran the previous block of code, you realized that it can take a while to try the 36 values of $k$. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of $k$ at the same time. The `doParallel` package makes this really easy. You can use `detectCores()` to learn how many cores you have available to you.
+
+```{r}
+#| label: check with FNN
+#| echo: false
+#| eval: false
+k <- kBest
+a <- FNN::knn(train = dTrain |> select(ses),
+              test = dTest |> select(ses),
+              cl = dTrain$wave4dropout,
+              k=k,
+              prob=TRUE)
+
+dTest <- dTest |>
+  mutate(pFNN = attributes(a)$prob,
+         pFNN = ifelse(a=="1", pFNN, 1-pFNN),
+         pFNN = (pFNN*k+1)/(k+2))
+```
+
+It appears that the best choice for $k$ is around 7000 Let's look at a narrower range around $k=7000$. If you ran the previous block of code, you realized that it can take a while to try the `r nrow(design)` values of $k$. It is a good habit to run such for loops in parallel. Each loop is independent of the other so we could have our computer work on multiple values of $k$ at the same time. The `doParallel` package makes this really easy. You can use `detectCores()` to learn how many cores you have available to you.
 ```{r}
 #| message: false
 library(doParallel)
 ```
 
 ```{r}
-#| label: codeSelectK250-600
+#| label: codeSelectK
 #| cache: true
 # give R access to 12 cores
 cl <- makeCluster(12)
 registerDoParallel(cl)
 
 # look at a narrow range where performance is best
-design <- data.frame(k = seq(250,600,by=3), misclassCost = NA)
+design <- data.frame(k = seq(6800,7200,by=3), misclassCost = NA)
 # run foreach() in parallel
 results <- foreach(iK=1:nrow(design), .combine = c) %dopar%
 {
@@ -638,7 +664,7 @@ results <- foreach(iK=1:nrow(design), .combine = c) %dopar%
     j <- abs(dTrain$ses - dTest$ses[i]) |>
       order() |> 
       head(k)
-    dTest$p[i] <- mean(dTrain$wave4dropout[j])
+    dTest$p[i] <- (sum(dTrain$wave4dropout[j])+1)/(k+2)
   }
   return( with(dTest, mean( 1*(wave4dropout==0)*(p> 0.05) +
                            19*(wave4dropout==1)*(p<=0.05))) )
@@ -650,11 +676,11 @@ design$misclassCost <- results
 Now we can plot the misclassification cost by choice of $k$ in this narrower range.
 ```{r}
 #| label: fig-misclassCostNarrowRange
-#| fig-cap: Misclassification cost by choice of $k$ $(250\leq k\leq 600)$
+#| fig-cap: Misclassification cost by choice of $k$ $(6900\leq k\leq 7100)$
 plot(misclassCost~k, data=design, type="l")
 
 kBest <- design |>
-  slice_min(misclassCost) |>
+  slice_min(misclassCost, with_ties = FALSE) |>
   pull(k)
 abline(v=kBest)
 kBest
@@ -676,6 +702,7 @@ dTest |>
   arrange(ses) |>
   plot(p~ses, data=_, 
        type="l", lwd=3,
+       xlim=range(nels0$ses),
        ylim=c(0, max(0.1,dTest$p)),
        xlab="SES", ylab="P(dropout)")
 # add the decision boundary
@@ -741,7 +768,7 @@ While for the NELS88 dataset we built our knn classifier "by hand," here we will
 ```{r}
 #| message: false
 #| warning: false
-library(FNN) 
+library(FNN)
 ```
 First, we will practice using just the `char_freq_$` and `char_freq_!` as predictive features. In R, it is difficult to use features with \$ and ! in their names. We'll start by renaming them and then we will make a grid of values for `char_freq_$` and `char_freq_!` from 0 to their maximum values. We will extract predicted spam probabilities for all combinations in this range.
 
@@ -782,10 +809,12 @@ A few important things to note about predicted probabilities from `knn()`. Inter
 3.   the values stored in `attributes(knnPred)$prob` are *not* the probabilities of being spam, but rather the probability of being from the neighbors' majority class. If the majority class is a 0, then the values in `attributes(knnPred)$prob` are actually $1-P(\mathrm{spam})$
 
 ```{r}
-# extract the probability of predicted class from knnPred
+# extract the probability of majority class from knnPred
 dGrid$p <- attributes(knnPred)$prob
 # convert to P(spam)
 dGrid$p <- ifelse(knnPred=="1", dGrid$p, 1-dGrid$p)
+# and apply Laplace correction
+dGrid$p <- (1+10*dGrid$p) / (2+10)
 ```
 
 Now we can see how the 10-nn model divides the space. The lighter blue areas are those more likely to be spam and the dark areas tend to be non-spam.
@@ -825,6 +854,7 @@ knnPred <- FNN::knn(train   = dTrain |> select(-spam),
                prob    = TRUE)
 dGrid$p <- attributes(knnPred)$prob
 dGrid$p <- ifelse(knnPred=="1", dGrid$p, 1-dGrid$p)
+dGrid$p <- (1+10*dGrid$p) / (2+10)
 
 # show how knn divides the space
 ggplot() +
