@@ -676,7 +676,8 @@ design$misclassCost <- results
 Now we can plot the misclassification cost by choice of $k$ in this narrower range.
 ```{r}
 #| label: fig-misclassCostNarrowRange
-#| fig-cap: Misclassification cost by choice of $k$ $(6900\leq k\leq 7100)$
+#| fig-cap: !expr paste0("Misclassification cost by choice of $k$ $(",min(design$k)," \\leq k\\leq ",max(design$k),")$")
+
 plot(misclassCost~k, data=design, type="l")
 
 kBest <- design |>
