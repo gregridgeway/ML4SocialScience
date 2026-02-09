@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Greg Ridgeway">
-<meta name="dcterms.date" content="2026-02-04">
+<meta name="dcterms.date" content="2026-02-09">
 
 <title>L3 Prediction, Bias, Variance, and Noise</title>
 <style>
@@ -345,7 +345,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 4, 2026</p>
+      <p class="date">February 9, 2026</p>
     </div>
   </div>
   
@@ -900,7 +900,7 @@ EPE(\mathbf{x}_0)
 <span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># get the k closest observations</span></span>
 <span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">slice_min</span>(distance, <span class="at">n=</span>k) <span class="sc">|&gt;</span></span>
 <span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># use the (laplace corrected) average of these as the prediction</span></span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">p =</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">sum</span>(wave4dropout)<span class="sc">+</span><span class="dv">1</span>) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">+</span> k)) <span class="sc">|&gt;</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">p =</span> (<span class="dv">1</span> <span class="sc">+</span> <span class="fu">sum</span>(wave4dropout)) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">+</span> k)) <span class="sc">|&gt;</span></span>
 <span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pull</span>(p)</span>
 <span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -925,7 +925,7 @@ EPE(\mathbf{x}_0)
 <span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>misclassTest1000</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  misclassCost
-1    0.5892433</code></pre>
+1     0.593198</code></pre>
 </div>
 </div>
 <p>Misclassification cost is 0.59, much lower than the misclassification cost if we classify everyone as a graduate. Let’s check out what the 1000-nn classifier looks like.</p>

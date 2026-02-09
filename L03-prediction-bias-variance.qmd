@@ -530,7 +530,7 @@ for(i in 1:nrow(dTest))
     # get the k closest observations
     slice_min(distance, n=k) |>
     # use the (laplace corrected) average of these as the prediction
-    summarize(p = (1 + sum(wave4dropout)+1) / (2 + k)) |>
+    summarize(p = (1 + sum(wave4dropout)) / (2 + k)) |>
     pull(p)
 }
 ```
