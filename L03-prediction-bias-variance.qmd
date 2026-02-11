@@ -12,6 +12,7 @@ format:
       light: default
     toc: true
     html-math-method: mathjax
+    embed-resources: true
   pdf:
     toc: true
 execute:
@@ -27,7 +28,7 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 <!-- quarto render L03-prediction-bias-variance.qmd -->
 <!-- quarto render L03-prediction-bias-variance.qmd --cache-refresh  -->
 
-<!-- git commit L3* -m "commit message" -->
+<!-- git commit L03* -m "commit message" -->
 <!-- git status -->
 <!-- git push -->
 
