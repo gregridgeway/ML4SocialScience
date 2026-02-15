@@ -12,6 +12,7 @@ format:
       light: default
     toc: true
     html-math-method: mathjax
+    embed-resources: true
     tikz:
       engine: latex
       dvisvgm-opts: "--no-background"
@@ -65,12 +66,12 @@ Section 5.6 of @deisenroth2020mathematics.
 Consider a simple neural network that has two inputs $x_1$ and $x_2$ that enter a linear transformation, which outputs a prediction. Let's further assume that we wish to minimize squared error, $J(\mathbf{y},\mathbf{\hat y})=\sum (y_i-\hat y_i)^2$. This is the same as ordinary least squares, but I introduce it with a neural network framework to move gradually into more complex neural networks. So, the structure of this model is
 
 ```{tikz}
-#| label: fig-linearnn
-#| echo: false
-#| fig-cap: "A linear model as a network"
-#| fig-align: center
-#| format-pdf: fig-ext=pdf
-#| out-width: 100%
+%| label: fig-linearnn
+%| echo: false
+%| fig-cap: "A linear model as a network"
+%| fig-align: center
+%| format-pdf: fig-ext=pdf
+%| out-width: 100%
 \special{background:transparent}
 
 \tikzstyle{mynode}=[thick,draw=blue,fill=blue!20,circle,minimum size=22]
@@ -177,13 +178,13 @@ In the last row, the value of $f$ is $f(x)$. We can conceptualize the calculatio
 
 
 ```{tikz}
-#| label: fig-autodiffexample
-#| echo: false
-#| fig-cap: "An illustration of evaluating a function structured as a network"
-#| fig-align: center
-#| format-html: fig-ext=svg
-#| format-pdf: fig-ext=pdf
-#| out-width: 90%
+%| label: fig-autodiffexample
+%| echo: false
+%| fig-cap: "An illustration of evaluating a function structured as a network"
+%| fig-align: center
+%| format-html: fig-ext=svg
+%| format-pdf: fig-ext=pdf
+%| out-width: 90%
 
 \special{background:transparent}
 
@@ -319,13 +320,13 @@ The neural network in the previous section has no better features or capacity th
 The network in @fig-nnhiddenlayer1 takes two continuous inputs, passes them through a hidden layer of four nodes, which passes their output to a final output node.
 
 ```{tikz}
-#| label: fig-nnhiddenlayer1
-#| echo: false
-#| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
-#| fig-align: center
-#| format-html: fig-ext=svg
-#| format-pdf: fig-ext=pdf
-#| out-width: 100%
+%| label: fig-nnhiddenlayer1
+%| echo: false
+%| fig-cap: "A neural network with a single hidden layer with 4 hidden nodes and a single output"
+%| fig-align: center
+%| format-html: fig-ext=svg
+%| format-pdf: fig-ext=pdf
+%| out-width: 100%
 
 \special{background:transparent}
 
