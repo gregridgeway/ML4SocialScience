@@ -340,7 +340,7 @@ $$
 $$
 
 ## Multivariate gradient descent
-The gradient "points" in the direction that we need to move our current choice of $\beta$ to optimize $J(\beta)$. That is, if we have a current guess for $\hat\beta$, then we can find an improved guess (one that makes $J(\beta)$ even smaller), by adjusting our guess as
+The gradient "points" in the direction of the steepest _increase_ in $J$. So $-\nabla J$ is the direction in which we need to move our current choice of $\beta$ to optimize $J(\beta)$. That is, if we have a current guess for $\hat\beta$, then we can find an improved guess (one that makes $J(\beta)$ even smaller), by adjusting our guess as
 $$
 \begin{split}
     \hat\beta &\leftarrow \hat\beta - \lambda\begin{bmatrix} \frac{\partial J}{\partial\beta_0} \\ \vdots \\ \frac{\partial J}{\partial\beta_d} \end{bmatrix} \\
