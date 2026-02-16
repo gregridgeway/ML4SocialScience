@@ -179,7 +179,7 @@ This shows that the maximum likelihood estimator for $p$ is the sample mean of t
 
 1.  Find $\hat x$ that optimizes $f(x)=2x+\frac{200}{x}$. Is it a maximum or a minimum?
 2.  Find $\hat x$ that optimizes $f(x)=\log(x)+\log(1-x)+3$. Is it a maximum or a minimum?
-3.  Find $\hat t$ that optimizes $f(x)=100+\frac{800t}{t^2+90000}$. Is it a maximum or a minimum?
+3.  Find $\hat t$ that optimizes $f(t)=100+\frac{800t}{t^2+90000}$. Is it a maximum or a minimum?
 4.  Find $\hat p$ that optimizes $\ell(p)=6\log(p)+10\log(1-p)$. Is it a maximum or a minimum?
 
 
