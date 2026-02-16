@@ -13,6 +13,7 @@ format:
       light: default
     toc: true
     html-math-method: mathjax
+    embed-resources: true
     tikz:
       engine: latex
       dvisvgm-opts: "--no-background"
@@ -55,12 +56,12 @@ Recurrent neural networks (RNNs) are a class of neural networks designed to mode
 First, let's look at the basic form of a recurrent neural network. As shown in @fig-rnn, we observe at time $t$ the input features $\mathbf{x}_t$ and want to predict the output features $\mathbf{y}_t$. Between the input and output layers is a hidden layer, $\mathbf{h}_t$. The length of the vector $\mathbf{h}$ does not need to match the lengths of $\mathbf{y}$ or $\mathbf{x}$. The hidden layer is intended to capture patterns or memories that need to persist over time, possibly modified by the current input $\mathbf{x}_t$.
 
 ```{tikz}
-#| label: fig-rnn
-#| echo: false
-#| fig-cap: "A recurrent neural network"
-#| fig-align: center
-#| out-width: 100%
-#| cache: true
+%| label: fig-rnn
+%| echo: false
+%| fig-cap: "A recurrent neural network"
+%| fig-align: center
+%| out-width: 100%
+%| cache: true
 
 \definecolor{darklybg}{RGB}{34,34,34}
 
@@ -224,13 +225,13 @@ Throughout the LSTM model there is a kind of long-term memory, denoted $\mathbf{
 Like the standard RNN, the cell for timepoint $t$ has an input, $\mathbf{x}_t$, a hidden "short-term" memory, $\mathbf{h}_t$, and an output, $\mathbf{y}_t$. In addition to those standard features, LSTMs add a long-term memory component, $\mathbf{C}_t$. All of these components are vectors. In deep learning applications $\mathbf{C}_t$ can be a vector of dimension 1,024 or more. In simpler applications or for time series forecasting, $\mathbf{C}_t$ can be a smaller vector with dimension like 64 or 128. The dimension of $\mathbf{C}_t$ does need to match the dimension of $\mathbf{h}_t$.
 
 ```{tikz}
-#| label: fig-lstm-longterm
-#| echo: false
-#| fig-cap: "Modification of an RNN cell to have LSTM's long term memory"
-#| fig-align: center
-#| format-pdf: default
-#| out-width: 100%
-#| cache: true
+%| label: fig-lstm-longterm
+%| echo: false
+%| fig-cap: "Modification of an RNN cell to have LSTM's long term memory"
+%| fig-align: center
+%| format-pdf: default
+%| out-width: 100%
+%| cache: true
 
 \definecolor{darklybg}{RGB}{34,34,34}
 \usetikzlibrary{backgrounds, arrows.meta, calc}
@@ -288,13 +289,13 @@ $$
 $$
 
 ```{tikz}
-#| label: fig-lstm-forget
-#| echo: false
-#| fig-cap: "The forget gate"
-#| fig-align: center
-#| format-pdf: default
-#| out-width: 100%
-#| cache: true
+%| label: fig-lstm-forget
+%| echo: false
+%| fig-cap: "The forget gate"
+%| fig-align: center
+%| format-pdf: default
+%| out-width: 100%
+%| cache: true
 
 \definecolor{darklybg}{RGB}{34,34,34}
 \usetikzlibrary{backgrounds, arrows.meta, calc}
@@ -366,13 +367,13 @@ $$
 
 
 ```{tikz}
-#| label: fig-lstm-input
-#| echo: false
-#| fig-cap: "The input gate"
-#| fig-align: center
-#| format-pdf: default
-#| out-width: 100%
-#| cache: true
+%| label: fig-lstm-input
+%| echo: false
+%| fig-cap: "The input gate"
+%| fig-align: center
+%| format-pdf: default
+%| out-width: 100%
+%| cache: true
 
 \definecolor{darklybg}{RGB}{34,34,34}
 \usetikzlibrary{backgrounds, arrows.meta, calc}
@@ -460,13 +461,13 @@ $$
 $$
 
 ```{tikz}
-#| label: fig-lstm-output
-#| echo: false
-#| fig-cap: "The output gate"
-#| fig-align: center
-#| format-pdf: default
-#| out-width: 100%
-#| cache: true
+%| label: fig-lstm-output
+%| echo: false
+%| fig-cap: "The output gate"
+%| fig-align: center
+%| format-pdf: default
+%| out-width: 100%
+%| cache: true
 
 \definecolor{darklybg}{RGB}{34,34,34}
 \usetikzlibrary{backgrounds, arrows.meta, calc}
