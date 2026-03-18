@@ -215,7 +215,8 @@ coef(lm1)
 #| warning: false
 #| label: fig-glmnetCoefPath
 #| fig-cap: Coefficient path for LASSO penalty from `glmnet()`
-plot(lasso1)
+plot(lasso1, xvar="norm")
+maxL1 <- lasso1$beta |> t() |> tail(1) |> abs() |> sum()
 points(rep(3.18, length(betaTrue)-1), coef(lm1)[-1], 
        col=1:(length(betaTrue)-1),
        pch=15)
@@ -227,10 +228,11 @@ For comparison let's look at the coefficient paths for ridge regression.
 #| fig-cap: Coefficient path for ridge penalty from `glmnet()`
 ridge1 <- glmnet(X[,-1], y, 
                  family="gaussian",  # squared error
-                 alpha=0)            # 1 - lasso, 0 - ridge regression
-                 #lambda=seq(2.02,0,length.out=1000))
-plot(ridge1)
-points(rep(3.18, length(betaTrue)-1), coef(lm1)[-1], 
+                 alpha=0,            # 1 - lasso, 0 - ridge regression
+                 lambda=seq(1000,0,length.out=1000))
+plot(ridge1, xvar="norm")
+maxL1 <- ridge1$beta |> t() |> tail(1) |> abs() |> sum()
+points(rep(maxL1, length(betaTrue)-1), coef(lm1)[-1], 
        col=1:(length(betaTrue)-1),
        pch=15)
 ```
