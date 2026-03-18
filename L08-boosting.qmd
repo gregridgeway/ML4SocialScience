@@ -25,8 +25,8 @@ bibliography: G:/My Drive/docs/Greg/articles/mybib.bib
 ---
 
 <!-- In terminal -->
-<!-- quarto render L8-boosting.qmd -->
-<!-- quarto render L8-boosting.qmd --cache-refresh  -->
+<!-- quarto render L08-boosting.qmd -->
+<!-- quarto render L08-boosting.qmd --cache-refresh  -->
 
 
 ```{r}
