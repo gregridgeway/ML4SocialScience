@@ -348,7 +348,7 @@ Are you not amazed?!?!? The paths of the coefficients traced out as we iterate l
 #| label: fig-LASSOCoefPath
 #| fig-cap: Coefficient path for LASSO penalty
 
-plot(lasso1, lwd=5)
+plot(lasso1, xvar="norm", lwd=5)
 
 L1norm <- apply(matBetaHatFS[-1,], 2, function(x) sum(abs(x)))
 for(i in 2:nrow(matBetaHatFS))
