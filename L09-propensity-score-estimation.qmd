@@ -66,18 +66,17 @@ Here are the Florida murderers data.
 library(dplyr)
 library(tidyr)
 
-dFLmurder <- rbind(matrix(rep(c("W","W",1),each= 19),ncol=3),
-              matrix(rep(c("W","W",0),each=132),ncol=3),
-             #matrix(rep(c("W","B",1),each=  0),ncol=3),
-              matrix(rep(c("W","B",0),each=  9),ncol=3),
-              matrix(rep(c("B","W",1),each= 11),ncol=3),
-              matrix(rep(c("B","W",0),each= 52),ncol=3),
-              matrix(rep(c("B","B",1),each=  6),ncol=3),
-              matrix(rep(c("B","B",0),each= 97),ncol=3))
-dFLmurder <- data.frame(dFLmurder) |>
-  setNames(c("murderer","victim","death")) |>
-  mutate(death = as.numeric(death))
-
+dFLmurder <- tribble(
+  ~murderer, ~victim, ~death, ~n,
+  "W","W",1,19,
+  "W","W",0,132,
+  "W","B",0,9,
+  "B","W",1,11,
+  "B","W",0,52,
+  "B","B",1,6,
+  "B","B",0,97) |>
+  uncount(n)
+  
 dFLmurder |> group_by(murderer,victim,death) |> count()
 ```
 
@@ -97,7 +96,7 @@ So, `r round(100*a$deathPenalty[1],1)`% of black murderers received the death co
 By far the most common way social scientists have traditionally explored such questions is to use a regression model. With regression we can formally test whether the outcome differs by "treatment," which in this case is the race of the murderer.
 ```{r}
 # compare death sentence for B vs. W murderers
-lm1 <- lm(death ~ murderer,data=dFLmurder)
+lm1 <- lm(death ~ murderer, data=dFLmurder)
 summary(lm1)
 ```
 At first glance, the race of the murderer does not seem to matter. However, there is another variable in the dataset, the race of the victim. Let's explore
@@ -110,22 +109,22 @@ dFLmurder |>
 It does seem that there are large differences in the race of the victims. The majority (62%) of black murderers had black victims. White murderers rarely had black victims (5.6%). Maybe this should not matter since we are really only interested in the race of the murderer, but let's try "controlling" for the race of the victim. I put "controlling" in quotes because social scientists often say "I controlled for the race of the victim," but what they really mean is that they put `+victim race` in a regression model, which is not the same and, as we will see, does not offer complete adjustment for the race of the victim.
 ```{r}
 # include race of victim in regression
-lm3 <- lm(death ~ murderer+victim,data=dFLmurder)
+lm3 <- lm(death ~ murderer+victim, data=dFLmurder)
 summary(lm3)
 ```
-Now that we have included race of the victim, the sign on the race of the murderer has changed from positive to negative. Suddenly it seems that black murderers are *more* likely to get the death penalty by 5 percentage points. Why would include the race of the victim suddenly change our understanding of the relationship between the race of the murderer and receiving the death penalty?
+Now that we have included race of the victim, the sign on the race of the murderer has changed from positive to negative. Suddenly it seems that black murderers are *more* likely to get the death penalty by 5 percentage points. Why would including the race of the victim suddenly change our understanding of the relationship between the race of the murderer and receiving the death penalty?
 
 Let's examine some simple tables.
 ```{r}
 dFLmurder |> 
   group_by(murderer) |> 
-  summarize(deathPenalty = mean(death) )
+  summarize(deathPenalty = mean(death))
 ```
 Here we observe the 1.6 percentage point difference in the rate of death penalty imposition with white murderers being more likely to receive the death penalty.
 ```{r}
 dFLmurder |> 
-  group_by(murderer,victim) |> 
-  summarize(deathPenalty = mean(death) )
+  group_by(murderer, victim) |> 
+  summarize(deathPenalty = mean(death))
 ```
 
 Once we break it down by race of the victim, we see that black murderers are more likely to receive the death penalty when their victim is black (by 5.8 percentage points) *and* when their victim is white (by 4.9 percentage points). Our conclusions have completely changed after we introduced the race of the victim.
@@ -158,33 +157,38 @@ where $t_i$ is a 0/1 treatment assignment indicator and $x_1$ and $x_2$ are 0/1 
 
 ```{r}
 set.seed(06182001)
-beta <- c(0,1,1,4)
-dataCor <- data.frame(treat=rep(0:1,each=100)) |>
+beta <- c(0, 1, 1, 4)
+dataCor <- data.frame(treat=rep(0:1, each=100)) |>
   mutate(x1 = rbinom(200, 1, 0.3*treat + 0.9*(1-treat)),
          x2 = rbinom(200, 1, 0.3*treat + 0.9*(1-treat)),
-         y  = rnorm(200, cbind(1,x1,x2,x1*x2)%*%beta, 1))
+         y  = rnorm(200, cbind(1,x1,x2,x1*x2) %*% beta, 1))
 ```
 
 The traditional social science approach is the regression model with additive terms for the treatment assignment, $x_1$, and $x_2$, expecting the $+x_1+x_2$ part to "control for" the confounders.
 ```{r}
-summary(lm(y~treat+x1+x2, data=dataCor))
+lm(y~treat+x1+x2, data=dataCor) |>
+  summary()
 ```
-Yikes! This regression model found a significant treatment effect! But we simulated these data precisely so that there would be no treatment effect. Revisit how we simulated these data. $treat$ is not involved in determining the value of $y$. $y$ only depends on $x_1$ and $x_2$, yet the regression model is telling us that $treat
+Yikes! This regression model found a significant treatment effect! But we simulated these data precisely so that there would be no treatment effect. Revisit how we simulated these data. $treat$ is not involved in determining the value of $y$. $y$ only depends on $x_1$ and $x_2$, yet the regression model is telling us that treatment is associated with _reducing_ $y$.
 
 In this case, the failure to include an important $x_1x_2$ interaction term caused us to make an incorrect inference about the effect of the treatment on the outcome. If we were clever enough to realize that there was an important interaction term, then we could simply add it in and correctly conclude that there was no treatment effect.
 
 ```{r}
-summary(lm(y~treat+x1+x2+x1:x2, data=dataCor))
+lm(y~treat+x1+x2+x1:x2, data=dataCor) |>
+  summary()
 ```
 
 This is the problem. In order to be sure to fully account for confounders, linear regression requires that we get the model structure right. This is very hard. There are a lot of methods for regression diagnostics, but they are complicated and become more complicated as the number of features increases. In datasets with dozens or hundreds of features, it becomes challenging to consider fully all of the potential interaction effects and non-linear effects. Neglecting an important one can drastically change your conclusions.
 
-Before we move on to a different simulation, note that this dataset had a strong correlation between $\mathbf{x}$ and $t$ and, at the same time, $t$ was strongly associated with $y$.
+Before we move on to a different simulation, note that this dataset had a strong correlation between $\mathbf{x}$ and $t$. At the same time, $t$ was strongly associated with $y$.
 
 ```{r}
-cor(dataCor$x1, dataCor$treat)
-cor(dataCor$x2, dataCor$treat)
-aggregate(y~treat, data=dataCor, mean)
+dataCor |>
+  select(x1, x2, treat) |>
+  cor()
+
+dataCor |>
+  summarize(mean(y), .by=treat)
 ```
 
 ## Example: Simulated data ($\mathbf{x}$ uncorrelated with $t$)
@@ -194,11 +198,11 @@ Here we will explore a similar simulation. However, this time $\mathbf{x}$ will 
 ```{r}
 # independent
 set.seed(06182001)
-dataInd <- data.frame(treat=rep(0:1,each=100))
-dataInd$x1 <- rbinom(200, 1, 0.6)
-dataInd$x2 <- rbinom(200, 1, 0.3*dataInd$x1 + 0.9*(1-dataInd$x1))
-beta <- c(0,1,1,4)
-dataInd$y  <- rnorm(200, with(dataInd, cbind(1,x1,x2,x1*x2)%*%beta), 1)
+beta <- c(0, 1, 1, 4)
+dataInd <- data.frame(treat=rep(0:1,each=100)) |>
+  mutate(x1 = rbinom(200, 1, 0.6),
+         x2 = rbinom(200, 1, 0.3*x1 + 0.9*(1-x1)),
+         y  = rnorm(200, cbind(1,x1,x2,x1*x2) %*% beta, 1))
 ```
 
 This simulation is like what happens in a randomized trial. In randomized trials, the treatment assignment is unrelated to any of the $x_j$ by the researcher's design.
@@ -206,13 +210,15 @@ This simulation is like what happens in a randomized trial. In randomized trials
 If we use the simplest regression approach to check whether there is a treatment effect, we correctly conclude that there is no treatment effect. When $t$ was correlated with $\mathbf{x}$ in our previous simulation we found the opposite.
 
 ```{r}
-summary(lm(y~treat, data=dataInd))
+lm(y~treat, data=dataInd) |>
+  summary()
 ```
 
 Let's go ahead and adjust for $\mathbf{x}$ and see if it matters.
 
 ```{r}
-summary(lm(y~treat+x1+x2, data=dataInd))
+lm(y~treat+x1+x2, data=dataInd) |>
+  summary()
 ```
 
 Still a null treatment effect, one that is even closer to 0 and with a smaller standard error.
@@ -220,7 +226,8 @@ Still a null treatment effect, one that is even closer to 0 and with a smaller s
 Let's add in the important missing interaction term.
 
 ```{r}
-summary(lm(y~treat+x1*x2, data=dataInd))
+lm(y~treat+x1*x2, data=dataInd) |>
+  summary()
 ```
 
 We get a treatment effect estimate that is even smaller and a standard error that shows even more precision.
@@ -302,7 +309,7 @@ An equivalent way of thinking about the weight is the odds that an observation w
 
 ```{r}
 # fit a fully interacted logistic regression model
-logit1 <- glm(treat~x1*x2,data=dataCor,family=binomial)
+logit1 <- glm(treat~x1*x2, data=dataCor, family=binomial)
 # generate a table of all combinations of x1 and x2
 wCheck <- expand.grid(x1=0:1, x2=0:1) |> 
   arrange(x1,x2)
@@ -560,9 +567,11 @@ $$
     \frac{\sum_{i=1}^n (1-t_i)y_i  
          \frac{p(t=1|\mathbf{x}_i)}{1-p(t=1|\mathbf{x}_i)}}
         {\sum_{i=1}^n (1-t_i)} \\
- &\approx \frac{\sum_{i=1}^n (1-t_i)y_i  
-         \frac{p(t=1|\mathbf{x}_i)}{1-p(t=1|\mathbf{x}_i)}}
-        {\sum_{i=1}^n (1-t_i)\frac{p(t=1|\mathbf{x}_i)}{1-p(t=1|\mathbf{x}_i)}} 
+ &\approx \frac{\sum_{i=1}^n (1-t_i)  
+         \frac{p(t=1|\mathbf{x}_i)}{1-p(t=1|\mathbf{x}_i)}y_i}
+        {\sum_{i=1}^n (1-t_i)\frac{p(t=1|\mathbf{x}_i)}{1-p(t=1|\mathbf{x}_i)}} \\
+ &= \frac{\sum_{t_i=0} w_iy_i}
+         {\sum_{t_i=0} w_i} \\
 \end{split}
 $$
 
@@ -737,10 +746,10 @@ Let's see how the treatment (prior heroin use) and control (no heroin use) group
 ```{r}
 #| message: false
 nsduh |> 
-  group_by(heroin,NEWRACE2) |> 
-  summarize(totW=sum(ANALWT_C)) |>
+  group_by(heroin, NEWRACE2) |> 
+  summarize(totW = sum(ANALWT_C)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW,
               values_fill = 0)
 ```
@@ -748,20 +757,20 @@ Note that 71% of those reporting heroin use are white, while 67% of those report
 ```{r}
 #| message: false
 nsduh |> 
-  group_by(heroin,IRSEX) |> 
-  summarize(totW=sum(ANALWT_C)) |>
+  group_by(heroin, IRSEX) |> 
+  summarize(totW = sum(ANALWT_C)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW)
 ```
 Also, sex of the respondent appears to be associated with heroin use with men making up 71% of the heroin users compared with 48% of the non-heroin users.
 ```{r}
 #| message: false
 nsduh |> 
-  group_by(heroin,IRMARIT) |> 
-  summarize(totW=sum(ANALWT_C)) |>
+  group_by(heroin, IRMARIT) |> 
+  summarize(totW = sum(ANALWT_C)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW,
               values_fill = 0)
 ```
@@ -769,10 +778,10 @@ Marital status seems strongly associated with heroin use, with 30% of heroin use
 ```{r}
 #| message: false
 nsduh |> 
-  group_by(heroin,CATAG7) |> 
-  summarize(totW=sum(ANALWT_C)) |>
+  group_by(heroin, CATAG7) |> 
+  summarize(totW = sum(ANALWT_C)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW,
               values_fill = 0)
 ```
@@ -826,29 +835,29 @@ If all of our prior reasoning is correct, then the propensity score weights shou
 ```{r}
 #| message: false
 nsduh |> 
-  group_by(heroin,NEWRACE2) |> 
-  summarize(totW=sum(w)) |>
+  group_by(heroin, NEWRACE2) |> 
+  summarize(totW = sum(w)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW,
               values_fill = 0)
 nsduh |> 
-  group_by(heroin,IRSEX) |> 
-  summarize(totW=sum(w)) |>
+  group_by(heroin, IRSEX) |> 
+  summarize(totW = sum(w)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW)
 nsduh |> 
-  group_by(heroin,IRMARIT) |> 
-  summarize(totW=sum(w)) |>
+  group_by(heroin, IRMARIT) |> 
+  summarize(totW = sum(w)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW)
 nsduh |> 
-  group_by(heroin,CATAG7) |> 
-  summarize(totW=sum(w)) |>
+  group_by(heroin, CATAG7) |> 
+  summarize(totW = sum(w)) |>
   group_by(heroin) |>
-  mutate(totW=totW/sum(totW)) |>
+  mutate(totW = totW/sum(totW)) |>
   pivot_wider(names_from = heroin, values_from = totW)
 ```
 
