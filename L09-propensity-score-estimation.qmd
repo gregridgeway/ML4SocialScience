@@ -391,7 +391,7 @@ This assigns weight 1 to treatment cases and weights equal to the odds of treatm
 
 Because these weights make the control cases "look like" the treatment cases, the overall distribution of $x_1$ and $x_2$ match the distribution among the treatment cases. As a result, our treatment effect estimate describes what the treatment effect would be for the kinds of individuals that receive the treatment. If there is a particular value of $\mathbf{x}$ that made it impossible for someone to be in the treatment group, then $P(t=1|\mathbf{x})=0$ and any control case with that feature would receive weight 0 and be eliminated from the analysis.
 
-Since these weights make the control cases resemble the treatment cases, our treatment effect estimate is called the *average treatment effect on the treated* (ATT). The ATE compares what actually happened to the treatment group to what would have happened had they not been treated. In the majority of social science inquiries, this is the primary quantity of interest.
+Since these weights make the control cases resemble the treatment cases, our treatment effect estimate is called the *average treatment effect on the treated* (ATT). The ATT compares what actually happened to the treatment group to what would have happened had they not been treated. In the majority of social science inquiries, this is the primary quantity of interest.
 
 1.  When examining racial disparities in the justice system, we ask what would happen to members of a racial minority ("treated") if their cases were handled the same way as the cases of white defendants. We reweight cases involving white defendants to collectively resemble cases involving minority defendants. That's an ATT question.
 
@@ -799,7 +799,6 @@ What would we conclude without any adjustment for demographic characteristics? R
 
 ```{r}
 #| label: svyglmNoCovariates
-#| cache: true
 svyglm(arrest~heroin, design=sdesign) |>
   summary()
 ```

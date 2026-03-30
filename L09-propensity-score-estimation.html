@@ -2954,7 +2954,7 @@ F-statistic: 3.529 on 2 and 323 DF,  p-value: 0.03047</code></pre>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dFLmurder <span class="sc">|&gt;</span> </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(murderer) <span class="sc">|&gt;</span> </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">deathPenalty =</span> <span class="fu">mean</span>(death) )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">deathPenalty =</span> <span class="fu">mean</span>(death))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 2
   murderer deathPenalty
@@ -3499,7 +3499,7 @@ w_i = t_i + (1-t_i)\frac{P(t=1|\mathbf{x}_i)}{1-P(t=1|\mathbf{x}_i)}
 \]</span></p>
 <p>This assigns weight 1 to treatment cases and weights equal to the odds of treatment assignment to the comparison cases.</p>
 <p>Because these weights make the control cases “look like” the treatment cases, the overall distribution of <span class="math inline">\(x_1\)</span> and <span class="math inline">\(x_2\)</span> match the distribution among the treatment cases. As a result, our treatment effect estimate describes what the treatment effect would be for the kinds of individuals that receive the treatment. If there is a particular value of <span class="math inline">\(\mathbf{x}\)</span> that made it impossible for someone to be in the treatment group, then <span class="math inline">\(P(t=1|\mathbf{x})=0\)</span> and any control case with that feature would receive weight 0 and be eliminated from the analysis.</p>
-<p>Since these weights make the control cases resemble the treatment cases, our treatment effect estimate is called the <em>average treatment effect on the treated</em> (ATT). The ATE compares what actually happened to the treatment group to what would have happened had they not been treated. In the majority of social science inquiries, this is the primary quantity of interest.</p>
+<p>Since these weights make the control cases resemble the treatment cases, our treatment effect estimate is called the <em>average treatment effect on the treated</em> (ATT). The ATT compares what actually happened to the treatment group to what would have happened had they not been treated. In the majority of social science inquiries, this is the primary quantity of interest.</p>
 <ol type="1">
 <li><p>When examining racial disparities in the justice system, we ask what would happen to members of a racial minority (“treated”) if their cases were handled the same way as the cases of white defendants. We reweight cases involving white defendants to collectively resemble cases involving minority defendants. That’s an ATT question.</p></li>
 <li><p>When evaluating a reading program designed for schools in low income neighborhoods, we reweight students without access to the reading program to resemble the students in the schools in the low income neighborhoods with the reading program. …ATT.</p></li>
