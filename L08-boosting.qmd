@@ -104,7 +104,8 @@ L1mse(betaHat, y, X, lambda=0)
 ```
 
 Remember that `nlm()` (non-linear minimization) is a general purpose optimization function. I give it the starting value for $\beta$, and it will optimize `L1mse()`.
-```{r nlmLambda0}
+```{r}
+#| label: nlmLambda0
 nlm1 <- nlm(L1mse,
             p=betaHat,
             y=y,
@@ -119,7 +120,8 @@ coef(lm1)
 ```
 
 What happens when we set $\lambda=0.4$, penalizing the absolute size of the coefficients.
-```{r nlmLambda04}
+```{r}
+#| label: nlmLambda04
 nlm1 <- nlm(L1mse,
             p=betaHat,
             y=y,
@@ -131,7 +133,8 @@ nlm1
 Note that $\beta_1$ and $\beta_2$ have been reduced nearly to 0.0000001, essentially 0, while the other coefficients have been shrunk slightly. This is our first glimpse at why the $L_1$ penalty is special. For certain values of $\lambda$ it will eliminate some (or many) features.
 
 Let's try a larger $\lambda$.
-```{r nlmLambda4}
+```{r}
+#| label: nlmLambda4
 nlm1 <- nlm(L1mse,
             p=betaHat,
             y=y,
@@ -194,7 +197,8 @@ Notice the following:
 The linear model with $L_1$ regularization is built into the `glmnet` package. `glmnet()` actually allows the user to mix between ridge regression and the lasso using the $\alpha$ parameter, with $\alpha=1$ indicating all lasso, $\alpha=0$ all ridge regression, and in between a mixture of the two.
 
 Here I ask `glmnet()` to try 1000 different values for $\lambda$ between 0 and 2 ($\lambda$ is scaled a little differently in `glmnet()`). Note that I've dropped the first column from `X` since `glmnet()` will add the intercept term.
-```{r glmnet1000}
+```{r}
+#| label: glmnet1000
 #| message: false
 #| warning: false
 library(glmnet)
@@ -448,7 +452,8 @@ sesSplits <- sesSplits[-1] - 0.5*diff(sesSplits)
 ```
 
 Then we'll take each student in the NELS dataset and create 2,554 0/1 features about whether their SES would put them in the left or right branch of the associated decision tree.
-```{r genSESsplits01Coding}
+```{r}
+#| label: genSESsplits01Coding
 X <- lapply(sesSplits, function(x) as.numeric(nels0$ses < x)) |>
   do.call(cbind, args=_)
 dim(X)
@@ -948,7 +953,8 @@ We will run 3,000 iterations and set $\lambda=0.003$ (shrinkage). The number of 
 We are going to allow up to three-way interactions by setting `interaction_depth = 3`. This limits the number of splits that any of the decision trees can have to 3. So, every new tree added to the prediction function involves at most 3 distinct student features.
 
 Lastly, we will do 10-fold cross-validation and use up to 12 cores to fit the model.
-```{r gbmtNELS}
+```{r}
+#| label: gbmtNELS
 #| warning: false
 #| cache: true
 

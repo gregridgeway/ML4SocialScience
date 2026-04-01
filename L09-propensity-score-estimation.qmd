@@ -866,7 +866,9 @@ Everything appears to have worked out! The heroin and non-heroin groups now have
 
 The column $w$ contains our propensity score weights multiplied by the NSDUH sampling weights. We first set up a new survey design object with these new weights and proceed with a weighted regression model to compute the ATT.
 
-```{r outcomeLogitweights}
+```{r}
+#| label: outcomeLogitweights
+
 sdesign <- svydesign(ids=~1, weights=~w, data=nsduh)
 lm1 <- svyglm(arrest ~ heroin, design=sdesign)
 summary(lm1)
@@ -915,9 +917,10 @@ library(gbm3)
 
 We start by estimating a propensity score model, predicting `heroin` from the demographic features. Some aspects of fitting the generalized boosted model change when estimating propensity scores. The primary change is our motivation. We are no longer interested in out-of-sample predictive performance. There is no future dataset that we are trying to predict. We are trying to understand for this specific dataset, how to explain which observations are in the treatment group and which ones are in the comparison group. The implication is that we do not do any cross-validation and we set `bag.fraction=1.0`. Both of these changes result in better *in-sample* predictive performance.
 
-```{r gbmPS}
+```{r}
 #| cache: true
 #| warning: false
+#| label: gbmPS
 set.seed(20240316)
 gbm1 <- gbmt(heroin~NEWRACE2+IRSEX+IRMARIT+CATAG7,
              data=nsduh,
@@ -938,8 +941,9 @@ gbm1 <- gbmt(heroin~NEWRACE2+IRSEX+IRMARIT+CATAG7,
 Now that we have a model fit, we need to decide the optimal number of iterations. It is somewhat of an open question about what it means to optimize the propensity score model. There is general consensus that the optimal propensity score model should produce propensity scores that makes the balance tables "look good." There is also no consensus on what "looks good" means. I characterize the balance table based on the single largest difference in the table. The propensity score model is only as good as how well it balances the worst balanced feature. If there is one feature that does not align across the treatment and control groups, then there is a risk that we have not adequately accounted for its potential confounding effect.
 
 For now we will use all 3,000 trees of our GBM model. We will consider optimizing the number of trees when we use `fastDR()`.
-```{r gbmPSpredict}
+```{r}
 #| cache: true
+#| label: gbmPSpredict
 nsduh$bw <- 1
 nsduh$bw[nsduh$heroin==0] <- nsduh |>
   filter(heroin==0) |>
@@ -997,7 +1001,9 @@ nsduh |>
 ```
 
 Finally, let's complete our outcome analysis.
-```{r outcomeGBMweights}
+```{r}
+#| label: outcomeGBMweights
+
 sdesign <- svydesign(ids=~1, weights=~bw, data=nsduh)
 lm1 <- svyglm(arrest ~ heroin, design=sdesign)
 summary(lm1)
@@ -1025,10 +1031,11 @@ library(kableExtra)
 ```
 
 To estimate the propensity score estimates and the ATT, run the `fastDR()` function. You just need to separate out the outcome, treatment indicator, confounders, sampling weights, and an observation identifier.
-```{r fastDR}
+```{r}
 #| cache: true
 #| message: false
 #| warning: false
+#| label: fastDR
 nsduh$w <- NULL
 ps2 <- fastDR(list(y.form=~arrest, 
                    t.form=~heroin, 
