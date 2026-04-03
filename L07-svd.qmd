@@ -245,20 +245,21 @@ So $\mathbf{U}$ is a $`r nrow(stewSVD$u)`\times`r ncol(stewSVD$u)`$ matrix and $
 
 ```{r}
 #| label: fig-singularvalues
-#| fig-cap: "Distribution of the singular values"
+#| fig-cap: "Left: Singular values, Right: Cumulative sum of squares of singular values"
 par(mfrow=c(1,2))
 options(scipen=1000)
 plot(stewSVD$d, type="l", log="y", 
      xlab="Singular value order",ylab="Singular values")
 
-plot(100*cumsum(stewSVD$d)/sum(stewSVD$d), 
+plot(100*cumsum(stewSVD$d^2)/sum(stewSVD$d^2), 
      type="l", 
      ylim=c(0,100),
-     xlab="Singular value order",ylab="Cumulative % of singular value sum")
-abline(h=0.9)
+     xlab="Index",
+     ylab="Cumulative % of variance explained")
+abline(h=98, col="red")
 ```
 
-The left plot in @fig-singularvalues shows that the largest singular values are very large (note that the y-axis on in the log scale). The largest is `r round(max(stewSVD$d),1)` and there are `r sum(stewSVD$d>100)` singular values that exceed 100. Then the singular values decrease rather quickly with the smallest singular values near 0. The right plot in @fig-singularvalues shows the cumulative percentage of the total sum of the singular values. That is, the sum of all the singular values is `r sum(stewSVD$d) |> round(1) |> format(scientific=FALSE)`. The first `r sum(cumsum(stewSVD$d)/sum(stewSVD$d)<0.9)` singular values sum to 90% of this total. This has a direct interpretation in terms of the variance explained in the original image. The first `r sum(cumsum(stewSVD$d)/sum(stewSVD$d)<0.9)` singular vectors explain 90% of the variance in the values. Perfectly reconstructing the image requires all of the singular vectors, but we can nearly reconstruct it with many fewer. This is what image compression aims to do.
+The left plot in @fig-singularvalues shows that the largest singular values are very large (note that the y-axis on in the log scale). The largest is `r round(max(stewSVD$d),1)` and there are `r sum(stewSVD$d>100)` singular values that exceed 100. Then the singular values decrease rather quickly with the smallest singular values near 0. The right plot in @fig-singularvalues shows the cumulative percentage of the total sum of the squared singular values. That is, the sum of all the squared singular values is `r sum(stewSVD$d^2) |> round(1) |> format(scientific=FALSE)`. The first `r k<-which(cumsum(stewSVD$d^2) / sum(stewSVD$d^2) >= 0.98)[1]; k` squared singular values sum to `r round(100*(cumsum(stewSVD$d^2) / sum(stewSVD$d^2))[k])`% of this total. This has a direct interpretation in terms of the variance explained in the original image. The first `r k` singular vectors explain `r round(100*(cumsum(stewSVD$d^2) / sum(stewSVD$d^2))[k])`% of the variance in the values. Perfectly reconstructing the image requires all of the singular vectors, but we can nearly reconstruct it with many fewer. This is what image compression aims to do.
 
 Let's check some other properties. The sum of squares of every column in $\mathbf{U}$ and $\mathbf{V}$ should be 1 and the dot product of two different columns should be 0. Let's check with a few columns.
 
