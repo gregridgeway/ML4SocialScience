@@ -245,7 +245,7 @@ So $\mathbf{U}$ is a $`r nrow(stewSVD$u)`\times`r ncol(stewSVD$u)`$ matrix and $
 
 ```{r}
 #| label: fig-singularvalues
-#| fig-cap: "Left: Singular values, Right: Cumulative sum of squares of singular values"
+#| fig-cap: "Left: Singular values, Right: Cumulative sum of squares of singular values. Red horizontal line is at 98%"
 par(mfrow=c(1,2))
 options(scipen=1000)
 plot(stewSVD$d, type="l", log="y", 
